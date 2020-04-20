@@ -12,7 +12,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Xarial.XToolkit.Extensions
+namespace Xarial.XToolkit.Wpf.Extensions
 {
     public static class NotifyPropertyChangedExtension
     {

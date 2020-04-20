@@ -16,7 +16,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Xarial.XToolkit.Reflection;
-using Xarial.XToolkit.Extensions;
+using Xarial.XToolkit.Wpf.Extensions;
 using System.Windows.Media;
 
 namespace Xarial.XToolkit.Wpf.Controls

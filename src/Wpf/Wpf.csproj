@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
     <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
     <RootNamespace>Xarial.XToolkit.Wpf</RootNamespace>
     <AssemblyName>Xarial.XToolkit.Wpf</AssemblyName>
 	<SignAssembly>false</SignAssembly>
