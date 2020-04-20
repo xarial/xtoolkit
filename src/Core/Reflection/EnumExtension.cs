@@ -33,31 +33,5 @@ namespace Xarial.XToolkit.Reflection
                 return false;
             }
         }
-
-        public static Enum[] GetFlags(this Type enumType)
-        {
-            var flags = new List<Enum>();
-
-            var flag = 0x1;
-
-            foreach (Enum value in Enum.GetValues(enumType))
-            {
-                var bits = Convert.ToInt32(value);
-
-                if (bits != 0)
-                {
-                    while (flag < bits)
-                    {
-                        flag <<= 1;
-                    }
-                    if (flag == bits)
-                    {
-                        flags.Add(value);
-                    }
-                }
-            }
-
-            return flags.ToArray();
-        }
     }
 }

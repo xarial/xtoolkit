@@ -1,0 +1,34 @@
+﻿<Window x:Class="WpfTester.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfTester"
+        xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0">
+            <TabItem Header="EnumComboBox">
+                <StackPanel Orientation="Vertical" DataContext="{Binding Path=EnumComboBox}">
+                    <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum1}"/>
+                    <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum2}"/>
+                    <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum3}"/>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="NumberBox">
+                <StackPanel Orientation="Vertical" DataContext="{Binding Path=NumberBox}">
+                    <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}"/>
+                    <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}"/>
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+        <Button Grid.Row="1" Margin="5" Width="100">
+            <TextBlock Text="Test" Margin="5"/>
+        </Button>
+    </Grid>
+</Window>
