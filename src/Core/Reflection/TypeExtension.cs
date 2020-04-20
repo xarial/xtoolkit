@@ -5,10 +5,11 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace System
+namespace Xarial.XToolkit.Reflection
 {
     public static class TypeExtension
     {

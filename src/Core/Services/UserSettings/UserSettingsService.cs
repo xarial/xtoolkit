@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Services.UserSettings.Attributes;
 using Xarial.XToolkit.Services.UserSettings.Converters;
 

@@ -5,9 +5,11 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
+using System;
 using System.Linq;
+using System.Reflection;
 
-namespace System.Reflection
+namespace Xarial.XToolkit.Reflection
 {
     public static class AssemblyExtension
     {
