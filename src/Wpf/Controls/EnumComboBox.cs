@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2020 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -58,7 +65,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             var elem = container as FrameworkElement;
 
-            if (elem?.TemplatedParent is EnumComboBox)
+            if (elem?.TemplatedParent is ComboBox)
             {
                 return Header;
             }
@@ -98,7 +105,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
-    public class EnumComboBox : ComboBox
+    public class EnumComboBox : Control
     {
         public enum EnumItemType_e
         {
@@ -107,9 +114,15 @@ namespace Xarial.XToolkit.Wpf.Controls
             None
         }
 
-        public class EnumComboBoxItem : INotifyPropertyChanged
+        internal class EnumComboBoxItem : INotifyPropertyChanged
         {
+#pragma warning disable CS0067
             public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore CS0067
+
+            private readonly EnumComboBox m_Parent;
+            private readonly Enum m_Value;
+            private readonly Enum[] m_AffectedFlags;
 
             internal static string GetTitle(Enum value)
             {
@@ -125,30 +138,6 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                 return title;
             }
-
-            internal static string GetDescription(Enum value)
-            {
-                string title = "";
-
-                if (value != null)
-                {
-                    if (!value.TryGetAttribute<DescriptionAttribute>(a => title = a.Description))
-                    {
-                        title = GetTitle(value);
-
-                        if (string.IsNullOrEmpty(title))
-                        {
-                            title = value.ToString();
-                        }
-                    }
-                }
-
-                return title;
-            }
-
-            private readonly EnumComboBox m_Parent;
-            private readonly Enum m_Value;
-            private readonly Enum[] m_AffectedFlags;
 
             internal EnumComboBoxItem(EnumComboBox parent, Enum value, Enum[] affectedFlags)
             {
@@ -170,12 +159,32 @@ namespace Xarial.XToolkit.Wpf.Controls
                     Type = EnumItemType_e.Default;
                 }
 
-                Title = GetDescription(m_Value);
+                Title = GetItemDescription(m_Value);
 
                 if (!value.TryGetAttribute<DescriptionAttribute>(a => Description = a.Description))
                 {
                     Description = m_Value.ToString();
                 }
+            }
+
+            private string GetItemDescription(Enum value)
+            {
+                string title = "";
+
+                if (value != null)
+                {
+                    if (!value.TryGetAttribute<DescriptionAttribute>(a => title = a.Description))
+                    {
+                        title = GetTitle(value);
+
+                        if (string.IsNullOrEmpty(title))
+                        {
+                            title = value.ToString();
+                        }
+                    }
+                }
+
+                return title;
             }
 
             public EnumItemType_e Type { get; private set; }
@@ -262,10 +271,18 @@ namespace Xarial.XToolkit.Wpf.Controls
         private Type m_CurBoundType;
         private Enum[] m_CurFlags;
 
+        private ComboBox m_ComboBox;
+
         static EnumComboBox()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EnumComboBox),
                 new FrameworkPropertyMetadata(typeof(EnumComboBox)));
+        }
+
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+            m_ComboBox = (ComboBox)this.Template.FindName("PART_ComboBox", this);
         }
 
         public static readonly DependencyProperty ValueProperty =
@@ -293,7 +310,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     cmb.m_CurFlags = enumType.GetEnumFlags();
 
-                    cmb.Items.Clear();
+                    cmb.m_ComboBox.Items.Clear();
 
                     cmb.m_CurBoundType = enumType;
 
@@ -301,7 +318,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                     foreach (Enum item in items)
                     {
-                        cmb.Items.Add(new EnumComboBoxItem(cmb, item,
+                        cmb.m_ComboBox.Items.Add(new EnumComboBoxItem(cmb, item,
                             cmb.m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
                     }
 
@@ -314,9 +331,9 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private static void UpdateHeader(EnumComboBox cmb)
         {
-            if (cmb.Items.Count > 0)
+            if (cmb.m_ComboBox.Items.Count > 0)
             {
-                cmb.SelectedIndex = 0;
+                cmb.m_ComboBox.SelectedIndex = 0;
             }
         }
     }

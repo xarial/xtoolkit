@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,11 +18,13 @@ namespace WpfTester
 {
     public partial class MainWindow : Window
     {
+        private readonly MainVM m_Vm;
+
         public MainWindow()
         {
             InitializeComponent();
 
-            this.DataContext = new MainVM()
+            m_Vm = new MainVM()
             {
                 EnumComboBox = new EnumComboBoxVM() 
                 {
@@ -33,6 +36,13 @@ namespace WpfTester
                     IntVal = 2
                 }
             };
+
+            this.DataContext = m_Vm;
+        }
+
+        private void OnButtonClick(object sender, RoutedEventArgs e)
+        {
+            Debugger.Break();
         }
     }
 }
