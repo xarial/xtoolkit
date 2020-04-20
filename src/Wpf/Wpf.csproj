@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Xarial.XToolkit.Wpf</RootNamespace>
+    <AssemblyName>Xarial.XToolkit.Wpf</AssemblyName>
+	<SignAssembly>false</SignAssembly>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageId>Xarial.XToolkit.Wpf</PackageId>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <Authors>Xarial</Authors>
+    <Product>xToolkit</Product>
+    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <PackageProjectUrl>https://xtoolkit.xarial.com</PackageProjectUrl>
+    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
+    <Company>Xarial Pty Limited</Company>
+    <RepositoryUrl>https://github.com/xarial/xtoolkit</RepositoryUrl>
+    <PackageTags>toolkit,wpf,controls</PackageTags>
+    <Description>Collection of WPF Controls and utilities</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\LICENSE.md" Link="LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+</Project>
