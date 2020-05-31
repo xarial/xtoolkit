@@ -97,7 +97,7 @@ stages:
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xarial'
         
-- stage: 'PublishPrerelseNuGetPackage'
+- stage: 'PublishPreReleaseNuGetPackage'
   displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
@@ -122,7 +122,7 @@ stages:
 
 - stage: 'PublishProductionPackage'
   displayName: 'Publish Release NuGet Package to Nuget.org production'
-  dependsOn: 'PublishPrerelseNuGetPackage'
+  dependsOn: 'PublishPreReleaseNuGetPackage'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   jobs:
   - deployment:
