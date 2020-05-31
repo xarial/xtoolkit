@@ -10,6 +10,7 @@ using System.Collections;
 using Newtonsoft.Json.Linq;
 using Xarial.XToolkit.Services.UserSettings.Attributes;
 using NUnit.Framework;
+using Newtonsoft.Json;
 
 namespace Xarial.XToolkit.Services.UserSettings.Tests
 {
@@ -63,8 +64,18 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             }
         }
 
+        public class SettsMock3 
+        {
+            public ObjectType Obj { get; set; }
+        }
+
+        public class ObjectType 
+        {
+            public string Value { get; set; }
+        }
+
         #endregion
-        
+
         [Test]
         public void ReadSettingsTest()
         {
@@ -127,6 +138,51 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             Assert.AreEqual("{\"Field1\":\"AAA\",\"Field2\":10.0}", res1.ToString());
             Assert.AreEqual("{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"__version\":\"2.1.0\"}", res2.ToString());
+        }
+
+        [Test]
+        public void CustomConverterTest() 
+        {
+            var srv = new UserSettingsService();
+
+            var setts = new SettsMock3()
+            {
+                Obj = new ObjectType()
+                {
+                    Value = "XYZ"
+                }
+            };
+
+            var res1 = new StringBuilder();
+
+            var ser = new BaseValueSerializer<ObjectType>(x => x.Value, x => new ObjectType() { Value = x });
+
+            srv.StoreSettings(setts, new StringWriter(res1), ser);
+            var res2 = srv.ReadSettings<SettsMock3>(new StringReader("{\"Obj\":\"ABC\"}"), ser);
+
+            Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
+            Assert.AreEqual("ABC", res2.Obj.Value);
+        }
+
+        [Test]
+        public void CustomConverterAndVersionTest()
+        {
+            var srv = new UserSettingsService();
+
+            var setts = new SettsMock2()
+            {
+                Field1 = ""
+            };
+
+            var res1 = new StringBuilder();
+
+            var ser = new BaseValueSerializer<string>(x => "ABC", x => "XYZ");
+
+            srv.StoreSettings(setts, new StringWriter(res1), ser);
+            var res2 = srv.ReadSettings<SettsMock2>(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"__version\":\"2.1.0\"}"), ser);
+
+            Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"__version\":\"2.1.0\"}", res1.ToString());
+            Assert.AreEqual("XYZ", res2.Field1);
         }
     }
 }
