@@ -24,6 +24,6 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
             return m_Serializer.DeserializeValue((string)reader.Value);
         }
 
-        public override bool CanConvert(Type objectType) => objectType == m_Serializer.Type;
+        public override bool CanConvert(Type objectType) => m_Serializer.Type.IsAssignableFrom(objectType);
     }
 }
