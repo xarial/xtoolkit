@@ -13,7 +13,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XToolkit.Wpf</PackageId>
-    <VersionPrefix>0.1.4</VersionPrefix>
+    <VersionPrefix>0.1.5</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xToolkit</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
@@ -27,6 +27,10 @@
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+  
   <ItemGroup>
     <None Include="..\..\LICENSE.md" Link="LICENSE.md">
       <Pack>True</Pack>
