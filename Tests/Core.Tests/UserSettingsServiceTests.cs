@@ -69,7 +69,22 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             public ObjectType Obj { get; set; }
         }
 
-        public class ObjectType 
+        public class SettsMock4
+        {
+            public IObjectType Obj { get; set; }
+        }
+
+        public interface IObjectType 
+        {
+            string Value { get; set; }
+        }
+
+        public class ObjectType
+        {
+            public string Value { get; set; }
+        }
+
+        public class ObjectType2 : IObjectType
         {
             public string Value { get; set; }
         }
@@ -159,6 +174,30 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             srv.StoreSettings(setts, new StringWriter(res1), ser);
             var res2 = srv.ReadSettings<SettsMock3>(new StringReader("{\"Obj\":\"ABC\"}"), ser);
+
+            Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
+            Assert.AreEqual("ABC", res2.Obj.Value);
+        }
+
+        [Test]
+        public void CustomConverterDerivedTypeTest()
+        {
+            var srv = new UserSettingsService();
+
+            var setts = new SettsMock4()
+            {
+                Obj = new ObjectType2()
+                {
+                    Value = "XYZ"
+                }
+            };
+
+            var res1 = new StringBuilder();
+
+            var ser = new BaseValueSerializer<IObjectType>(x => x.Value, x => new ObjectType2() { Value = x });
+
+            srv.StoreSettings(setts, new StringWriter(res1), ser);
+            var res2 = srv.ReadSettings<SettsMock4>(new StringReader("{\"Obj\":\"ABC\"}"), ser);
 
             Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
             Assert.AreEqual("ABC", res2.Obj.Value);
