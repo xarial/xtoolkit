@@ -13,7 +13,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XToolkit.Wpf</PackageId>
-    <VersionPrefix>0.1.5</VersionPrefix>
+    <VersionPrefix>0.2.0</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xToolkit</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
@@ -24,6 +24,8 @@
     <PackageTags>toolkit,wpf,controls</PackageTags>
     <Description>Collection of WPF Controls and utilities</Description>
     <RepositoryType>git</RepositoryType>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageIconUrl>https://xarial.com/xtoolkit-icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
 
@@ -33,6 +35,10 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <None Include="..\..\data\icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
     <None Include="..\..\LICENSE.md" Link="LICENSE.md">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
