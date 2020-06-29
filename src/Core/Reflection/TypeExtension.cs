@@ -82,17 +82,17 @@ namespace Xarial.XToolkit.Reflection
         {
             var interfaceTypes = thisType.GetInterfaces();
 
-            Predicate<Type> canCastFunc = (t) => t.IsGenericType && t.GetGenericTypeDefinition() == genericType;
+            bool CanCastFunc(Type t) => t.IsGenericType && t.GetGenericTypeDefinition() == genericType;
 
             foreach (var it in interfaceTypes)
             {
-                if (canCastFunc(it))
+                if (CanCastFunc(it))
                 {
                     return it;
                 }
             }
 
-            if (canCastFunc(thisType))
+            if (CanCastFunc(thisType))
             {
                 return thisType;
             }
