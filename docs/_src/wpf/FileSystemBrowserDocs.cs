@@ -8,7 +8,7 @@ namespace Wpf.Docs
         public static void BrowseFolder() 
         {
             //--- browse-folder
-            if (FsoBrowser.BrowseForFolder(out string path, "Select sample folder"))
+            if (FileSystemBrowser.BrowseFolder(out string path, "Select sample folder"))
             {
                 Console.WriteLine($"Selected path: {path}");
             }
@@ -22,14 +22,14 @@ namespace Wpf.Docs
         public static void BrowseFile() 
         {
             //--- browse-file-filter
-            var filters = FsoBrowser.BuildFilterString(
+            var filters = FileSystemBrowser.BuildFilterString(
                 new FileFilter("Text Files", "*.txt", "*.doc", "*.md"), 
                 FileFilter.ImageFiles, 
                 FileFilter.AllFiles);
             //---
 
             //--- browse-file-open
-            if (FsoBrowser.BrowseForFileOpen(out string fileIn, "Select input file", filters)) 
+            if (FileSystemBrowser.BrowseFileOpen(out string fileIn, "Select input file", filters)) 
             {
                 Console.WriteLine($"Selected path: {fileIn}");
             }
@@ -40,7 +40,7 @@ namespace Wpf.Docs
             //---
 
             //--- browse-file-save
-            if (FsoBrowser.BrowseForFileSave(out string fileOut, "Select output file", filters))
+            if (FileSystemBrowser.BrowseFileSave(out string fileOut, "Select output file", filters))
             {
                 Console.WriteLine($"Selected path: {fileOut}");
             }

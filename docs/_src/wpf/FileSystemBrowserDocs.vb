@@ -10,7 +10,7 @@ Namespace Wpf.Docs
             '--- browse-folder
             Dim path As String = Nothing
 
-            If FsoBrowser.BrowseForFolder(path, "Select sample folder") Then
+            If FileSystemBrowser.BrowseFolder(path, "Select sample folder") Then
                 Console.WriteLine($"Selected path: {path}")
             Else
                 Console.WriteLine("User has cancelled the folder browsing")
@@ -22,7 +22,7 @@ Namespace Wpf.Docs
         Sub BrowseFile()
 
             '--- browse-file-filter
-            Dim filters = FsoBrowser.BuildFilterString(
+            Dim filters = FileSystemBrowser.BuildFilterString(
                 New FileFilter("Text Files", "*.txt", "*.doc", "*.md"),
                 FileFilter.ImageFiles,
                 FileFilter.AllFiles)
@@ -31,7 +31,7 @@ Namespace Wpf.Docs
             '--- browse-file-open
             Dim fileIn As String = Nothing
 
-            If FsoBrowser.BrowseForFileOpen(fileIn, "Select input file", filters) Then
+            If FileSystemBrowser.BrowseFileOpen(fileIn, "Select input file", filters) Then
                 Console.WriteLine($"Selected path: {fileIn}")
             Else
                 Console.WriteLine("User has cancelled the file browsing")
@@ -41,7 +41,7 @@ Namespace Wpf.Docs
             '--- browse-file-save
             Dim fileOut As String = Nothing
 
-            If FsoBrowser.BrowseForFileSave(fileOut, "Select output file", filters) Then
+            If FileSystemBrowser.BrowseFileSave(fileOut, "Select output file", filters) Then
                 Console.WriteLine($"Selected path: {fileOut}")
             Else
                 Console.WriteLine("User has cancelled the file browsing")

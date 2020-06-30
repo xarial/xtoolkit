@@ -13,7 +13,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XToolkit.Wpf</PackageId>
-    <VersionPrefix>0.2.0</VersionPrefix>
+    <VersionPrefix>0.2.1</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xToolkit</Product>
     <Copyright>© 2020 Xarial Pty Limited</Copyright>
