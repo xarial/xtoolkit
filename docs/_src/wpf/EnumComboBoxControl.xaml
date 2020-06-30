@@ -1,0 +1,8 @@
+﻿<UserControl x:Class="Wpf.Docs.EnumComboBoxControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf">
+    <Grid>
+        <ctrls:EnumComboBox Value="{Binding Path=EnumPrp}"/>
+    </Grid>
+</UserControl>

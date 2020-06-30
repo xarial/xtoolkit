@@ -1,0 +1,9 @@
+﻿<UserControl x:Class="Wpf.Docs.NumberBoxControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf">
+    <StackPanel Orientation="Vertical">
+        <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}"/>
+        <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntegerVal}"/>
+    </StackPanel>
+</UserControl>
