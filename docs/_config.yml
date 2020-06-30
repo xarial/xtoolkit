@@ -1,0 +1,11 @@
+theme: user-guide
+default-layout: article
+$toc:
+  title-case: true
+^code-snippet:
+  auto-tabs: 
+    cs: C#
+    vba: VBA
+    vb: VB.NET
+    cpp: C++
+  snippets-folder: _src

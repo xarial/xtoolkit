@@ -28,9 +28,9 @@ namespace Xarial.XToolkit.Wpf.Utils
         }
     }
 
-    public static class FsoBrowser
+    public static class FileSystemBrowser
     {
-        public static bool BrowseForFolder(out string path, string desc = "")
+        public static bool BrowseFolder(out string path, string desc = "")
         {
             var dlg = new FolderBrowserDialog();
             dlg.Description = desc;
@@ -55,12 +55,12 @@ namespace Xarial.XToolkit.Wpf.Utils
             }));
         }
 
-        public static bool BrowseForFileOpen(out string path, string title = "", string filter = "")
+        public static bool BrowseFileOpen(out string path, string title = "", string filter = "")
         {
             return BrowseForFile(out path, new OpenFileDialog(), title, filter);
         }
 
-        public static bool BrowseForFileSave(out string path, string title = "", string filter = "")
+        public static bool BrowseFileSave(out string path, string title = "", string filter = "")
         {
             return BrowseForFile(out path, new SaveFileDialog(), title, filter);
         }

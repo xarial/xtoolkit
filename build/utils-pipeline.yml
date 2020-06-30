@@ -5,9 +5,9 @@ trigger:
     - dev
   paths:
     include:
-    - src/Core/*
+    - src/Utils/*
 
 stages:
 - template: templates/pipeline.yml
   parameters:
-    projectName: Core
+    projectName: Utils

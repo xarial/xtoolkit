@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>WpfDocs.VB</RootNamespace>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\wpf\EnumComboBoxDocs.vb" Link="EnumComboBoxDocs.vb" />
+    <Compile Include="..\wpf\FileSystemBrowserDocs.vb" Link="FileSystemBrowserDocs.vb" />
+    <Compile Include="..\wpf\NumberBoxDocs.vb" Link="NumberBoxDocs.vb" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Wpf\Wpf.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,6 +1,8 @@
+[![User Guide](https://img.shields.io/badge/-Documentation-green.svg)](https://xtoolkit.xarial.com)
+
 # xToolkit
 
-## Core
+## Utils
 
 [![NuGet version (XToolkit)](https://img.shields.io/nuget/v/Xarial.XToolkit.svg?style=flat-square)](https://www.nuget.org/packages/Xarial.XToolkit/)
 [![Build status](https://dev.azure.com/xarial/xtoolkit/_apis/build/status/core)](https://dev.azure.com/xarial/xtoolkit/_build/latest?definitionId=18)
