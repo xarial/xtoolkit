@@ -18,17 +18,26 @@ namespace Xarial.XToolkit.Wpf.Extensions
     {
         public static void NotifyChanged(this INotifyPropertyChanged prpChanged, [CallerMemberName] string prpName = "")
         {
-            var eventDelegate = (MulticastDelegate)prpChanged.GetType().GetField(
-                nameof(INotifyPropertyChanged.PropertyChanged), 
-                BindingFlags.Instance | BindingFlags.NonPublic).GetValue(prpChanged);
+            var curType = prpChanged.GetType();
+            FieldInfo eventField = null;
+
+            while (eventField == null) 
+            {
+                eventField = curType.GetField(nameof(INotifyPropertyChanged.PropertyChanged),
+                    BindingFlags.Instance | BindingFlags.NonPublic);
+
+                curType = curType.BaseType;
+            }
+
+            var eventDelegate = (PropertyChangedEventHandler)eventField.GetValue(prpChanged);
 
             if (eventDelegate != null)
             {
                 var eventArgs = new PropertyChangedEventArgs(prpName);
 
-                foreach (var handler in eventDelegate.GetInvocationList())
+                foreach (PropertyChangedEventHandler handler in eventDelegate.GetInvocationList())
                 {
-                    handler.Method.Invoke(handler.Target, new object[] { prpChanged, eventArgs });
+                    handler.Invoke(prpChanged, eventArgs);
                 }
             }
         }
