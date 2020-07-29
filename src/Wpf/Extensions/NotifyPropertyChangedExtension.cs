@@ -21,7 +21,7 @@ namespace Xarial.XToolkit.Wpf.Extensions
             var curType = prpChanged.GetType();
             FieldInfo eventField = null;
 
-            while (eventField == null) 
+            while (eventField == null)
             {
                 eventField = curType.GetField(nameof(INotifyPropertyChanged.PropertyChanged),
                     BindingFlags.Instance | BindingFlags.NonPublic);

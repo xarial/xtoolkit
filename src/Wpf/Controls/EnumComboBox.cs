@@ -27,9 +27,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var enumVal = value as Enum;
-
-            //TODO: handle the 0 for undefined enum to display empty string instead of 0
-
+            
             if (enumVal != null)
             {
                 var enumType = enumVal.GetType();
@@ -132,7 +130,10 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     if (!value.TryGetAttribute<DisplayNameAttribute>(a => title = a.DisplayName))
                     {
-                        title = value.ToString();
+                        if (Convert.ToInt32(value) != 0 || Enum.IsDefined(value.GetType(), value))
+                        {
+                            title = value.ToString();
+                        }
                     }
                 }
 
@@ -159,12 +160,8 @@ namespace Xarial.XToolkit.Wpf.Controls
                     Type = EnumItemType_e.Default;
                 }
 
-                Title = GetItemDescription(m_Value);
-
-                if (!value.TryGetAttribute<DescriptionAttribute>(a => Description = a.Description))
-                {
-                    Description = m_Value.ToString();
-                }
+                Title = GetTitle(m_Value);
+                Description = GetItemDescription(m_Value);
             }
 
             private string GetItemDescription(Enum value)
