@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,8 +11,15 @@ namespace WpfTester
     public enum FlagEnum1 
     {
         Value1 = 1 << 0,
+
+        [EnumDisplayName("Value 2")]
+        [EnumDescription("Second Value")]
         Value2 = 1 << 1,
+
+        [EnumDisplayName("Value 3")]
         Value3 = 1 << 2,
+
+        [EnumDescription("Forth Value")]
         Value4 = 1 << 3
     }
 
@@ -41,5 +49,21 @@ namespace WpfTester
         public FlagEnum1 Enum1 { get; set; }
         public FlagEnum2 Enum2 { get; set; }
         public FlagEnum3 Enum3 { get; set; }
+    }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class EnumDisplayNameAttribute : DisplayNameAttribute 
+    {
+        public EnumDisplayNameAttribute(string dispName) : base(dispName) 
+        {
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class EnumDescriptionAttribute : DescriptionAttribute
+    {
+        public EnumDescriptionAttribute(string desc) : base(desc)
+        {
+        }
     }
 }
