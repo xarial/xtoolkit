@@ -237,7 +237,17 @@ namespace Xarial.XToolkit.Wpf.Controls
                             }
                         }
 
-                        m_Parent.Value = (Enum)Enum.ToObject(m_Value.GetType(), val);
+                        var enumVal = (Enum)Enum.ToObject(m_Value.GetType(), val);
+
+                        var visible = true;
+                        enumVal.TryGetAttribute<BrowsableAttribute>(a => visible = a.Browsable);
+
+                        if (!visible)
+                        {
+                            enumVal = (Enum)Enum.ToObject(m_Value.GetType(), 0);
+                        }
+
+                        m_Parent.Value = enumVal;
                     }
 
                     this.NotifyChanged();
@@ -315,8 +325,14 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                     foreach (Enum item in items)
                     {
-                        cmb.m_ComboBox.Items.Add(new EnumComboBoxItem(cmb, item,
-                            cmb.m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
+                        var visible = true;
+                        item.TryGetAttribute<BrowsableAttribute>(a => visible = a.Browsable);
+
+                        if (visible)
+                        {
+                            cmb.m_ComboBox.Items.Add(new EnumComboBoxItem(cmb, item,
+                                cmb.m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
+                        }
                     }
 
                     UpdateHeader(cmb);
