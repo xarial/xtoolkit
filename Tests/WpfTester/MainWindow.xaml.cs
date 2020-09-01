@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xarial.XToolkit.Wpf.Dialogs;
 
 namespace WpfTester
 {
@@ -43,6 +44,12 @@ namespace WpfTester
         private void OnButtonClick(object sender, RoutedEventArgs e)
         {
             Debugger.Break();
+        }
+
+        private void OnShowAboutClick(object sender, RoutedEventArgs e)
+        {
+            AboutDialog.Show(typeof(AboutDialog).Assembly, 
+                Properties.Resources.icon, IntPtr.Zero);
         }
     }
 }

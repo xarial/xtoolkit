@@ -25,6 +25,9 @@
                     <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}"/>
                 </StackPanel>
             </TabItem>
+            <TabItem Header="AboutDialog">
+                <Button Click="OnShowAboutClick">Show About</Button>
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>
