@@ -290,6 +290,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             base.OnApplyTemplate();
             m_ComboBox = (ComboBox)this.Template.FindName("PART_ComboBox", this);
+            TryResolveItems(Value);
         }
 
         public static readonly DependencyProperty ValueProperty =
@@ -309,17 +310,22 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             var val = e.NewValue as Enum;
 
-            if (val != null)
+            cmb.TryResolveItems(val);
+        }
+
+        private void TryResolveItems(Enum val) 
+        {
+            if (val != null && m_ComboBox != null)
             {
                 var enumType = val.GetType();
 
-                if (enumType != cmb.m_CurBoundType)
+                if (enumType != m_CurBoundType)
                 {
-                    cmb.m_CurFlags = enumType.GetEnumFlags();
+                    m_CurFlags = enumType.GetEnumFlags();
 
-                    cmb.m_ComboBox.Items.Clear();
+                    m_ComboBox.Items.Clear();
 
-                    cmb.m_CurBoundType = enumType;
+                    m_CurBoundType = enumType;
 
                     var items = Enum.GetValues(enumType);
 
@@ -330,16 +336,16 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                         if (visible)
                         {
-                            cmb.m_ComboBox.Items.Add(new EnumComboBoxItem(cmb, item,
-                                cmb.m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
+                            m_ComboBox.Items.Add(new EnumComboBoxItem(this, item,
+                                m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
                         }
                     }
 
-                    UpdateHeader(cmb);
+                    UpdateHeader(this);
                 }
             }
 
-            cmb.ValueChanged?.Invoke(val);
+            ValueChanged?.Invoke(val);
         }
 
         private static void UpdateHeader(EnumComboBox cmb)
