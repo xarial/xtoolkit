@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\wpf\EnumComboBoxDocs.vb" Link="EnumComboBoxDocs.vb" />
+    <Compile Include="..\wpf\FlagEnumComboBoxDocs.vb" Link="FlagEnumComboBoxDocs.vb" />
     <Compile Include="..\wpf\FileSystemBrowserDocs.vb" Link="FileSystemBrowserDocs.vb" />
     <Compile Include="..\wpf\NumberBoxDocs.vb" Link="NumberBoxDocs.vb" />
   </ItemGroup>

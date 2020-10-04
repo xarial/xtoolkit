@@ -8,7 +8,7 @@ namespace Wpf.Docs
         public EnumComboBoxControl()
         {
             InitializeComponent();
-            this.DataContext = new EnumComboBoxControlVM();
+            this.DataContext = new FlagEnumComboBoxControlVM();
         }
     }
 }

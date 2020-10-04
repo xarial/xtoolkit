@@ -37,7 +37,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 var val = enumVal.ToString();
                 var vals = val.Split(',')
                     .Select(v => (Enum)Enum.Parse(enumType, v.Trim()))
-                    .Select(e => FlagEnumComboBox.FlagEnumComboBoxItem.GetTitle(e));
+                    .Select(e => EnumControlHelper.GetTitle(e));
 
                 return string.Join(", ", vals.ToArray());
             }
@@ -122,24 +122,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             private readonly Enum m_Value;
             private readonly Enum[] m_AffectedFlags;
 
-            internal static string GetTitle(Enum value)
-            {
-                string title = "";
-
-                if (value != null)
-                {
-                    if (!value.TryGetAttribute<DisplayNameAttribute>(a => title = a.DisplayName))
-                    {
-                        if (Convert.ToInt32(value) != 0 || Enum.IsDefined(value.GetType(), value))
-                        {
-                            title = value.ToString();
-                        }
-                    }
-                }
-
-                return title;
-            }
-
             internal FlagEnumComboBoxItem(FlagEnumComboBox parent, Enum value, Enum[] affectedFlags)
             {
                 m_Parent = parent;
@@ -160,28 +142,8 @@ namespace Xarial.XToolkit.Wpf.Controls
                     Type = EnumItemType_e.Default;
                 }
 
-                Title = GetTitle(m_Value);
-                Description = GetItemDescription(m_Value);
-            }
-
-            private string GetItemDescription(Enum value)
-            {
-                string title = "";
-
-                if (value != null)
-                {
-                    if (!value.TryGetAttribute<DescriptionAttribute>(a => title = a.Description))
-                    {
-                        title = GetTitle(value);
-
-                        if (string.IsNullOrEmpty(title))
-                        {
-                            title = value.ToString();
-                        }
-                    }
-                }
-
-                return title;
+                Title = EnumControlHelper.GetTitle(m_Value);
+                Description = EnumControlHelper.GetDescription(m_Value);
             }
 
             public EnumItemType_e Type { get; private set; }
