@@ -25,18 +25,7 @@ namespace WpfTester
         {
             InitializeComponent();
 
-            m_Vm = new MainVM()
-            {
-                EnumComboBox = new EnumComboBoxVM() 
-                {
-                    Enum2 = FlagEnum2.Value2
-                },
-                NumberBox = new NumberBoxVM() 
-                {
-                    DoubleVal = 10.0,
-                    IntVal = 2
-                }
-            };
+            m_Vm = new MainVM();
 
             this.DataContext = m_Vm;
         }

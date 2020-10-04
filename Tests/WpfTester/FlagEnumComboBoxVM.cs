@@ -45,11 +45,16 @@ namespace WpfTester
         All = Value1Value2 | Value3 | Value4
     }
 
-    public class EnumComboBoxVM
+    public class FlagEnumComboBoxVM
     {
         public FlagEnum1 Enum1 { get; set; }
         public FlagEnum2 Enum2 { get; set; }
         public FlagEnum3 Enum3 { get; set; }
+
+        public FlagEnumComboBoxVM() 
+        {
+            Enum2 = FlagEnum2.Value2;
+        }
     }
 
     [AttributeUsage(AttributeTargets.Field)]

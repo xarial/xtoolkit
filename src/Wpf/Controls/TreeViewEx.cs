@@ -5,9 +5,6 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -43,14 +40,54 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             if (e.NewValue != null)
             {
-                var treeViewItem = (d as TreeView).ItemContainerGenerator
-                    .ContainerFromItem(e.NewValue) as TreeViewItem;
+                SelectTreeViewItem(d as TreeView, e.NewValue);
+            }
+        }
 
-                if (treeViewItem != null)
+        private static bool SelectTreeViewItem(ItemsControl parentContainer, object targetItem)
+        {
+            foreach (var childItem in parentContainer.Items)
+            {
+                var currentContainer = (TreeViewItem)parentContainer.ItemContainerGenerator.ContainerFromItem(childItem);
+                
+                if (currentContainer != null && childItem == targetItem)
                 {
-                    treeViewItem.IsSelected = true;
+                    currentContainer.IsSelected = true;
+                    currentContainer.BringIntoView();
+                    return true;
                 }
             }
+            
+            foreach (var childItem in parentContainer.Items)
+            {
+                var currentContainer = (TreeViewItem)parentContainer.ItemContainerGenerator.ContainerFromItem(childItem);
+
+                if (currentContainer != null && currentContainer.Items.Count > 0)
+                {
+                    bool? origExpanded = null;
+
+                    if (currentContainer.ItemContainerGenerator.Status != System.Windows.Controls.Primitives.GeneratorStatus.ContainersGenerated)
+                    {
+                        origExpanded = currentContainer.IsExpanded;
+                        currentContainer.IsExpanded = true;
+                        currentContainer.UpdateLayout();
+                    }
+                    
+                    if (!SelectTreeViewItem(currentContainer, targetItem))
+                    {
+                        if (origExpanded.HasValue)
+                        {
+                            currentContainer.IsExpanded = origExpanded.Value;
+                        }
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
         }
     }
 }
