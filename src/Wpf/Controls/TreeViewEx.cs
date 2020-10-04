@@ -38,9 +38,33 @@ namespace Xarial.XToolkit.Wpf.Controls
         private static void OnSelectedItemPropertyChanged(
             DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
+            var trvView = d as TreeView;
+
             if (e.NewValue != null)
             {
-                SelectTreeViewItem(d as TreeView, e.NewValue);
+                SelectTreeViewItem(trvView, e.NewValue);
+            }
+            else 
+            {
+                DeselectAllItems(trvView);
+            }
+        }
+
+        private static void DeselectAllItems(ItemsControl parentContainer) 
+        {
+            foreach (var childItem in parentContainer.Items)
+            {
+                var currentContainer = (TreeViewItem)parentContainer.ItemContainerGenerator.ContainerFromItem(childItem);
+
+                if (currentContainer != null)
+                {
+                    if (currentContainer.IsSelected)
+                    {
+                        currentContainer.IsSelected = false;
+                    }
+
+                    DeselectAllItems(currentContainer);
+                }
             }
         }
 
