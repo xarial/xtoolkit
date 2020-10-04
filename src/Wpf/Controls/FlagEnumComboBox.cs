@@ -22,7 +22,7 @@ using System.Windows.Media;
 namespace Xarial.XToolkit.Wpf.Controls
 {
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-    public class EnumValueToHeaderConverter : IValueConverter
+    public class FlagEnumValueToHeaderConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -37,7 +37,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 var val = enumVal.ToString();
                 var vals = val.Split(',')
                     .Select(v => (Enum)Enum.Parse(enumType, v.Trim()))
-                    .Select(e => EnumComboBox.EnumComboBoxItem.GetTitle(e));
+                    .Select(e => FlagEnumComboBox.FlagEnumComboBoxItem.GetTitle(e));
 
                 return string.Join(", ", vals.ToArray());
             }
@@ -54,7 +54,7 @@ namespace Xarial.XToolkit.Wpf.Controls
     }
 
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-    public class EnumComboBoxItemTemplateSelector : DataTemplateSelector
+    public class FlagEnumComboBoxItemTemplateSelector : DataTemplateSelector
     {
         public DataTemplate Item { get; set; }
         public DataTemplate Header { get; set; }
@@ -79,17 +79,17 @@ namespace Xarial.XToolkit.Wpf.Controls
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is EnumComboBox.EnumItemType_e)
+            if (value is FlagEnumComboBox.EnumItemType_e)
             {
-                switch ((EnumComboBox.EnumItemType_e)value)
+                switch ((FlagEnumComboBox.EnumItemType_e)value)
                 {
-                    case EnumComboBox.EnumItemType_e.Default:
+                    case FlagEnumComboBox.EnumItemType_e.Default:
                         return Brushes.Black;
 
-                    case EnumComboBox.EnumItemType_e.Combined:
+                    case FlagEnumComboBox.EnumItemType_e.Combined:
                         return Brushes.Blue;
 
-                    case EnumComboBox.EnumItemType_e.None:
+                    case FlagEnumComboBox.EnumItemType_e.None:
                         return Brushes.Gray;
                 }
             }
@@ -103,7 +103,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
-    public class EnumComboBox : Control
+    public class FlagEnumComboBox : Control
     {
         public enum EnumItemType_e
         {
@@ -112,13 +112,13 @@ namespace Xarial.XToolkit.Wpf.Controls
             None
         }
 
-        internal class EnumComboBoxItem : INotifyPropertyChanged
+        internal class FlagEnumComboBoxItem : INotifyPropertyChanged
         {
 #pragma warning disable CS0067
             public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore CS0067
 
-            private readonly EnumComboBox m_Parent;
+            private readonly FlagEnumComboBox m_Parent;
             private readonly Enum m_Value;
             private readonly Enum[] m_AffectedFlags;
 
@@ -140,7 +140,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 return title;
             }
 
-            internal EnumComboBoxItem(EnumComboBox parent, Enum value, Enum[] affectedFlags)
+            internal FlagEnumComboBoxItem(FlagEnumComboBox parent, Enum value, Enum[] affectedFlags)
             {
                 m_Parent = parent;
                 m_Parent.ValueChanged += OnValueChanged;
@@ -280,10 +280,10 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private ComboBox m_ComboBox;
 
-        static EnumComboBox()
+        static FlagEnumComboBox()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(EnumComboBox),
-                new FrameworkPropertyMetadata(typeof(EnumComboBox)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(FlagEnumComboBox),
+                new FrameworkPropertyMetadata(typeof(FlagEnumComboBox)));
         }
 
         public override void OnApplyTemplate()
@@ -295,7 +295,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public static readonly DependencyProperty ValueProperty =
             DependencyProperty.Register(nameof(Value), typeof(Enum),
-            typeof(EnumComboBox), new FrameworkPropertyMetadata(
+            typeof(FlagEnumComboBox), new FrameworkPropertyMetadata(
                 null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
         public Enum Value
@@ -306,7 +306,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            var cmb = d as EnumComboBox;
+            var cmb = d as FlagEnumComboBox;
 
             var val = e.NewValue as Enum;
 
@@ -336,7 +336,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                         if (visible)
                         {
-                            m_ComboBox.Items.Add(new EnumComboBoxItem(this, item,
+                            m_ComboBox.Items.Add(new FlagEnumComboBoxItem(this, item,
                                 m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
                         }
                     }
@@ -348,7 +348,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             ValueChanged?.Invoke(val);
         }
 
-        private static void UpdateHeader(EnumComboBox cmb)
+        private static void UpdateHeader(FlagEnumComboBox cmb)
         {
             if (cmb.m_ComboBox.Items.Count > 0)
             {

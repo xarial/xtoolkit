@@ -10,5 +10,11 @@ namespace WpfTester
     {
         public double DoubleVal { get; set; }
         public int IntVal { get; set; }
+
+        public NumberBoxVM() 
+        {
+            DoubleVal = 10.0;
+            IntVal = 2;
+        }
     }
 }

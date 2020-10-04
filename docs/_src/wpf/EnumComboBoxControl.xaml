@@ -3,6 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf">
     <Grid>
-        <ctrls:EnumComboBox Value="{Binding Path=EnumPrp}"/>
+        <ctrls:FlagEnumComboBox Value="{Binding Path=EnumPrp}"/>
     </Grid>
 </UserControl>

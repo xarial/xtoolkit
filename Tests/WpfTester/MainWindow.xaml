@@ -12,11 +12,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <TabControl Grid.Row="0">
-            <TabItem Header="EnumComboBox">
-                <StackPanel Orientation="Vertical" DataContext="{Binding Path=EnumComboBox}">
-                    <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum1}"/>
-                    <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum2}"/>
-                    <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum3}"/>
+            <TabItem Header="FlagEnumComboBox">
+                <StackPanel Orientation="Vertical" DataContext="{Binding Path=FlagEnumComboBox}">
+                    <ctrls:FlagEnumComboBox Margin="2" Value="{Binding Path=Enum1}"/>
+                    <ctrls:FlagEnumComboBox Margin="2" Value="{Binding Path=Enum2}"/>
+                    <ctrls:FlagEnumComboBox Margin="2" Value="{Binding Path=Enum3}"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="NumberBox">
@@ -27,6 +27,21 @@
             </TabItem>
             <TabItem Header="AboutDialog">
                 <Button Click="OnShowAboutClick">Show About</Button>
+            </TabItem>
+            <TabItem Header="TreeViewEx">
+                <StackPanel Orientation="Vertical" DataContext="{Binding Path=TreeViewEx}">
+                    <ctrls:TreeViewEx ItemsSource="{Binding Path=Items}" Height="300"
+                                      SelectedItem="{Binding Path=SelectedItem}" Margin="2">
+                        <ctrls:TreeViewEx.ItemTemplate>
+                            <HierarchicalDataTemplate ItemsSource="{Binding Path=Children}">
+                                <TextBlock Text="{Binding Path=Title}"/>
+                            </HierarchicalDataTemplate>
+                        </ctrls:TreeViewEx.ItemTemplate>
+                    </ctrls:TreeViewEx>
+                    <Button Command="{Binding Path=SelectNextItemCommand}">
+                        <TextBlock Text="Select Next"/>
+                    </Button>
+                </StackPanel>
             </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
