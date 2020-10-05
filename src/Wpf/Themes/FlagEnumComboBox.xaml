@@ -22,8 +22,16 @@
                                 <local:FlagEnumComboBoxItemTemplateSelector.Item>
                                     <DataTemplate>
                                         <CheckBox IsChecked="{Binding Path=IsSelected}">
-                                            <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"
-                                           Foreground="{Binding Path=Type, Converter={StaticResource itemFrgColorConv}}"/>
+                                            <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}">
+                                                <TextBlock.Foreground>
+                                                    <MultiBinding Converter="{StaticResource itemFrgColorConv}">
+                                                        <Binding Path="Type"/>
+                                                        <Binding Path="ItemForeground" RelativeSource="{RelativeSource AncestorType={x:Type local:FlagEnumComboBox}}"/>
+                                                        <Binding Path="GroupItemForeground" RelativeSource="{RelativeSource AncestorType={x:Type local:FlagEnumComboBox}}"/>
+                                                        <Binding Path="NoneItemForeground" RelativeSource="{RelativeSource AncestorType={x:Type local:FlagEnumComboBox}}"/>
+                                                    </MultiBinding>
+                                                </TextBlock.Foreground>
+                                            </TextBlock>
                                         </CheckBox>
                                     </DataTemplate>
                                 </local:FlagEnumComboBoxItemTemplateSelector.Item>

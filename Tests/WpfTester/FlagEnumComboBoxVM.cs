@@ -36,12 +36,17 @@ namespace WpfTester
     [Flags]
     public enum FlagEnum3
     {
+        Value4 = 1 << 3,
+
         Value1 = 1 << 0,
+        
         [Browsable(false)]
         Value2 = 1 << 1,
+        
         Value1Value2 = Value1 | Value2,
+        
         Value3 = 1 << 2,
-        Value4 = 1 << 3,
+        
         All = Value1Value2 | Value3 | Value4
     }
 
