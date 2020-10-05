@@ -18,6 +18,7 @@ using System.Windows.Data;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Wpf.Extensions;
 using System.Windows.Media;
+using System.Reflection;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -52,7 +53,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             throw new NotImplementedException();
         }
     }
-
+    
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
     public class FlagEnumComboBoxItemTemplateSelector : DataTemplateSelector
     {
@@ -75,29 +76,33 @@ namespace Xarial.XToolkit.Wpf.Controls
     }
 
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-    public class EnumItemTypeToForegroundConverter : IValueConverter
+    public class EnumItemTypeToForegroundConverter : IMultiValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is FlagEnumComboBox.EnumItemType_e)
+            var defaultColor = values[1] as Brush;
+            var combinedColor = values[2] as Brush;
+            var noneColor = values[3] as Brush;
+
+            if (values[0] is FlagEnumComboBox.EnumItemType_e)
             {
-                switch ((FlagEnumComboBox.EnumItemType_e)value)
+                switch ((FlagEnumComboBox.EnumItemType_e)values[0])
                 {
                     case FlagEnumComboBox.EnumItemType_e.Default:
-                        return Brushes.Black;
+                        return defaultColor;
 
                     case FlagEnumComboBox.EnumItemType_e.Combined:
-                        return Brushes.Blue;
+                        return combinedColor;
 
                     case FlagEnumComboBox.EnumItemType_e.None:
-                        return Brushes.Gray;
+                        return noneColor;
                 }
             }
 
             return null;
         }
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -200,20 +205,30 @@ namespace Xarial.XToolkit.Wpf.Controls
                         }
 
                         var enumVal = (Enum)Enum.ToObject(m_Value.GetType(), val);
-
-                        var visible = true;
-                        enumVal.TryGetAttribute<BrowsableAttribute>(a => visible = a.Browsable);
-
-                        if (!visible)
-                        {
-                            enumVal = (Enum)Enum.ToObject(m_Value.GetType(), 0);
-                        }
+                        enumVal = RemoveDanglingHiddentEnumValues(enumVal);
 
                         m_Parent.Value = enumVal;
                     }
 
                     this.NotifyChanged();
                 }
+            }
+            
+            private Enum RemoveDanglingHiddentEnumValues(Enum enumVal)
+            {
+                foreach (var hiddenItem in m_Parent.m_HiddenItems)
+                {
+                    var hiddenItemsGroup = m_Parent.m_Items.Where(i => i.HasFlag(hiddenItem));
+
+                    if (enumVal.HasFlag(hiddenItem) && !hiddenItemsGroup.Any(g => enumVal.HasFlag(g)))
+                    {
+                        var val = Convert.ToInt32(enumVal);
+                        val -= Convert.ToInt32(hiddenItem);
+                        enumVal = (Enum)Enum.ToObject(m_Value.GetType(), val);
+                    }
+                }
+
+                return enumVal;
             }
 
             public string Title { get; private set; }
@@ -240,6 +255,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         private Type m_CurBoundType;
         private Enum[] m_CurFlags;
 
+        private Enum[] m_Items;
+        private Enum[] m_HiddenItems;
+
         private ComboBox m_ComboBox;
 
         static FlagEnumComboBox()
@@ -253,6 +271,39 @@ namespace Xarial.XToolkit.Wpf.Controls
             base.OnApplyTemplate();
             m_ComboBox = (ComboBox)this.Template.FindName("PART_ComboBox", this);
             TryResolveItems(Value);
+        }
+
+        public static readonly DependencyProperty GroupItemForegroundProperty =
+            DependencyProperty.Register(
+            nameof(GroupItemForeground), typeof(Brush),
+            typeof(FlagEnumComboBox), new PropertyMetadata(Brushes.Blue));
+
+        public Brush GroupItemForeground
+        {
+            get { return (Brush)GetValue(GroupItemForegroundProperty); }
+            set { SetValue(GroupItemForegroundProperty, value); }
+        }
+
+        public static readonly DependencyProperty ItemForegroundProperty =
+            DependencyProperty.Register(
+            nameof(ItemForeground), typeof(Brush),
+            typeof(FlagEnumComboBox), new PropertyMetadata(Brushes.Black));
+
+        public Brush ItemForeground
+        {
+            get { return (Brush)GetValue(ItemForegroundProperty); }
+            set { SetValue(ItemForegroundProperty, value); }
+        }
+
+        public static readonly DependencyProperty NoneItemForegroundProperty =
+            DependencyProperty.Register(
+            nameof(NoneItemForeground), typeof(Brush),
+            typeof(FlagEnumComboBox), new PropertyMetadata(Brushes.Gray));
+
+        public Brush NoneItemForeground
+        {
+            get { return (Brush)GetValue(NoneItemForegroundProperty); }
+            set { SetValue(NoneItemForegroundProperty, value); }
         }
 
         public static readonly DependencyProperty ValueProperty =
@@ -289,7 +340,10 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                     m_CurBoundType = enumType;
 
-                    var items = Enum.GetValues(enumType);
+                    var items = GetEnumValueOrderAsDefined(enumType);
+
+                    var itemsList = new List<Enum>();
+                    var hiddenItemsList = new List<Enum>();
 
                     foreach (Enum item in items)
                     {
@@ -298,10 +352,18 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                         if (visible)
                         {
+                            itemsList.Add(item);
                             m_ComboBox.Items.Add(new FlagEnumComboBoxItem(this, item,
                                 m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
                         }
+                        else 
+                        {
+                            hiddenItemsList.Add(item);
+                        }
                     }
+
+                    m_Items = itemsList.ToArray();
+                    m_HiddenItems = hiddenItemsList.ToArray();
 
                     UpdateHeader(this);
                 }
@@ -310,7 +372,13 @@ namespace Xarial.XToolkit.Wpf.Controls
             ValueChanged?.Invoke(val);
         }
 
-        private static void UpdateHeader(FlagEnumComboBox cmb)
+        private Array GetEnumValueOrderAsDefined(Type enumType)
+        {
+            var fields = enumType.GetFields(BindingFlags.Static | BindingFlags.Public);
+            return Array.ConvertAll(fields, x => (Enum)x.GetValue(null));
+        }
+
+        private void UpdateHeader(FlagEnumComboBox cmb)
         {
             if (cmb.m_ComboBox.Items.Count > 0)
             {
