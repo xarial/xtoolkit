@@ -16,42 +16,126 @@ using System.Xml.XPath;
 
 namespace Xarial.XToolkit.Reflection
 {
-    [Flags]
-    public enum RequestigAssemblyScope_e
+    public interface IReferenceResolver 
     {
-        Requesting = 1,
-        Calling = 2,
-        Executing = 4
+        Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly);
     }
 
-    public static class AppDomainExtension
+    public abstract class AssemblyNameReferenceResolver : IReferenceResolver
     {
-        private static readonly Dictionary<int, RequestigAssemblyScope_e> m_DomainsScopes;
-
-        static AppDomainExtension()
+        public virtual Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly)
         {
-            m_DomainsScopes = new Dictionary<int, RequestigAssemblyScope_e>();
-        }
+            var searchAssmName = GetReplacementAssemblyName(assmName, requestingAssembly, out string searchDir, out bool recursiveSearch);
 
-        public static void ResolveBindingRedirects(this AppDomain appDomain,
-            RequestigAssemblyScope_e reqScope = RequestigAssemblyScope_e.Requesting | RequestigAssemblyScope_e.Calling | RequestigAssemblyScope_e.Executing)
-        {
-            m_DomainsScopes[appDomain.Id] = reqScope;
-
-            appDomain.AssemblyResolve -= OnAssemblyResolve;
-            appDomain.AssemblyResolve += OnAssemblyResolve;
-        }
-
-        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            var appDomain = sender as AppDomain;
-
-            var scope = m_DomainsScopes[appDomain.Id];
-            var srcAssms = GetSourceAssemblies(scope, args);
-
-            foreach (var requestingAssm in srcAssms)
+            if (searchAssmName != null) 
             {
-                var appConfigPath = requestingAssm.Location + ".config";
+                var replacementAssm = appDomain.GetAssemblies().FirstOrDefault(
+                                        a => string.Equals(a.GetName().FullName, searchAssmName.FullName));
+
+                if (replacementAssm == null)
+                {
+                    if (TryFindAssemblyByName(searchDir, recursiveSearch, searchAssmName, out string probeAssmFile))
+                    {
+                        replacementAssm = Assembly.LoadFrom(probeAssmFile);
+                    }
+                }
+
+                if (replacementAssm != null)
+                {
+                    return replacementAssm;
+                }
+            }
+
+            return null;
+        }
+
+        private bool TryFindAssemblyByName(string dir, bool recurse, AssemblyName searchAssmName, out string filePath)
+        {
+            var probeAssmFilePath = Path.Combine(dir, searchAssmName.Name + ".dll");
+
+            if (File.Exists(probeAssmFilePath))
+            {
+                var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
+
+                if (string.Equals(probeAssmName.FullName, searchAssmName.FullName))
+                {
+                    filePath = probeAssmFilePath;
+                    return true;
+                }
+            }
+
+            if (recurse)
+            {
+                foreach (var subDir in Directory.EnumerateDirectories(dir, "*.*", SearchOption.TopDirectoryOnly))
+                {
+                    if (TryFindAssemblyByName(subDir, recurse, searchAssmName, out filePath))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            filePath = "";
+            return false;
+        }
+
+        protected abstract AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly, 
+            out string searchDir, out bool recursiveSearch);
+    }
+
+    public class AppConfigBindingRedirectReferenceResolver : AssemblyNameReferenceResolver
+    {   
+        protected virtual Assembly[] GetRequestingAssemblies(Assembly requestingAssembly) 
+        {
+            if (requestingAssembly != null)
+            {
+                return new Assembly[] { requestingAssembly };
+            }
+            else 
+            {
+                return new Assembly[0];
+            }
+        }
+
+        private string GetPublicKeyToken(AssemblyName assmName)
+        {
+            var bytes = assmName.GetPublicKeyToken();
+
+            if (bytes == null || bytes.Length == 0)
+            {
+                return "null";
+            }
+
+            var publicKeyToken = "";
+
+            for (int i = 0; i < bytes.GetLength(0); i++)
+            {
+                publicKeyToken += string.Format("{0:x2}", bytes[i]);
+            }
+
+            return publicKeyToken;
+        }
+
+        private string GetCulture(AssemblyName assmName)
+        {
+            if (string.IsNullOrEmpty(assmName.CultureName))
+            {
+                return "neutral";
+            }
+            else
+            {
+                return assmName.CultureName;
+            }
+        }
+
+        protected override AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly, 
+            out string searchDir, out bool recursiveSearch)
+        {
+            var reqAssms = GetRequestingAssemblies(requestingAssembly);
+
+            foreach (var lookupAssm in reqAssms)
+            {
+                var appConfigPath = lookupAssm.Location + ".config";
 
                 if (File.Exists(appConfigPath))
                 {
@@ -63,8 +147,6 @@ namespace Xarial.XToolkit.Reflection
 
                             var namespaceManager = new XmlNamespaceManager(reader.NameTable);
                             namespaceManager.AddNamespace("b", "urn:schemas-microsoft-com:asm.v1");
-
-                            var assmName = new AssemblyName(args.Name);
 
                             var name = assmName.Name;
                             var publicKeyToken = GetPublicKeyToken(assmName);
@@ -99,23 +181,9 @@ namespace Xarial.XToolkit.Reflection
                                 {
                                     var searchAssmName = new AssemblyName($"{name}, Version={newVersion}, Culture={culture}, PublicKeyToken={publicKeyToken}");
 
-                                    var replacementAssm = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(
-                                        a => string.Equals(a.GetName().FullName, searchAssmName.FullName));
-
-                                    if (replacementAssm == null)
-                                    {
-                                        var assmDir = Path.GetDirectoryName(requestingAssm.Location);
-
-                                        if (TryFindAssemblyByName(assmDir, searchAssmName, out string probeAssmFile))
-                                        {
-                                            replacementAssm = Assembly.LoadFrom(probeAssmFile);
-                                        }
-                                    }
-
-                                    if (replacementAssm != null)
-                                    {
-                                        return replacementAssm;
-                                    }
+                                    searchDir = Path.GetDirectoryName(lookupAssm.Location);
+                                    recursiveSearch = true;
+                                    return searchAssmName;
                                 }
                             }
                         }
@@ -123,99 +191,40 @@ namespace Xarial.XToolkit.Reflection
                 }
             }
 
+            searchDir = "";
+            recursiveSearch = false;
             return null;
         }
+    }
 
-        private static Assembly[] GetSourceAssemblies(RequestigAssemblyScope_e scope, ResolveEventArgs args)
+    public static class AppDomainExtension
+    {
+        private static readonly Dictionary<int, IReferenceResolver> m_DomainsReferenceResolvers;
+
+        static AppDomainExtension()
         {
-            var srcAssms = new List<Assembly>();
-
-            if (scope.HasFlag(RequestigAssemblyScope_e.Requesting))
-            {
-                if (args.RequestingAssembly != null)
-                {
-                    srcAssms.Add(args.RequestingAssembly);
-                }
-            }
-
-            if (scope.HasFlag(RequestigAssemblyScope_e.Calling))
-            {
-                var callingAssm = Assembly.GetCallingAssembly();
-                if (callingAssm != null && !srcAssms.Contains(callingAssm))
-                {
-                    srcAssms.Add(callingAssm);
-                }
-            }
-
-            if (scope.HasFlag(RequestigAssemblyScope_e.Executing))
-            {
-                var executingAssm = Assembly.GetExecutingAssembly();
-
-                if (executingAssm != null && !srcAssms.Contains(executingAssm))
-                {
-                    srcAssms.Add(executingAssm);
-                }
-            }
-
-            return srcAssms.ToArray();
+            m_DomainsReferenceResolvers = new Dictionary<int, IReferenceResolver>();
         }
 
-        private static string GetPublicKeyToken(AssemblyName assmName)
+        public static void ResolveBindingRedirects(this AppDomain appDomain)
+            => ResolveBindingRedirects(appDomain, new AppConfigBindingRedirectReferenceResolver());
+
+        public static void ResolveBindingRedirects(this AppDomain appDomain,
+            IReferenceResolver resolver)
         {
-            var bytes = assmName.GetPublicKeyToken();
+            m_DomainsReferenceResolvers[appDomain.Id] = resolver;
 
-            if (bytes == null || bytes.Length == 0)
-            {
-                return "null";
-            }
-
-            var publicKeyToken = "";
-
-            for (int i = 0; i < bytes.GetLength(0); i++)
-            {
-                publicKeyToken += string.Format("{0:x2}", bytes[i]);
-            }
-
-            return publicKeyToken;
+            appDomain.AssemblyResolve -= OnAssemblyResolve;
+            appDomain.AssemblyResolve += OnAssemblyResolve;
         }
 
-        private static string GetCulture(AssemblyName assmName)
+        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            if (string.IsNullOrEmpty(assmName.CultureName))
-            {
-                return "neutral";
-            }
-            else
-            {
-                return assmName.CultureName;
-            }
-        }
-
-        private static bool TryFindAssemblyByName(string dir, AssemblyName searchAssmName, out string filePath)
-        {
-            var probeAssmFilePath = Path.Combine(dir, searchAssmName.Name + ".dll");
-
-            if (File.Exists(probeAssmFilePath))
-            {
-                var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
-
-                if (string.Equals(probeAssmName.FullName, searchAssmName.FullName))
-                {
-                    filePath = probeAssmFilePath;
-                    return true;
-                }
-            }
-
-            foreach (var subDir in Directory.EnumerateDirectories(dir, "*.*", SearchOption.TopDirectoryOnly))
-            {
-                if (TryFindAssemblyByName(subDir, searchAssmName, out filePath))
-                {
-                    return true;
-                }
-            }
-
-            filePath = "";
-            return false;
+            var appDomain = sender as AppDomain;
+            
+            var resolver = m_DomainsReferenceResolvers[appDomain.Id];
+            
+            return resolver.Resolve(appDomain, new AssemblyName(args.Name), args.RequestingAssembly);
         }
     }
 }
