@@ -50,6 +50,14 @@
             <TabItem Header="AboutDialog">
                 <Button Click="OnShowAboutClick">Show About</Button>
             </TabItem>
+            <TabItem Header="File System Browser">
+                <StackPanel Orientation="Vertical">
+                    <Button Click="OnBrowseFileOpen">Browse File Open</Button>
+                    <Button Click="OnBrowseFileSave">Browse File Save</Button>
+                    <Button Click="OnBrowseFilesOpen">Browse Files Open</Button>
+                    <Button Click="OnBrowseFolder">Browse folder</Button>
+                </StackPanel>
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>
