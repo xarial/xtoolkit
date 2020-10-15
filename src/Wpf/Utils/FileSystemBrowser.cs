@@ -34,6 +34,7 @@ namespace Xarial.XToolkit.Wpf.Utils
         {
             var dlg = new FolderBrowserDialog();
             dlg.Description = desc;
+            
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 path = dlg.SelectedPath;
@@ -57,27 +58,39 @@ namespace Xarial.XToolkit.Wpf.Utils
 
         public static bool BrowseFileOpen(out string path, string title = "", string filter = "")
         {
-            return BrowseForFile(out path, new OpenFileDialog(), title, filter);
+            var res = BrowseForFile(out string[] paths, new OpenFileDialog(), title, filter);
+            path = paths?.FirstOrDefault();
+            return res;
+        }
+
+        public static bool BrowseFilesOpen(out string[] paths, string title = "", string filter = "")
+        {
+            var dlg = new OpenFileDialog();
+            dlg.Multiselect = true;
+            
+            return BrowseForFile(out paths, dlg, title, filter);
         }
 
         public static bool BrowseFileSave(out string path, string title = "", string filter = "")
         {
-            return BrowseForFile(out path, new SaveFileDialog(), title, filter);
+            var res = BrowseForFile(out string[] paths, new SaveFileDialog(), title, filter);
+            path = paths?.FirstOrDefault();
+            return res;
         }
 
-        private static bool BrowseForFile(out string path, FileDialog dlg, string title, string filter)
+        private static bool BrowseForFile(out string[] paths, FileDialog dlg, string title, string filter)
         {
             dlg.Filter = filter;
             dlg.Title = title;
-
+            
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                path = dlg.FileName;
+                paths = dlg.FileNames;
                 return true;
             }
             else
             {
-                path = "";
+                paths = null;
                 return false;
             }
         }

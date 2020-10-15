@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit.Wpf.Dialogs;
+using Xarial.XToolkit.Wpf.Utils;
 
 namespace WpfTester
 {
@@ -39,6 +40,34 @@ namespace WpfTester
         {
             AboutDialog.Show(typeof(AboutDialog).Assembly, 
                 Properties.Resources.icon, IntPtr.Zero);
+        }
+
+        private void OnBrowseFileOpen(object sender, RoutedEventArgs e)
+        {
+            if (FileSystemBrowser.BrowseFileOpen(out string path)) 
+            {
+            }
+        }
+
+        private void OnBrowseFilesOpen(object sender, RoutedEventArgs e)
+        {
+            if (FileSystemBrowser.BrowseFilesOpen(out string[] path))
+            {
+            }
+        }
+
+        private void OnBrowseFileSave(object sender, RoutedEventArgs e)
+        {
+            if (FileSystemBrowser.BrowseFileSave(out string path))
+            {
+            }
+        }
+
+        private void OnBrowseFolder(object sender, RoutedEventArgs e)
+        {
+            if (FileSystemBrowser.BrowseFolder(out string path))
+            {
+            }
         }
     }
 }
