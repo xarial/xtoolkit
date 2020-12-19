@@ -32,7 +32,12 @@ namespace Xarial.XToolkit.Reporting
 
                 if (curEx is IUserMessageException)
                 {
-                    res.AppendLine(curEx.Message);
+                    if (res.Length != 0) 
+                    {
+                        res.Append(Environment.NewLine);
+                    }
+
+                    res.Append(curEx.Message);
                 }
 
                 if (curEx.InnerException != null)
