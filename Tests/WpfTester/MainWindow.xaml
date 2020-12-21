@@ -47,6 +47,24 @@
                     </Button>
                 </StackPanel>
             </TabItem>
+            <TabItem Header="XDataGrid">
+                <Grid DataContext="{Binding Path=XDataGrid}">
+                    <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
+                                     ColumnsSource="{Binding Path=ColumnNames}"
+                                     CellContentSelector="{Binding Path=CellContentSelector}">
+                        <ctrls:XDataGrid.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Path=Value}"/>
+                            </DataTemplate>
+                        </ctrls:XDataGrid.CellTemplate>
+                        <ctrls:XDataGrid.CellEditingTemplate>
+                            <DataTemplate>
+                                <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DataTemplate>
+                        </ctrls:XDataGrid.CellEditingTemplate>
+                    </ctrls:XDataGrid>
+                </Grid>
+            </TabItem>
             <TabItem Header="AboutDialog">
                 <Button Click="OnShowAboutClick">Show About</Button>
             </TabItem>

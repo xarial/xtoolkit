@@ -12,6 +12,7 @@ namespace WpfTester
         public NumberBoxVM NumberBox { get; set; }
         public TreeViewExVM TreeViewEx { get; set; }
         public EnumComboBoxVM EnumComboBox { get; set; }
+        public XDataGridVM XDataGrid { get; set; }
 
         public MainVM() 
         {
@@ -19,6 +20,7 @@ namespace WpfTester
             NumberBox = new NumberBoxVM();
             TreeViewEx = new TreeViewExVM();
             EnumComboBox = new EnumComboBoxVM();
+            XDataGrid = new XDataGridVM();
         }
     }
 }
