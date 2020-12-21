@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf"
+        xmlns:local="clr-namespace:WpfTester"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
@@ -48,10 +49,22 @@
                 </StackPanel>
             </TabItem>
             <TabItem Header="XDataGrid">
-                <Grid DataContext="{Binding Path=XDataGrid}">
+                <StackPanel DataContext="{Binding Path=XDataGrid}" Orientation="Vertical">
                     <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
-                                     ColumnsSource="{Binding Path=ColumnNames}"
-                                     CellContentSelector="{Binding Path=CellContentSelector}">
+                                     ColumnsSource="{Binding Path=ColumnNames}">
+                        <ctrls:XDataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader">
+                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            </Style>
+                        </ctrls:XDataGrid.ColumnHeaderStyle>
+                        <ctrls:XDataGrid.ColumnHeaderTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                            </DataTemplate>
+                        </ctrls:XDataGrid.ColumnHeaderTemplate>
+                        <ctrls:XDataGrid.CellContentSelector>
+                            <local:CellContentSelector/>
+                        </ctrls:XDataGrid.CellContentSelector>
                         <ctrls:XDataGrid.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Path=Value}"/>
@@ -63,7 +76,55 @@
                             </DataTemplate>
                         </ctrls:XDataGrid.CellEditingTemplate>
                     </ctrls:XDataGrid>
-                </Grid>
+                    <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
+                                     ColumnsSource="{Binding Path=ColumnNames}">
+                        <ctrls:XDataGrid.ColumnHeaderTemplateSelector>
+                            <local:MyColumnTemplateSelector>
+                                <local:MyColumnTemplateSelector.AColumn>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </local:MyColumnTemplateSelector.AColumn>
+                                <local:MyColumnTemplateSelector.Default>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding}"/>
+                                    </DataTemplate>
+                                </local:MyColumnTemplateSelector.Default>
+                            </local:MyColumnTemplateSelector>
+                        </ctrls:XDataGrid.ColumnHeaderTemplateSelector>
+                        <ctrls:XDataGrid.CellContentSelector>
+                            <local:CellContentSelector/>
+                        </ctrls:XDataGrid.CellContentSelector>
+                        <ctrls:XDataGrid.CellTemplateSelector>
+                            <local:MyCellTemplateSelector>
+                                <local:MyCellTemplateSelector.AColumn>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=Value}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </local:MyCellTemplateSelector.AColumn>
+                                <local:MyCellTemplateSelector.Default>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=Value}"/>
+                                    </DataTemplate>
+                                </local:MyCellTemplateSelector.Default>
+                            </local:MyCellTemplateSelector>
+                        </ctrls:XDataGrid.CellTemplateSelector>
+                        <ctrls:XDataGrid.CellEditingTemplateSelector>
+                            <local:MyCellEditingTemplateSelector>
+                                <local:MyCellEditingTemplateSelector.AColumn>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </local:MyCellEditingTemplateSelector.AColumn>
+                                <local:MyCellEditingTemplateSelector.Default>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </local:MyCellEditingTemplateSelector.Default>
+                            </local:MyCellEditingTemplateSelector>
+                        </ctrls:XDataGrid.CellEditingTemplateSelector>
+                    </ctrls:XDataGrid>
+                </StackPanel>
             </TabItem>
             <TabItem Header="AboutDialog">
                 <Button Click="OnShowAboutClick">Show About</Button>
