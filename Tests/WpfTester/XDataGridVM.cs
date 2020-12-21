@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
+using Xarial.XToolkit.Wpf.Controls;
 
 namespace WpfTester
 {
@@ -15,6 +17,72 @@ namespace WpfTester
     public class RowVM 
     {
         public Dictionary<string, CellVM> Cells { get; set; }
+    }
+
+    public class CellContentSelector : ICellContentSelector
+    {
+        public CellContentSelector() 
+        {
+        }
+
+        public object SelectContent(object dataItem, DataGridColumn column, DataGridCell cell)
+        {
+            return (dataItem as RowVM).Cells[(string)column.Header];
+        }
+    }
+    
+    public class MyCellTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate AColumn { get; set; }
+        public DataTemplate Default { get; set; }
+
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            if ((item as CellVM).Value == "Val1-1")
+            {
+                return AColumn;
+            }
+            else
+            {
+                return Default;
+            }
+        }
+    }
+
+    public class MyCellEditingTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate AColumn { get; set; }
+        public DataTemplate Default { get; set; }
+
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            if ((item as CellVM).Value == "Val1-1")
+            {
+                return AColumn;
+            }
+            else
+            {
+                return Default;
+            }
+        }
+    }
+
+    public class MyColumnTemplateSelector : DataTemplateSelector
+    {
+        public DataTemplate AColumn { get; set; }
+        public DataTemplate Default { get; set; }
+
+        public override DataTemplate SelectTemplate(object item, DependencyObject container)
+        {
+            if ((string)item == "A")
+            {
+                return AColumn;
+            }
+            else
+            {
+                return Default;
+            }
+        }
     }
 
     public class XDataGridVM
@@ -48,13 +116,6 @@ namespace WpfTester
             };
 
             ColumnNames = new string[] { "A", "B", "C" };
-        }
-
-        public Func<object, DataGridColumn, DataGridCell, object> CellContentSelector => SelectCellContent;
-
-        private object SelectCellContent(object dataItem, DataGridColumn column, DataGridCell cell) 
-        {
-            return (dataItem as RowVM).Cells[(string)column.Header];
         }
     }
 }

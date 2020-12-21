@@ -21,6 +21,17 @@ namespace Xarial.XToolkit.Wpf.Controls
 			set { SetValue(CellTemplateProperty, value); }
 		}
 
+		public static readonly DependencyProperty CellTemplateSelectorProperty =
+			DependencyProperty.Register(
+			nameof(CellTemplateSelector), typeof(DataTemplateSelector),
+			typeof(XDataGrid));
+
+		public DataTemplateSelector CellTemplateSelector
+		{
+			get { return (DataTemplateSelector)GetValue(CellTemplateSelectorProperty); }
+			set { SetValue(CellTemplateSelectorProperty, value); }
+		}
+
 		public static readonly DependencyProperty CellEditingTemplateProperty =
             DependencyProperty.Register(
             nameof(CellEditingTemplate), typeof(DataTemplate),
@@ -32,7 +43,18 @@ namespace Xarial.XToolkit.Wpf.Controls
             set { SetValue(CellEditingTemplateProperty, value); }
         }
 
-        public static readonly DependencyProperty ColumnsSourceProperty =
+		public static readonly DependencyProperty CellEditingTemplateSelectorProperty =
+			DependencyProperty.Register(
+			nameof(CellEditingTemplateSelector), typeof(DataTemplateSelector),
+			typeof(XDataGrid));
+
+		public DataTemplateSelector CellEditingTemplateSelector
+		{
+			get { return (DataTemplateSelector)GetValue(CellEditingTemplateSelectorProperty); }
+			set { SetValue(CellEditingTemplateSelectorProperty, value); }
+		}
+
+		public static readonly DependencyProperty ColumnsSourceProperty =
             DependencyProperty.Register(
             nameof(ColumnsSource), typeof(IEnumerable),
             typeof(XDataGrid), new PropertyMetadata(OnColumnsSourcePropertyChanged));
@@ -45,18 +67,41 @@ namespace Xarial.XToolkit.Wpf.Controls
 
 		public static readonly DependencyProperty CellContentSelectorProperty =
 			DependencyProperty.Register(
-			nameof(CellContentSelector), typeof(Func<object, DataGridColumn, DataGridCell, object>),
+			nameof(CellContentSelector), typeof(ICellContentSelector),
 			typeof(XDataGrid));
 
-		public Func<object, DataGridColumn, DataGridCell, object> CellContentSelector
+		public ICellContentSelector CellContentSelector
 		{
-			get { return (Func<object, DataGridColumn, DataGridCell, object>)GetValue(CellContentSelectorProperty); }
+			get { return (ICellContentSelector)GetValue(CellContentSelectorProperty); }
 			set { SetValue(CellContentSelectorProperty, value); }
 		}
 
+		public static readonly DependencyProperty ColumnHeaderTemplateProperty =
+			DependencyProperty.Register(
+			nameof(ColumnHeaderTemplate), typeof(DataTemplate),
+			typeof(XDataGrid));
+
+		public DataTemplate ColumnHeaderTemplate
+		{
+			get { return (DataTemplate)GetValue(ColumnHeaderTemplateProperty); }
+			set { SetValue(ColumnHeaderTemplateProperty, value); }
+		}
+
+		public static readonly DependencyProperty ColumnHeaderTemplateSelectorProperty =
+			DependencyProperty.Register(
+			nameof(ColumnHeaderTemplateSelector), typeof(DataTemplateSelector),
+			typeof(XDataGrid));
+
+		public DataTemplateSelector ColumnHeaderTemplateSelector
+		{
+			get { return (DataTemplateSelector)GetValue(ColumnHeaderTemplateSelectorProperty); }
+			set { SetValue(ColumnHeaderTemplateSelectorProperty, value); }
+		}
+			   
 		private static void OnColumnsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			var dataGrid = (XDataGrid)d;
+
 			dataGrid.AutoGenerateColumns = false;
 
 			var columnSrcs = e.NewValue as IEnumerable;
@@ -72,34 +117,35 @@ namespace Xarial.XToolkit.Wpf.Controls
 						Header = colSrc
 					};
 
-					BindingOperations.SetBinding(col,
-						XDataGridColumn.CellTemplateProperty,
-						new Binding
-						{
-							Source = dataGrid,
-							Path = new PropertyPath(nameof(dataGrid.CellTemplate)),
-						});
-
-					BindingOperations.SetBinding(col,
-						XDataGridColumn.CellEditingTemplateProperty,
-						new Binding
-						{
-							Source = dataGrid,
-							Path = new PropertyPath(nameof(dataGrid.CellEditingTemplate)),
-						});
-
-					BindingOperations.SetBinding(col,
-						XDataGridColumn.CellContentSelectorProperty,
-						new Binding
-						{
-							Source = dataGrid,
-							Path = new PropertyPath(nameof(dataGrid.CellContentSelector)),
-						});
+					SetBinding(col, dataGrid, nameof(dataGrid.CellTemplate), XDataGridColumn.CellTemplateProperty);
+					SetBinding(col, dataGrid, nameof(dataGrid.CellEditingTemplate), XDataGridColumn.CellEditingTemplateProperty);
+					SetBinding(col, dataGrid, nameof(dataGrid.CellContentSelector), XDataGridColumn.CellContentSelectorProperty);
+					SetBinding(col, dataGrid, nameof(dataGrid.ColumnHeaderTemplate), DataGridColumn.HeaderTemplateProperty);
+					SetBinding(col, dataGrid, nameof(dataGrid.ColumnHeaderTemplateSelector), DataGridColumn.HeaderTemplateSelectorProperty);
+					SetBinding(col, dataGrid, nameof(dataGrid.CellTemplateSelector), XDataGridColumn.CellTemplateSelectorProperty);
+					SetBinding(col, dataGrid, nameof(dataGrid.CellEditingTemplateSelector), XDataGridColumn.CellEditingTemplateSelectorProperty);
 
 					dataGrid.Columns.Add(col);
 				}
 			}
 		}
+
+		private static void SetBinding(XDataGridColumn targetColumn, XDataGrid srcDataGrid, 
+			string srcPath, DependencyProperty targetPrp) 
+		{
+			BindingOperations.SetBinding(targetColumn,
+				targetPrp,
+				new Binding
+				{
+					Source = srcDataGrid,
+					Path = new PropertyPath(srcPath),
+				});
+		}
+	}
+
+	public interface ICellContentSelector 
+	{
+		object SelectContent(object dataItem, DataGridColumn column, DataGridCell cell);
 	}
 
 	public class XDataGridColumn : DataGridColumn
@@ -115,6 +161,17 @@ namespace Xarial.XToolkit.Wpf.Controls
 			set { SetValue(CellTemplateProperty, value); }
 		}
 
+		public static readonly DependencyProperty CellTemplateSelectorProperty =
+			DependencyProperty.Register(
+			nameof(CellTemplateSelector), typeof(DataTemplateSelector),
+			typeof(XDataGridColumn));
+
+		public DataTemplateSelector CellTemplateSelector
+		{
+			get { return (DataTemplateSelector)GetValue(CellTemplateSelectorProperty); }
+			set { SetValue(CellTemplateSelectorProperty, value); }
+		}
+
 		public static readonly DependencyProperty CellEditingTemplateProperty =
 			DependencyProperty.Register(
 			nameof(CellEditingTemplate), typeof(DataTemplate),
@@ -126,31 +183,60 @@ namespace Xarial.XToolkit.Wpf.Controls
 			set { SetValue(CellEditingTemplateProperty, value); }
 		}
 
-		public static readonly DependencyProperty CellContentSelectorProperty =
+		public static readonly DependencyProperty CellEditingTemplateSelectorProperty =
 			DependencyProperty.Register(
-			nameof(CellContentSelector), typeof(Func<object, DataGridColumn, DataGridCell, object>),
+			nameof(CellEditingTemplateSelector), typeof(DataTemplateSelector),
 			typeof(XDataGridColumn));
 
-		public Func<object, DataGridColumn, DataGridCell, object> CellContentSelector
+		public DataTemplateSelector CellEditingTemplateSelector
 		{
-			get { return (Func<object, DataGridColumn, DataGridCell, object>)GetValue(CellContentSelectorProperty); }
+			get { return (DataTemplateSelector)GetValue(CellEditingTemplateSelectorProperty); }
+			set { SetValue(CellEditingTemplateSelectorProperty, value); }
+		}
+
+		public static readonly DependencyProperty CellContentSelectorProperty =
+			DependencyProperty.Register(
+			nameof(CellContentSelector), typeof(ICellContentSelector),
+			typeof(XDataGridColumn));
+
+		public ICellContentSelector CellContentSelector
+		{
+			get { return (ICellContentSelector)GetValue(CellContentSelectorProperty); }
 			set { SetValue(CellContentSelectorProperty, value); }
 		}
 
 		protected override FrameworkElement GenerateEditingElement(DataGridCell cell, object dataItem)
-			=> CreateCellControl(dataItem, CellEditingTemplate, cell);
+			=> CellEditingTemplateSelector != null 
+			? CreateCellControl(dataItem, CellEditingTemplateSelector, cell)
+			: CreateCellControl(dataItem, CellEditingTemplate, cell);
 
 		protected override FrameworkElement GenerateElement(DataGridCell cell, object dataItem)
-			=> CreateCellControl(dataItem, CellTemplate, cell);
+			=> CellTemplateSelector != null
+			? CreateCellControl(dataItem, CellTemplateSelector, cell)
+			: CreateCellControl(dataItem, CellTemplate, cell);
+
+		private FrameworkElement CreateCellControl(object dataItem, DataTemplateSelector templateSelector, DataGridCell cell)
+		{
+			var content = CellContentSelector?.SelectContent(dataItem, this, cell);
+
+			var ctrl = new ContentPresenter()
+			{
+				Content = content
+			};
+
+			ctrl.ContentTemplate = templateSelector.SelectTemplate(content, ctrl);
+
+			return ctrl;
+		}
 
 		private FrameworkElement CreateCellControl(object dataItem, DataTemplate template, DataGridCell cell)
 		{
 			var ctrl = new ContentPresenter()
 			{
 				ContentTemplate = template,
-				Content = CellContentSelector?.Invoke(dataItem, this, cell)
+				Content = CellContentSelector?.SelectContent(dataItem, this, cell)
 			};
-
+			
 			return ctrl;
 		}
 	}
