@@ -58,6 +58,7 @@
     </ApplicationDefinition>
     <Compile Include="EnumComboBoxVM.cs" />
     <Compile Include="TreeViewExVM.cs" />
+    <Compile Include="XDataGridVM.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
