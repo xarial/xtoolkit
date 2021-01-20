@@ -20,7 +20,8 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="fullLog">Full log (including non user errors)</param>
         /// <param name="genericError">Text of generic error if no user error found</param>
         /// <returns>user friendly error</returns>
-        public static string ParseUserError(this Exception ex, out string fullLog, string genericError = "Generic error")
+        public static string ParseUserError(this Exception ex,
+            out string fullLog, string genericError = "Generic error")
         {
             var res = new StringBuilder();
             var fullLogBuilder = new StringBuilder();
