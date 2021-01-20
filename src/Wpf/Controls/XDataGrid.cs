@@ -133,13 +133,14 @@ namespace Xarial.XToolkit.Wpf.Controls
 		private static void SetBinding(XDataGridColumn targetColumn, XDataGrid srcDataGrid, 
 			string srcPath, DependencyProperty targetPrp) 
 		{
+			var binding = new Binding
+			{
+				Source = srcDataGrid,
+				Path = new PropertyPath(srcPath)
+			};
+
 			BindingOperations.SetBinding(targetColumn,
-				targetPrp,
-				new Binding
-				{
-					Source = srcDataGrid,
-					Path = new PropertyPath(srcPath),
-				});
+				targetPrp, binding);
 		}
 	}
 
