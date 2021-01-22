@@ -28,37 +28,6 @@ namespace Xarial.XToolkit.Reflection
             }
         }
 
-        private string GetPublicKeyToken(AssemblyName assmName)
-        {
-            var bytes = assmName.GetPublicKeyToken();
-
-            if (bytes == null || bytes.Length == 0)
-            {
-                return "null";
-            }
-
-            var publicKeyToken = "";
-
-            for (int i = 0; i < bytes.GetLength(0); i++)
-            {
-                publicKeyToken += string.Format("{0:x2}", bytes[i]);
-            }
-
-            return publicKeyToken;
-        }
-
-        private string GetCulture(AssemblyName assmName)
-        {
-            if (string.IsNullOrEmpty(assmName.CultureName))
-            {
-                return "neutral";
-            }
-            else
-            {
-                return assmName.CultureName;
-            }
-        }
-
         protected override AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly, 
             out string searchDir, out bool recursiveSearch)
         {

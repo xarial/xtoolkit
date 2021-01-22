@@ -21,7 +21,7 @@ namespace Xarial.XToolkit.Reflection
             if (searchAssmName != null) 
             {
                 var replacementAssm = appDomain.GetAssemblies().FirstOrDefault(
-                                        a => string.Equals(a.GetName().FullName, searchAssmName.FullName));
+                                        a => Match(a.GetName(), searchAssmName));
 
                 if (replacementAssm == null)
                 {
@@ -48,7 +48,7 @@ namespace Xarial.XToolkit.Reflection
             {
                 var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
 
-                if (string.Equals(probeAssmName.FullName, searchAssmName.FullName))
+                if (Match(probeAssmName, searchAssmName))
                 {
                     filePath = probeAssmFilePath;
                     return true;
@@ -70,7 +70,41 @@ namespace Xarial.XToolkit.Reflection
             return false;
         }
 
+        protected string GetPublicKeyToken(AssemblyName assmName)
+        {
+            var bytes = assmName.GetPublicKeyToken();
+
+            if (bytes == null || bytes.Length == 0)
+            {
+                return "null";
+            }
+
+            var publicKeyToken = "";
+
+            for (int i = 0; i < bytes.GetLength(0); i++)
+            {
+                publicKeyToken += string.Format("{0:x2}", bytes[i]);
+            }
+
+            return publicKeyToken;
+        }
+
+        protected string GetCulture(AssemblyName assmName)
+        {
+            if (string.IsNullOrEmpty(assmName.CultureName))
+            {
+                return "neutral";
+            }
+            else
+            {
+                return assmName.CultureName;
+            }
+        }
+
         protected abstract AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly, 
             out string searchDir, out bool recursiveSearch);
+
+        protected virtual bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName)
+            => string.Equals(probeAssmName.FullName, searchAssmName.FullName);
     }
 }
