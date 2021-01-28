@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xarial.XToolkit.Wpf.Controls;
 using Xarial.XToolkit.Wpf.Dialogs;
 using Xarial.XToolkit.Wpf.Utils;
 
@@ -68,6 +69,34 @@ namespace WpfTester
             if (FileSystemBrowser.BrowseFolder(out string path))
             {
             }
+        }
+
+        private void OnColumnsPreCreated(List<DataGridColumn> columns)
+        {
+            columns.Sort((c1, c2) => 
+            {
+                if (c1 is XDataGridColumn && c2 is XDataGridColumn)
+                {
+                    return 0;
+                }
+
+                if (!(c1 is XDataGridColumn) && !(c2 is XDataGridColumn))
+                {
+                    return 0;
+                }
+
+                if (c1 is XDataGridColumn && !(c2 is XDataGridColumn))
+                {
+                    return -1;
+                }
+
+                if (!(c1 is XDataGridColumn) && c2 is XDataGridColumn)
+                {
+                    return 1;
+                }
+
+                throw new Exception();
+            });
         }
     }
 }

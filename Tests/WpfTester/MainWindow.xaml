@@ -51,7 +51,11 @@
             <TabItem Header="XDataGrid">
                 <StackPanel DataContext="{Binding Path=XDataGrid}" Orientation="Vertical">
                     <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
-                                     ColumnsSource="{Binding Path=ColumnNames}">
+                                     ColumnsSource="{Binding Path=ColumnNames}" ColumnsPreCreated="OnColumnsPreCreated">
+                        <ctrls:XDataGrid.StaticColumns>
+                            <DataGridTextColumn Header="Static Text"/>
+                            <DataGridCheckBoxColumn Header="Static Toggle"/>
+                        </ctrls:XDataGrid.StaticColumns>
                         <ctrls:XDataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
@@ -124,6 +128,12 @@
                             </local:MyCellEditingTemplateSelector>
                         </ctrls:XDataGrid.CellEditingTemplateSelector>
                     </ctrls:XDataGrid>
+                </StackPanel>
+            </TabItem>
+            <TabItem Header="XListView">
+                <StackPanel DataContext="{Binding Path=XListView}" Orientation="Vertical">
+                    <ctrls:XListView ItemsSource="{Binding Path=Items}"
+                                     SelectedItemsSource="{Binding Path=SelectedItems}"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="AboutDialog">
