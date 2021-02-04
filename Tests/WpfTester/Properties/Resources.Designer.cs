@@ -69,5 +69,15 @@ namespace WpfTester.Properties {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [Lic3](https://www.xarial.com)
+        ///Lic4.
+        /// </summary>
+        internal static string Licenses {
+            get {
+                return ResourceManager.GetString("Licenses", resourceCulture);
+            }
+        }
     }
 }

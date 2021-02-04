@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Windows;
 using System.Windows.Data;
 
 namespace Xarial.XToolkit.Wpf.Converters
@@ -16,8 +17,8 @@ namespace Xarial.XToolkit.Wpf.Converters
     [ValueConversion(typeof(bool), typeof(object))]
     public class BooleanUniversalConverter : IValueConverter
     {
-        public object TrueValue { get; set; }
-        public object FalseValue { get; set; }
+        public virtual object TrueValue { get; set; }
+        public virtual object FalseValue { get; set; }
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -42,5 +43,12 @@ namespace Xarial.XToolkit.Wpf.Converters
         {
             throw new NotImplementedException();
         }
+    }
+
+    [ValueConversion(typeof(bool), typeof(object))]
+    public class BooleanVisibilityConverter : BooleanUniversalConverter
+    {
+        public override object FalseValue => Visibility.Collapsed;
+        public override object TrueValue => Visibility.Visible;
     }
 }
