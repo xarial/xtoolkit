@@ -39,8 +39,7 @@ namespace WpfTester
 
         private void OnShowAboutClick(object sender, RoutedEventArgs e)
         {
-            AboutDialog.Show(typeof(AboutDialog).Assembly, 
-                Properties.Resources.icon, IntPtr.Zero);
+            AboutDialog.Show(this.GetType().Assembly, this);
         }
 
         private void OnBrowseFileOpen(object sender, RoutedEventArgs e)

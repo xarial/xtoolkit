@@ -28,14 +28,28 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             InitializeComponent();
         }
 
+        public AboutDialog(AboutDialogSpec spec) : this()
+        {
+            this.DataContext = spec;
+        }
+
         public static void Show(Assembly assm, Image logo, IntPtr parent) 
         {
-            var spec = new AboutDialogSpec();
-            spec.Title = assm.GetCustomAttribute<AssemblyProductAttribute>()?.Product;
-            spec.Description = assm.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description;
-            spec.Copyright = assm.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
-            spec.Version = assm.GetName().Version;
-            spec.Logo = logo;
+            var spec = new AboutDialogSpec(assm, logo);
+            
+            Show(spec, parent);
+        }
+
+        public static void Show(Assembly assm, Image logo, Window parent)
+        {
+            var spec = new AboutDialogSpec(assm, logo);
+
+            Show(spec, parent);
+        }
+
+        public static void Show(Assembly assm, Window parent)
+        {
+            var spec = new AboutDialogSpec(assm);
 
             Show(spec, parent);
         }
@@ -50,9 +64,23 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             dlg.ShowDialog();
         }
 
-        private void OnOkClick(object sender, RoutedEventArgs e)
+        public static void Show(AboutDialogSpec spec, Window parent)
         {
-            this.Close();
+            var dlg = new AboutDialog();
+            dlg.DataContext = spec;
+            dlg.Owner = parent;
+            dlg.ShowDialog();
+        }
+
+        private void OnOk(object sender, RoutedEventArgs e)
+            => this.Close();
+
+        private void OnShowLicenses(object sender, RoutedEventArgs e)
+        {
+            var licDlg = new LicensesListDialog();
+            licDlg.DataContext = this.DataContext;
+            licDlg.Owner = this;
+            licDlg.ShowDialog();
         }
     }
 }

@@ -10,6 +10,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
+using System.Windows;
 using System.Windows.Data;
 
 namespace Xarial.XToolkit.Wpf.Converters
@@ -17,8 +18,8 @@ namespace Xarial.XToolkit.Wpf.Converters
     [ValueConversion(typeof(IEnumerable), typeof(object))]
     public class EnumerableIsNotEmptyUniversalConverter : IValueConverter
     {
-        public object TrueValue { get; set; } = true;
-        public object FalseValue { get; set; } = false;
+        public virtual object TrueValue { get; set; } = true;
+        public virtual object FalseValue { get; set; } = false;
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -36,5 +37,12 @@ namespace Xarial.XToolkit.Wpf.Converters
         {
             throw new NotImplementedException();
         }
+    }
+
+    [ValueConversion(typeof(IEnumerable), typeof(object))]
+    public class EnumerableIsNotEmptyVisibilityConverter : EnumerableIsNotEmptyUniversalConverter
+    {
+        public override object FalseValue => Visibility.Collapsed;
+        public override object TrueValue => Visibility.Visible;
     }
 }

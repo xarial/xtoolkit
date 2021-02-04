@@ -9,6 +9,7 @@
         Height="300" Width="500" WindowStartupLocation="CenterOwner" WindowStyle="ToolWindow">
     <Window.Resources>
         <conv:ImageToImageSourceConverter x:Key="imgSrcConv"/>
+        <conv:EnumerableIsNotEmptyVisibilityConverter x:Key="collNotEmptyToVisConv"/>
     </Window.Resources>
     <Window.Title>
         <Binding Path="Title" StringFormat="{}About {0}"/>
@@ -32,8 +33,14 @@
         <TextBlock Text="{Binding Path=Copyright}" Grid.Column="1" Grid.Row="2" Margin="5"/>
         <TextBox Text="{Binding Path=Description}" Grid.Column="1" Grid.Row="3" Margin="5" 
                  TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
-        <Button Grid.Row="4" Height="30" Width="75" Margin="5" Grid.ColumnSpan="2" HorizontalAlignment="Right" Click="OnOkClick">
-            <TextBlock Text="OK"/>
-        </Button>
+        <StackPanel Orientation="Horizontal" Grid.Row="4" Height="40" Grid.ColumnSpan="2" HorizontalAlignment="Right">
+            <Button Margin="5" Click="OnShowLicenses"
+                    Visibility="{Binding Path=Licenses, Converter={StaticResource collNotEmptyToVisConv}}">
+                <TextBlock Text="Licenses" Margin="10 0"/>
+            </Button>
+            <Button Width="75" Margin="5" Click="OnOk">
+                <TextBlock Text="OK"/>
+            </Button>
+        </StackPanel>
     </Grid>
 </Window>
