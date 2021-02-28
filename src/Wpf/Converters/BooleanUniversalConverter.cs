@@ -20,17 +20,19 @@ namespace Xarial.XToolkit.Wpf.Converters
         public virtual object TrueValue { get; set; }
         public virtual object FalseValue { get; set; }
 
+        public bool Reverse { get; set; } = false;
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is bool)
             {
                 if ((bool)value)
                 {
-                    return TrueValue;
+                    return Reverse ? FalseValue : TrueValue;
                 }
                 else
                 {
-                    return FalseValue;
+                    return Reverse ? TrueValue : FalseValue;
                 }
             }
             else

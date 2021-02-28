@@ -57,6 +57,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="EnumComboBoxVM.cs" />
+    <Compile Include="ProgressPanelVM.cs" />
     <Compile Include="TreeViewExVM.cs" />
     <Compile Include="XDataGridVM.cs" />
     <Compile Include="XListViewVM.cs" />

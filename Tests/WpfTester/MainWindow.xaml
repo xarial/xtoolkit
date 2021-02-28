@@ -147,6 +147,26 @@
                     <Button Click="OnBrowseFolder">Browse folder</Button>
                 </StackPanel>
             </TabItem>
+            <TabItem Header="ProgressPane">
+                <Grid DataContext="{Binding Path=ProgressPane}">
+                    <ctrls:ProgressPanel Progress="{Binding Path=Progress}"
+                                         Message="{Binding Path=Message}"
+                                         IsWorkInProgress="{Binding Path=IsWorkInProgress}">
+                        <ctrls:ProgressPanel.MessageTextBlockStyle>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontSize" Value="32"/>
+                            </Style>
+                        </ctrls:ProgressPanel.MessageTextBlockStyle>
+                        <Grid>
+                            <Button VerticalAlignment="Center" HorizontalAlignment="Center"
+                                    Command="{Binding Path=DoWorkCommand}" Margin="5">
+                                <TextBlock Text="Do Work" Margin="5"/>
+                            </Button>
+                        </Grid>
+                    </ctrls:ProgressPanel>
+                </Grid>
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>
