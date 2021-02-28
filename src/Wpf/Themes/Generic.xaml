@@ -3,5 +3,6 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/FlagEnumComboBox.xaml" />
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/NumberBox.xaml" />
+        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ProgressPanel.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

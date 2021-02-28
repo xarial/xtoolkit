@@ -15,7 +15,7 @@ namespace Xarial.XToolkit.Wpf.Extensions
 {
     public static class AssemblyExtension
     {
-        public static DataTemplate LoadFromResources(this Assembly assm, string path, string name)
+        public static T LoadFromResources<T>(this Assembly assm, string path, string name)
         {
             var dllName = assm.GetName();
 
@@ -25,7 +25,7 @@ namespace Xarial.XToolkit.Wpf.Extensions
                         UriKind.RelativeOrAbsolute)
             };
 
-            return (DataTemplate)resDict[name];
+            return (T)resDict[name];
         }
     }
 }

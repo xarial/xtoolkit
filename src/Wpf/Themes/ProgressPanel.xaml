@@ -1,0 +1,46 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls"
+                    xmlns:conv="clr-namespace:Xarial.XToolkit.Wpf.Converters">
+    
+    <conv:BooleanVisibilityConverter x:Key="boolToVisConv"/>
+    <conv:BooleanVisibilityConverter Reverse="True" x:Key="boolToVisRevConv"/>
+    <conv:BooleanUniversalConverter Reverse="True" x:Key="boolRevConv"/>
+    <conv:ObjectIsNotNullUniversalConverter Reverse="True" x:Key="objIsNullConv"/>
+
+    <Style TargetType="{x:Type TextBlock}" x:Key="MessageTextBlockDefaultStyle">
+        <Setter Property="TextWrapping" Value="Wrap"/>
+        <Setter Property="FontSize" Value="18"/>
+        <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
+
+    <Style TargetType="{x:Type ProgressBar}" x:Key="ProgressBarDefaultStyle">
+        <Setter Property="Height" Value="20"/>
+    </Style>
+
+    <Style TargetType="{x:Type local:ProgressPanel}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:ProgressPanel}">
+                    <Grid Background="{TemplateBinding Background}">
+                        <ContentControl Content="{TemplateBinding Content}"
+                                        Visibility="{TemplateBinding IsWorkInProgress, Converter={StaticResource boolToVisRevConv}}"/>
+                        <Grid Visibility="{TemplateBinding IsWorkInProgress, Converter={StaticResource boolToVisConv}}"
+                              VerticalAlignment="Center">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Text="{TemplateBinding Message}"
+                                       Style="{TemplateBinding MessageTextBlockStyle}"/>
+                            <ProgressBar Value="{TemplateBinding Progress}" IsIndeterminate="{TemplateBinding Progress, Converter={StaticResource objIsNullConv}}"
+                                         Style="{TemplateBinding ProgressBarStyle}"
+                                         Minimum="0" Maximum="1" Grid.Row="1"/>
+                        </Grid>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
