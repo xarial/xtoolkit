@@ -1,0 +1,36 @@
+﻿<Window x:Class="Xarial.XToolkit.Wpf.Dialogs.InputBoxDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Dialogs"
+        mc:Ignorable="d" WindowStyle="ToolWindow" WindowStartupLocation="CenterOwner"
+        Title="Input" Height="200" Width="300" SizeToContent="WidthAndHeight"
+        FocusManager.FocusedElement="{Binding ElementName=txtValue}">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid VerticalAlignment="Center">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <TextBlock Margin="5" Grid.Row="0" Text="{Binding Path=Prompt, RelativeSource={RelativeSource AncestorType={x:Type local:InputBoxDialog}}}" TextWrapping="Wrap"/>
+            <TextBox Margin="5" Grid.Row="1" x:Name="txtValue" Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged, RelativeSource={RelativeSource AncestorType={x:Type local:InputBoxDialog}}}"/>
+        </Grid>
+        <Grid Grid.Row="1" HorizontalAlignment="Right">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Margin="5" Width="50" IsDefault="True" Click="OnOk">
+                <TextBlock Text="OK" Margin="2"/>
+            </Button>
+            <Button Grid.Column="1" Margin="5" Width="50" Click="OnCancel">
+                <TextBlock Text="Cancel" Margin="2"/>
+            </Button>
+        </Grid>
+    </Grid>
+</Window>

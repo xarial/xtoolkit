@@ -16,27 +16,10 @@ using System.Windows.Data;
 namespace Xarial.XToolkit.Wpf.Converters
 {
     [ValueConversion(typeof(IEnumerable), typeof(object))]
-    public class EnumerableIsNotEmptyUniversalConverter : IValueConverter
+    public class EnumerableIsNotEmptyUniversalConverter : BooleanUniversalConverter
     {
-        public virtual object TrueValue { get; set; } = true;
-        public virtual object FalseValue { get; set; } = false;
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is IEnumerable && ((IEnumerable)value).GetEnumerator().MoveNext())
-            {
-                return TrueValue;
-            }
-            else
-            {
-                return FalseValue;
-            }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        protected override bool? ConvertValueToBool(object value)
+            => value is IEnumerable && ((IEnumerable)value).GetEnumerator().MoveNext();
     }
 
     [ValueConversion(typeof(IEnumerable), typeof(object))]

@@ -57,39 +57,50 @@ namespace Xarial.XToolkit.Wpf.Utils
         }
 
         public static bool BrowseFileOpen(out string path, string title = "", string filter = "")
+            => BrowseFileOpen(out path, out _, title, filter);
+
+        public static bool BrowseFileOpen(out string path, out int filterIndex, string title = "", string filter = "")
         {
-            var res = BrowseForFile(out string[] paths, new OpenFileDialog(), title, filter);
+            var res = BrowseForFile(out string[] paths, new OpenFileDialog(), title, filter, out filterIndex);
             path = paths?.FirstOrDefault();
             return res;
         }
 
         public static bool BrowseFilesOpen(out string[] paths, string title = "", string filter = "")
+            => BrowseFilesOpen(out paths, out _, title, filter);
+
+        public static bool BrowseFilesOpen(out string[] paths, out int filterIndex, string title = "", string filter = "")
         {
             var dlg = new OpenFileDialog();
             dlg.Multiselect = true;
             
-            return BrowseForFile(out paths, dlg, title, filter);
+            return BrowseForFile(out paths, dlg, title, filter, out filterIndex);
         }
 
         public static bool BrowseFileSave(out string path, string title = "", string filter = "")
+            => BrowseFileSave(out path, out _, title, filter);
+
+        public static bool BrowseFileSave(out string path, out int filterIndex, string title = "", string filter = "")
         {
-            var res = BrowseForFile(out string[] paths, new SaveFileDialog(), title, filter);
+            var res = BrowseForFile(out string[] paths, new SaveFileDialog(), title, filter, out filterIndex);
             path = paths?.FirstOrDefault();
             return res;
         }
 
-        private static bool BrowseForFile(out string[] paths, FileDialog dlg, string title, string filter)
+        private static bool BrowseForFile(out string[] paths, FileDialog dlg, string title, string filter, out int filterIndex)
         {
             dlg.Filter = filter;
             dlg.Title = title;
             
             if (dlg.ShowDialog() == DialogResult.OK)
             {
+                filterIndex = dlg.FilterIndex - 1;
                 paths = dlg.FileNames;
                 return true;
             }
             else
             {
+                filterIndex = -1;
                 paths = null;
                 return false;
             }

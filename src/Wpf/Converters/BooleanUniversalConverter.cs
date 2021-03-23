@@ -17,16 +17,18 @@ namespace Xarial.XToolkit.Wpf.Converters
     [ValueConversion(typeof(bool), typeof(object))]
     public class BooleanUniversalConverter : IValueConverter
     {
-        public virtual object TrueValue { get; set; }
-        public virtual object FalseValue { get; set; }
+        public virtual object TrueValue { get; set; } = true;
+        public virtual object FalseValue { get; set; } = false;
 
         public bool Reverse { get; set; } = false;
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool)
+            var boolVal = ConvertValueToBool(value);
+
+            if (boolVal.HasValue)
             {
-                if ((bool)value)
+                if (boolVal.Value)
                 {
                     return Reverse ? FalseValue : TrueValue;
                 }
@@ -36,6 +38,18 @@ namespace Xarial.XToolkit.Wpf.Converters
                 }
             }
             else
+            {
+                return null;
+            }
+        }
+
+        protected virtual bool? ConvertValueToBool(object value) 
+        {
+            if (value is bool)
+            {
+                return (bool)value;
+            }
+            else 
             {
                 return null;
             }
