@@ -15,29 +15,10 @@ using System.Windows.Data;
 namespace Xarial.XToolkit.Wpf.Converters
 {
     [ValueConversion(typeof(object), typeof(object))]
-    public class ObjectIsNotNullUniversalConverter : IValueConverter
+    public class ObjectIsNotNullUniversalConverter : BooleanUniversalConverter
     {
-        public virtual object TrueValue { get; set; } = true;
-        public virtual object FalseValue { get; set; } = false;
-
-        public bool Reverse { get; set; }
-
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (!(value is null))
-            {
-                return Reverse ? FalseValue : TrueValue;
-            }
-            else
-            {
-                return Reverse ? TrueValue : FalseValue;
-            }
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        protected override bool? ConvertValueToBool(object value)
+            => !(value is null);
     }
 
     [ValueConversion(typeof(object), typeof(object))]

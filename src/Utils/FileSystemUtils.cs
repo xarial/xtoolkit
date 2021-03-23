@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -39,6 +40,34 @@ namespace Xarial.XToolkit
 
             return NormalizePath(thisDir).StartsWith(NormalizePath(parentDir),
                     StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        /// <summary>
+        /// Opens file explorer at the specified folder
+        /// </summary>
+        /// <param name="path"></param>
+        public static void BrowseFolderInExplorer(string path) 
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = path,
+                UseShellExecute = true,
+                Verb = "open"
+            });
+        }
+
+        /// <summary>
+        /// Opens file explorer and selects specified file
+        /// </summary>
+        /// <param name="path"></param>
+        public static void BrowseFileInExplorer(string path)
+        {
+            Process.Start(new ProcessStartInfo()
+            {
+                FileName = "explorer.exe",
+                UseShellExecute = true,
+                Arguments = $"/select, \"{path}\""
+            });
         }
     }
 }

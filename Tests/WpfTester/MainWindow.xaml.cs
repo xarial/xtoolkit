@@ -26,7 +26,7 @@ namespace WpfTester
         public MainWindow()
         {
             InitializeComponent();
-
+            
             m_Vm = new MainVM();
 
             this.DataContext = m_Vm;
@@ -39,12 +39,22 @@ namespace WpfTester
 
         private void OnShowAboutClick(object sender, RoutedEventArgs e)
         {
-            AboutDialog.Show(this.GetType().Assembly, this);
+            About.Show(this.GetType().Assembly, this);
         }
 
+        private void OnShowInputBoxClick(object sender, RoutedEventArgs e)
+        {
+            if (InputBox.Show("My Input Box", "Enter value", this, out string val)) 
+            {
+                MessageBox.Show($"Entered value: {val}");
+            }
+        }
+        
         private void OnBrowseFileOpen(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFileOpen(out string path)) 
+            if (FileSystemBrowser.BrowseFileOpen(out string path, out int filterIndex, "Test",
+                FileSystemBrowser.BuildFilterString(new FileFilter("Txt1", "*.txt"),
+                new FileFilter("Txt2", "*.txt")))) 
             {
             }
         }

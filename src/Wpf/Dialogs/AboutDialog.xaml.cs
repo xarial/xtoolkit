@@ -21,22 +21,12 @@ using System.Windows.Shapes;
 
 namespace Xarial.XToolkit.Wpf.Dialogs
 {
-    public partial class AboutDialog : Window
+    public static class About 
     {
-        public AboutDialog()
-        {
-            InitializeComponent();
-        }
-
-        public AboutDialog(AboutDialogSpec spec) : this()
-        {
-            this.DataContext = spec;
-        }
-
-        public static void Show(Assembly assm, Image logo, IntPtr parent) 
+        public static void Show(Assembly assm, Image logo, IntPtr parent)
         {
             var spec = new AboutDialogSpec(assm, logo);
-            
+
             Show(spec, parent);
         }
 
@@ -54,7 +44,7 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             Show(spec, parent);
         }
 
-        public static void Show(AboutDialogSpec spec, IntPtr parent) 
+        public static void Show(AboutDialogSpec spec, IntPtr parent)
         {
             var dlg = new AboutDialog();
             dlg.DataContext = spec;
@@ -70,6 +60,19 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             dlg.DataContext = spec;
             dlg.Owner = parent;
             dlg.ShowDialog();
+        }
+    }
+
+    public partial class AboutDialog : Window
+    {
+        public AboutDialog()
+        {
+            InitializeComponent();
+        }
+
+        public AboutDialog(AboutDialogSpec spec) : this()
+        {
+            this.DataContext = spec;
         }
 
         private void OnOk(object sender, RoutedEventArgs e)

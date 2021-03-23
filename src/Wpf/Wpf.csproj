@@ -13,10 +13,10 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XToolkit.Wpf</PackageId>
-    <VersionPrefix>0.2.18</VersionPrefix>
+    <VersionPrefix>0.2.19</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xToolkit</Product>
-    <Copyright>© 2020 Xarial Pty Limited</Copyright>
+    <Copyright>© 2021 Xarial Pty Limited</Copyright>
     <PackageProjectUrl>https://xtoolkit.xarial.com</PackageProjectUrl>
     <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
     <Company>Xarial Pty Limited</Company>
