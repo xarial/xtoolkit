@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2020 Xarial Pty Limited
+//Copyright(C) 2021 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -19,7 +19,7 @@ namespace Xarial.XToolkit.Services.UserSettings
     {
         public T ReadSettings<T>(TextReader settsReader, params IValueSerializer[] serializers)
         {
-            var jsonSer = new JsonSerializer();
+            var jsonSer = CreateJsonSerializer();
 
             if (TryGetVersionInfo<T>(out Version vers, out IEnumerable<VersionTransform> transform))
             {
@@ -36,7 +36,7 @@ namespace Xarial.XToolkit.Services.UserSettings
 
         public void StoreSettings<T>(T setts, TextWriter settsWriter, params IValueSerializer[] serializers)
         {
-            var jsonSer = new JsonSerializer();
+            var jsonSer = CreateJsonSerializer();
 
             if (TryGetVersionInfo<T>(out Version vers, out _))
             {
@@ -66,6 +66,9 @@ namespace Xarial.XToolkit.Services.UserSettings
                 return false;
             }
         }
+
+        protected virtual JsonSerializer CreateJsonSerializer()
+            => new JsonSerializer();
     }
 
     public static class UserSettingsServiceExtension
