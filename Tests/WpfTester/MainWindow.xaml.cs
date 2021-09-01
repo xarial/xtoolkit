@@ -39,7 +39,10 @@ namespace WpfTester
 
         private void OnShowAboutClick(object sender, RoutedEventArgs e)
         {
-            About.Show(this.GetType().Assembly, this);
+            About.Show(new AboutDialogSpec(this.GetType().Assembly) 
+            {
+                Edition = new PackageEditionSpec("Test Package", new DateTime(2020, 12, 1))
+            }, this);
         }
 
         private void OnShowInputBoxClick(object sender, RoutedEventArgs e)
