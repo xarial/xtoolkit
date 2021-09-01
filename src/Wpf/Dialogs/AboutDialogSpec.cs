@@ -15,6 +15,18 @@ using Xarial.XToolkit.Wpf.Attributes;
 
 namespace Xarial.XToolkit.Wpf.Dialogs
 {
+    public class PackageEditionSpec
+    {
+        public string EditionName { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+
+        public PackageEditionSpec(string packageName, DateTime? expiryDate) 
+        {
+            EditionName = packageName;
+            ExpiryDate = expiryDate;
+        }
+    }
+
     public class AboutDialogSpec
     {
         private static Image TryFindAssemblyLogo(Assembly assm)
@@ -43,6 +55,7 @@ namespace Xarial.XToolkit.Wpf.Dialogs
         public Version Version { get; set; }
         public Image Logo { get; set; }
         public LicenseInfo[] Licenses { get; set; }
+        public PackageEditionSpec Edition { get; set; }
 
         public AboutDialogSpec() 
         {
