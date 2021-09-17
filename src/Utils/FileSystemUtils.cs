@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -15,6 +16,44 @@ namespace Xarial.XToolkit
 {
     public static class FileSystemUtils
     {
+        /// <summary>
+        /// Combines the directory paths
+        /// </summary>
+        /// <param name="srcPath">Start path</param>
+        /// <param name="additionalPaths">Additional path parts</param>
+        /// <returns>Combined path</returns>
+        /// <remarks>This method works with relative path, including moving the upper fodlers via ..</remarks>
+        public static string CombinePaths(string srcPath, params string[] additionalPaths) 
+        {
+            var pathParts = new List<string>();
+
+            var addedRoot = "";
+
+            if (!Path.IsPathRooted(srcPath))
+            {
+                addedRoot = @"C:\";
+                pathParts.Add(Path.Combine(addedRoot, srcPath));
+            }
+            else 
+            {
+                pathParts.Add(srcPath);
+            }
+
+            foreach (var path in additionalPaths) 
+            {
+                pathParts.Add(path.TrimStart('\\'));
+            }
+
+            var combinedPath = new Uri(Path.Combine(pathParts.ToArray())).LocalPath;
+
+            if (!string.IsNullOrEmpty(addedRoot))
+            {
+                combinedPath = combinedPath.Substring(addedRoot.Length);
+            }
+
+            return combinedPath;
+        }
+
         /// <summary>
         /// Excludes all sub level folders and only returns top level folders
         /// </summary>
