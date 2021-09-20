@@ -11,11 +11,39 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Xarial.XToolkit
 {
     public static class FileSystemUtils
     {
+        /// <summary>
+        /// Checks if the specified file matches any of the provided filters
+        /// </summary>
+        /// <param name="filPath">FilePath</param>
+        /// <param name="filters">Filters</param>
+        /// <returns></returns>
+        public static bool MatchesAnyFilter(string filePath, params string[] filters)
+        {
+            if (filters?.Any() == false)
+            {
+                return true;
+            }
+            else
+            {
+                const string ANY_FILTER = "*";
+
+                return filters.Any(f =>
+                {
+                    var regex = (f.StartsWith(ANY_FILTER) ? "" : "^")
+                        + Regex.Escape(f).Replace($"\\{ANY_FILTER}", ".*").Replace("\\?", ".")
+                        + (f.EndsWith(ANY_FILTER) ? "" : "$");
+
+                    return Regex.IsMatch(filePath, regex, RegexOptions.IgnoreCase);
+                });
+            }
+        }
+
         /// <summary>
         /// Combines the directory paths
         /// </summary>
