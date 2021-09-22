@@ -27,7 +27,7 @@
                         <ContentControl Content="{TemplateBinding Content}"
                                         Visibility="{TemplateBinding IsWorkInProgress, Converter={StaticResource boolToVisRevConv}}"/>
                         <Grid Visibility="{TemplateBinding IsWorkInProgress, Converter={StaticResource boolToVisConv}}"
-                              VerticalAlignment="Center">
+                              VerticalAlignment="Center" Margin="5">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="Auto"/>

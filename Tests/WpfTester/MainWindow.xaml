@@ -158,7 +158,7 @@
                                 <Setter Property="FontSize" Value="32"/>
                             </Style>
                         </ctrls:ProgressPanel.MessageTextBlockStyle>
-                        <Grid>
+                        <Grid Background="Yellow">
                             <Button VerticalAlignment="Center" HorizontalAlignment="Center"
                                     Command="{Binding Path=DoWorkCommand}" Margin="5">
                                 <TextBlock Text="Do Work" Margin="5"/>
