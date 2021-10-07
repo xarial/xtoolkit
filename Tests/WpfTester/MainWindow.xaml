@@ -150,7 +150,7 @@
             <TabItem Header="ProgressPane">
                 <Grid DataContext="{Binding Path=ProgressPane}">
                     <ctrls:ProgressPanel Progress="{Binding Path=Progress}"
-                                         Message="{Binding Path=Message}"
+                                         Message="{Binding Path=Message}" Background="#7FFFFFFF"
                                          IsWorkInProgress="{Binding Path=IsWorkInProgress}">
                         <ctrls:ProgressPanel.MessageTextBlockStyle>
                             <Style TargetType="{x:Type TextBlock}">

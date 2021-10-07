@@ -7,43 +7,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using System.Windows.Data;
-using Xarial.XToolkit.Wpf.Dialogs;
 
 namespace Xarial.XToolkit.Wpf.Converters
 {
-    public class EditionTypeConverter : IValueConverter
+    [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+    public class ProgressContentOpacityConverter : IValueConverter
     {
+        private const double DEFAULT_OPACITY = 1;
+        private const double WORK_IN_PROGRESS_CTRL_OPACITY = 0.25;
+
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is PackageEditionSpec)
+            if (value is bool)
             {
-                var spec = (PackageEditionSpec)value;
-
-                var exp = "";
-
-                if (spec.ExpiryDate.HasValue)
+                if ((bool)value)
                 {
-                    var expDate = spec.ExpiryDate.Value.ToString("dd MMM yyyy");
-
-                    if (spec.ExpiryDate.Value > DateTime.Now)
-                    {
-                        exp = $" (expires on {expDate})";
-                    }
-                    else 
-                    {
-                        exp = $" (expired on {expDate})";
-                    }
+                    return WORK_IN_PROGRESS_CTRL_OPACITY;
                 }
+            }
 
-                return $"{spec.EditionName}{exp}";
-            }
-            else 
-            {
-                return "";
-            }
+            return DEFAULT_OPACITY;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
