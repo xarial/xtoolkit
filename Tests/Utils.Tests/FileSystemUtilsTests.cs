@@ -110,25 +110,5 @@ namespace Utils.Tests
             Assert.AreEqual(p17, @"abc\xyz.txt");
             Assert.AreEqual(p18, @"abc\xyz.txt");
         }
-
-        [Test]
-        public void MatchesAnyFilterTest() 
-        {
-            var r1 = FileSystemUtils.MatchesAnyFilter("D:\\myfile1.txt", "*");
-            var r2 = FileSystemUtils.MatchesAnyFilter("D:\\myfile1.txt", "*.txt");
-            var r3 = FileSystemUtils.MatchesAnyFilter("D:\\myfile1.bin", "*.txt");
-            var r4 = FileSystemUtils.MatchesAnyFilter("D:\\myfile1.bin", "*fil*");
-            var r5 = FileSystemUtils.MatchesAnyFilter("D:\\myfile1.bin", "*fil");
-            var r6 = FileSystemUtils.MatchesAnyFilter("D:\\myfile1.bin", "fil");
-            var r7 = FileSystemUtils.MatchesAnyFilter("D:\\myfile1.bin", "fil", "*1*");
-
-            Assert.IsTrue(r1);
-            Assert.IsTrue(r2);
-            Assert.IsFalse(r3);
-            Assert.IsTrue(r4);
-            Assert.IsFalse(r5);
-            Assert.IsFalse(r6);
-            Assert.IsTrue(r7);
-        }
     }
 }
