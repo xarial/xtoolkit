@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using Xarial.XToolkit.Wpf.Controls;
+using Xarial.XToolkit.Wpf.Extensions;
 
 namespace WpfTester
 {
@@ -19,6 +23,31 @@ namespace WpfTester
         public Dictionary<string, CellVM> Cells { get; set; }
     }
 
+    public class ColumnVM : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private Visibility m_Visibility;
+
+        public string Title { get; }
+
+        public Visibility Visibility 
+        {
+            get => m_Visibility;
+            set 
+            {
+                m_Visibility = value;
+                this.NotifyChanged();
+            }
+        }
+
+        public ColumnVM(string title) 
+        {
+            Title = title;
+            m_Visibility = Visibility.Visible;
+        }
+    }
+
     public class CellContentSelector : ICellContentSelector
     {
         public CellContentSelector() 
@@ -27,7 +56,7 @@ namespace WpfTester
 
         public object SelectContent(object dataItem, DataGridColumn column, DataGridCell cell)
         {
-            return (dataItem as RowVM).Cells[(string)column.Header];
+            return (dataItem as RowVM).Cells[((ColumnVM)column.Header).Title];
         }
     }
     
@@ -74,7 +103,7 @@ namespace WpfTester
 
         public override DataTemplate SelectTemplate(object item, DependencyObject container)
         {
-            if ((string)item == "A")
+            if (((ColumnVM)item).Title == "A")
             {
                 return AColumn;
             }
@@ -84,12 +113,39 @@ namespace WpfTester
             }
         }
     }
-
-    public class XDataGridVM
+    
+    public class XDataGridVM : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public RowVM[] Rows { get; set; }
 
-        public string[] ColumnNames { get; set; }
+        public ColumnVM[] ColumnsSource { get; set; }
+
+        private bool m_ShowColumns;
+
+        public bool ShowColumns 
+        {
+            get => m_ShowColumns;
+            set 
+            {
+                m_ShowColumns = value;
+                this.NotifyChanged();
+
+                if (m_ShowColumns)
+                {
+                    foreach (var col in ColumnsSource)
+                    {
+                        col.Visibility = Visibility.Visible;
+                    }
+                }
+                else 
+                {
+                    ColumnsSource[0].Visibility = Visibility.Collapsed;
+                    ColumnsSource[2].Visibility = Visibility.Collapsed;
+                }
+            }
+        }
 
         public XDataGridVM() 
         {
@@ -115,7 +171,14 @@ namespace WpfTester
                 }
             };
 
-            ColumnNames = new string[] { "A", "B", "C" };
+            ColumnsSource = new ColumnVM[] 
+            {
+                new ColumnVM("A"),
+                new ColumnVM("B"),
+                new ColumnVM("C")
+            };
+
+            m_ShowColumns = true;
         }
     }
 }

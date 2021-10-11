@@ -7,7 +7,8 @@
     <conv:BooleanVisibilityConverter Reverse="True" x:Key="boolToVisRevConv"/>
     <conv:BooleanUniversalConverter Reverse="True" x:Key="boolRevConv"/>
     <conv:ObjectIsNotNullUniversalConverter Reverse="True" x:Key="objIsNullConv"/>
-
+    <conv:ProgressContentOpacityConverter x:Key="prgContentOpacityConv"/>
+    
     <Style TargetType="{x:Type TextBlock}" x:Key="MessageTextBlockDefaultStyle">
         <Setter Property="TextWrapping" Value="Wrap"/>
         <Setter Property="FontSize" Value="18"/>
@@ -20,23 +21,26 @@
     </Style>
 
     <Style TargetType="{x:Type local:ProgressPanel}">
+        <Setter Property="Background" Value="White"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:ProgressPanel}">
-                    <Grid Background="{TemplateBinding Background}">
+                    <Grid>
                         <ContentControl Content="{TemplateBinding Content}"
-                                        Visibility="{TemplateBinding IsWorkInProgress, Converter={StaticResource boolToVisRevConv}}"/>
-                        <Grid Visibility="{TemplateBinding IsWorkInProgress, Converter={StaticResource boolToVisConv}}"
-                              VerticalAlignment="Center">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBlock Text="{TemplateBinding Message}"
-                                       Style="{TemplateBinding MessageTextBlockStyle}"/>
-                            <ProgressBar Value="{TemplateBinding Progress}" IsIndeterminate="{TemplateBinding Progress, Converter={StaticResource objIsNullConv}}"
-                                         Style="{TemplateBinding ProgressBarStyle}"
-                                         Minimum="0" Maximum="1" Grid.Row="1"/>
+                                        Opacity="{TemplateBinding IsWorkInProgress, Converter={StaticResource prgContentOpacityConv}}"/>
+                        <Grid Background="{TemplateBinding Background}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch"
+                              Visibility="{TemplateBinding IsWorkInProgress, Converter={StaticResource boolToVisConv}}">
+                            <Grid VerticalAlignment="Center" Margin="5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="{TemplateBinding Message}"
+                                           Style="{TemplateBinding MessageTextBlockStyle}"/>
+                                <ProgressBar Value="{TemplateBinding Progress}" IsIndeterminate="{TemplateBinding Progress, Converter={StaticResource objIsNullConv}}"
+                                             Style="{TemplateBinding ProgressBarStyle}"
+                                             Minimum="0" Maximum="1" Grid.Row="1"/>
+                            </Grid>
                         </Grid>
                     </Grid>
                 </ControlTemplate>

@@ -120,6 +120,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 			get { return (DataTemplateSelector)GetValue(ColumnHeaderTemplateSelectorProperty); }
 			set { SetValue(ColumnHeaderTemplateSelectorProperty, value); }
 		}
+		
+		public BindingBase ColumnVisibilityBinding { get; set; }
 
 		public XDataGrid() 
 		{
@@ -170,6 +172,11 @@ namespace Xarial.XToolkit.Wpf.Controls
 					SetBinding(col, nameof(ColumnHeaderTemplateSelector), DataGridColumn.HeaderTemplateSelectorProperty);
 					SetBinding(col, nameof(CellTemplateSelector), XDataGridColumn.CellTemplateSelectorProperty);
 					SetBinding(col, nameof(CellEditingTemplateSelector), XDataGridColumn.CellEditingTemplateSelectorProperty);
+
+					if (ColumnVisibilityBinding != null)
+					{
+						BindingOperations.SetBinding(col, XDataGridColumn.VisibilityProperty, ColumnVisibilityBinding);
+					}
 
 					columns.Add(col);
 				}

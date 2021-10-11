@@ -60,5 +60,55 @@ namespace Utils.Tests
 
             CollectionAssert.AreEquivalent(new string[] { @"D:\x", @"D:\a\b", @"D:\z\ab" }, r1);
         }
+
+        [Test]
+        public void CombinePathsTest() 
+        {
+            var workDir1 = @"C:\folder1\folder2";
+            var workDir2 = @"\\server1\folder1\folder2";
+            var workDir3 = @"folder1\folder2";
+
+            var p1 = FileSystemUtils.CombinePaths(workDir1, @"abc\xyz.txt");
+            var p2 = FileSystemUtils.CombinePaths(workDir1, @"\abc\xyz.txt");
+            var p3 = FileSystemUtils.CombinePaths(workDir1, @"..\abc\xyz.txt");
+            var p4 = FileSystemUtils.CombinePaths(workDir1, @"\..\abc\xyz.txt");
+            var p5 = FileSystemUtils.CombinePaths(workDir1, @"..\..\abc\xyz.txt");
+            var p6 = FileSystemUtils.CombinePaths(workDir1, @"\..\..\abc\xyz.txt");
+            
+            var p7 = FileSystemUtils.CombinePaths(workDir2, @"abc\xyz.txt");
+            var p8 = FileSystemUtils.CombinePaths(workDir2, @"\abc\xyz.txt");
+            var p9 = FileSystemUtils.CombinePaths(workDir2, @"..\abc\xyz.txt");
+            var p10 = FileSystemUtils.CombinePaths(workDir2, @"\..\abc\xyz.txt");
+            var p11 = FileSystemUtils.CombinePaths(workDir2, @"..\..\abc\xyz.txt");
+            var p12 = FileSystemUtils.CombinePaths(workDir2, @"\..\..\abc\xyz.txt");
+            
+            var p13 = FileSystemUtils.CombinePaths(workDir3, @"abc\xyz.txt");
+            var p14 = FileSystemUtils.CombinePaths(workDir3, @"\abc\xyz.txt");
+            var p15 = FileSystemUtils.CombinePaths(workDir3, @"..\abc\xyz.txt");
+            var p16 = FileSystemUtils.CombinePaths(workDir3, @"\..\abc\xyz.txt");
+            var p17 = FileSystemUtils.CombinePaths(workDir3, @"..\..\abc\xyz.txt");
+            var p18 = FileSystemUtils.CombinePaths(workDir3, @"\..\..\abc\xyz.txt");
+
+            Assert.AreEqual(p1, @"C:\folder1\folder2\abc\xyz.txt");
+            Assert.AreEqual(p2, @"C:\folder1\folder2\abc\xyz.txt");
+            Assert.AreEqual(p3, @"C:\folder1\abc\xyz.txt");
+            Assert.AreEqual(p4, @"C:\folder1\abc\xyz.txt");
+            Assert.AreEqual(p5, @"C:\abc\xyz.txt");
+            Assert.AreEqual(p6, @"C:\abc\xyz.txt");
+            
+            Assert.AreEqual(p7, @"\\server1\folder1\folder2\abc\xyz.txt");
+            Assert.AreEqual(p8, @"\\server1\folder1\folder2\abc\xyz.txt");
+            Assert.AreEqual(p9, @"\\server1\folder1\abc\xyz.txt");
+            Assert.AreEqual(p10, @"\\server1\folder1\abc\xyz.txt");
+            Assert.AreEqual(p11, @"\\server1\abc\xyz.txt");
+            Assert.AreEqual(p12, @"\\server1\abc\xyz.txt");
+            
+            Assert.AreEqual(p13, @"folder1\folder2\abc\xyz.txt");
+            Assert.AreEqual(p14, @"folder1\folder2\abc\xyz.txt");
+            Assert.AreEqual(p15, @"folder1\abc\xyz.txt");
+            Assert.AreEqual(p16, @"folder1\abc\xyz.txt");
+            Assert.AreEqual(p17, @"abc\xyz.txt");
+            Assert.AreEqual(p18, @"abc\xyz.txt");
+        }
     }
 }

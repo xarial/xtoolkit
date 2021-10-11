@@ -50,8 +50,13 @@
             </TabItem>
             <TabItem Header="XDataGrid">
                 <StackPanel DataContext="{Binding Path=XDataGrid}" Orientation="Vertical">
+                    <CheckBox IsChecked="{Binding Path=ShowColumns}">
+                        <TextBlock Text="Show Columns"/>
+                    </CheckBox>
                     <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
-                                     ColumnsSource="{Binding Path=ColumnNames}" ColumnsPreCreated="OnColumnsPreCreated">
+                                     ColumnsSource="{Binding Path=ColumnsSource}"
+                                     ColumnsPreCreated="OnColumnsPreCreated"
+                                     ColumnVisibilityBinding="{Binding Path=Header.Visibility, RelativeSource={RelativeSource Mode=Self}}">
                         <ctrls:XDataGrid.StaticColumns>
                             <DataGridTextColumn Header="Static Text"/>
                             <DataGridCheckBoxColumn Header="Static Toggle"/>
@@ -63,7 +68,7 @@
                         </ctrls:XDataGrid.ColumnHeaderStyle>
                         <ctrls:XDataGrid.ColumnHeaderTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding Path=Title}" FontWeight="Bold" HorizontalAlignment="Center"/>
                             </DataTemplate>
                         </ctrls:XDataGrid.ColumnHeaderTemplate>
                         <ctrls:XDataGrid.CellContentSelector>
@@ -81,17 +86,17 @@
                         </ctrls:XDataGrid.CellEditingTemplate>
                     </ctrls:XDataGrid>
                     <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
-                                     ColumnsSource="{Binding Path=ColumnNames}">
+                                     ColumnsSource="{Binding Path=ColumnsSource}">
                         <ctrls:XDataGrid.ColumnHeaderTemplateSelector>
                             <local:MyColumnTemplateSelector>
                                 <local:MyColumnTemplateSelector.AColumn>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Path=Title}" FontWeight="Bold" HorizontalAlignment="Center"/>
                                     </DataTemplate>
                                 </local:MyColumnTemplateSelector.AColumn>
                                 <local:MyColumnTemplateSelector.Default>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding}"/>
+                                        <TextBlock Text="{Binding Path=Title}"/>
                                     </DataTemplate>
                                 </local:MyColumnTemplateSelector.Default>
                             </local:MyColumnTemplateSelector>
@@ -150,7 +155,7 @@
             <TabItem Header="ProgressPane">
                 <Grid DataContext="{Binding Path=ProgressPane}">
                     <ctrls:ProgressPanel Progress="{Binding Path=Progress}"
-                                         Message="{Binding Path=Message}"
+                                         Message="{Binding Path=Message}" Background="#7FFFFFFF"
                                          IsWorkInProgress="{Binding Path=IsWorkInProgress}">
                         <ctrls:ProgressPanel.MessageTextBlockStyle>
                             <Style TargetType="{x:Type TextBlock}">
@@ -158,7 +163,7 @@
                                 <Setter Property="FontSize" Value="32"/>
                             </Style>
                         </ctrls:ProgressPanel.MessageTextBlockStyle>
-                        <Grid>
+                        <Grid Background="Yellow">
                             <Button VerticalAlignment="Center" HorizontalAlignment="Center"
                                     Command="{Binding Path=DoWorkCommand}" Margin="5">
                                 <TextBlock Text="Do Work" Margin="5"/>

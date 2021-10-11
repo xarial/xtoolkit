@@ -16,6 +16,21 @@ namespace Xarial.XToolkit.Wpf.Controls
             : base()
         {
             SelectedItemChanged += OnSelectedItemChanged;
+            Loaded += OnLoaded;
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            var curItem = SelectedItem;
+
+            if (curItem != null)
+            {
+                SelectTreeViewItem(this, curItem);
+            }
+            else
+            {
+                DeselectAllItems(this);
+            }
         }
 
         private void OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)

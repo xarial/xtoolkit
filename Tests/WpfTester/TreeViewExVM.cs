@@ -56,7 +56,7 @@ namespace WpfTester
 
             Items = new TreeViewExItem[] { a, b, c };
 
-            m_SelectScope = new TreeViewExItem[] { b, a21, b1, null };
+            m_SelectScope = new TreeViewExItem[] { b11, b, a21, b1, null };
             m_CurSelIndex = -1;
 
             SelectNextItemCommand = new RelayCommand(() => 
@@ -70,6 +70,8 @@ namespace WpfTester
 
                 SelectedItem = m_SelectScope[m_CurSelIndex];
             });
+
+            SelectedItem = a1;
         }
 
         private TreeViewExItem m_SelectedItem;
