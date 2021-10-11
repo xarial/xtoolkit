@@ -60,18 +60,23 @@ namespace Xarial.XToolkit.Reflection
             
             var resolvers = m_DomainsReferenceResolvers[appDomain.Id];
 
-            foreach (var resolver in resolvers) 
-            {
-                var assm = resolver.Resolve(appDomain, new AssemblyName(args.Name), args.RequestingAssembly);
+            var assmName = new AssemblyName(args.Name);
 
-                if (assm != null)
+            if (!assmName.Name.EndsWith(".resources"))
+            {
+                foreach (var resolver in resolvers)
                 {
-                    Trace.WriteLine($"Assembly '{args.Name}' is resolved to '{assm.Location}' via '{resolver.GetType().FullName}' resolver", "Xarial.xToolkit");
-                    return assm;
-                }
-                else 
-                {
-                    Trace.WriteLine($"Assembly '{args.Name}' is not resolved via '{resolver.GetType().FullName}' resolver", "Xarial.xToolkit");
+                    var assm = resolver.Resolve(appDomain, assmName, args.RequestingAssembly);
+
+                    if (assm != null)
+                    {
+                        Trace.WriteLine($"Assembly '{args.Name}' is resolved to '{assm.Location}' via '{resolver.GetType().FullName}' resolver", "Xarial.xToolkit");
+                        return assm;
+                    }
+                    else
+                    {
+                        Trace.WriteLine($"Assembly '{args.Name}' is not resolved via '{resolver.GetType().FullName}' resolver", "Xarial.xToolkit");
+                    }
                 }
             }
             
