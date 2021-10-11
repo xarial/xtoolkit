@@ -15,6 +15,8 @@ namespace WpfTester
         public XDataGridVM XDataGrid { get; set; }
         public XListViewVM XListView { get; set; }
         public ProgressPanelVM ProgressPane { get; set; }
+        public ExpandToggleButtonVM ExpandToggleButton { get; set; }
+        public PopupMenuVM PopupMenu { get; set; }
 
         public MainVM() 
         {
@@ -25,6 +27,8 @@ namespace WpfTester
             XDataGrid = new XDataGridVM();
             XListView = new XListViewVM();
             ProgressPane = new ProgressPanelVM();
+            ExpandToggleButton = new ExpandToggleButtonVM();
+            PopupMenu = new PopupMenuVM();
         }
     }
 }
