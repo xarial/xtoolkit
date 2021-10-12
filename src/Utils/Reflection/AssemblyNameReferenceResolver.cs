@@ -10,23 +10,36 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Xarial.XToolkit.Helpers;
 
 namespace Xarial.XToolkit.Reflection
 {
     public abstract class AssemblyNameReferenceResolver : IReferenceResolver
     {
-        public class AssemblyInfo 
+        public class AssemblyInfo
         {
             public AssemblyName Name { get; }
             public string FilePath { get; }
             internal bool IsLoaded { get; }
 
-            internal AssemblyInfo(AssemblyName name, string filePath, bool isLoaded) 
+            internal AssemblyInfo(AssemblyName name, string filePath, bool isLoaded)
             {
                 Name = name;
                 FilePath = filePath;
                 IsLoaded = isLoaded;
             }
+        }
+
+        public string Name { get; }
+
+        public AssemblyNameReferenceResolver(string name) 
+        {
+            Name = name;
+        }
+
+        public AssemblyNameReferenceResolver()
+        {
+            Name = this.GetType().FullName;
         }
 
         public virtual Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly)

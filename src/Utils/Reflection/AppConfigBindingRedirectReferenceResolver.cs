@@ -15,7 +15,15 @@ using System.Xml.XPath;
 namespace Xarial.XToolkit.Reflection
 {
     public class AppConfigBindingRedirectReferenceResolver : AssemblyNameReferenceResolver
-    {   
+    {
+        public AppConfigBindingRedirectReferenceResolver() : base()
+        {
+        }
+
+        public AppConfigBindingRedirectReferenceResolver(string name) : base(name) 
+        {
+        }
+
         protected virtual Assembly[] GetRequestingAssemblies(Assembly requestingAssembly) 
         {
             if (requestingAssembly != null)
