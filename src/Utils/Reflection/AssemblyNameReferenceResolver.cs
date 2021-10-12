@@ -34,14 +34,14 @@ namespace Xarial.XToolkit.Reflection
 
         public AssemblyNameReferenceResolver(string name) 
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                name = this.GetType().FullName;
+            }
+
             Name = name;
         }
-
-        public AssemblyNameReferenceResolver()
-        {
-            Name = this.GetType().FullName;
-        }
-
+        
         public virtual Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly)
         {
             var searchAssmName = GetReplacementAssemblyName(assmName, requestingAssembly, out string searchDir, out bool recursiveSearch);

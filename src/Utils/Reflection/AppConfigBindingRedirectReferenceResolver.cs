@@ -16,7 +16,7 @@ namespace Xarial.XToolkit.Reflection
 {
     public class AppConfigBindingRedirectReferenceResolver : AssemblyNameReferenceResolver
     {
-        public AppConfigBindingRedirectReferenceResolver() : base()
+        public AppConfigBindingRedirectReferenceResolver() : this("")
         {
         }
 

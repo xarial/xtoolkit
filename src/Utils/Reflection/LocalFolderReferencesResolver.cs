@@ -29,17 +29,9 @@ namespace Xarial.XToolkit.Reflection
 
         private readonly string[] m_AssemblyNameFilters;
 
-        public LocalFolderReferencesResolver() : base()
-        {
-        }
-
-        public LocalFolderReferencesResolver(string name) : base(name)
-        {
-        }
-
         public LocalFolderReferencesResolver(string searchDir,
             AssemblyMatchFilter_e matchFilter = AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture,
-            params string[] assemblyNameFilters)
+            string name = "", params string[] assemblyNameFilters) : base(name)
         {
             m_MatchFilter = matchFilter;
 
