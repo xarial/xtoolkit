@@ -12,7 +12,7 @@ namespace ConsoleTester
     {
         static Program() 
         {
-            AppDomain.CurrentDomain.ResolveBindingRedirects(new LocalFolderReferencesResolver(
+            AppDomain.CurrentDomain.RegisterAssemblyReferenceResolver(new LocalFolderReferencesResolver(
                 Path.GetDirectoryName(typeof(Program).Assembly.Location),
                 AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture));
         }

@@ -24,41 +24,41 @@ namespace Xarial.XToolkit.Reflection
 
     public static class AppDomainExtension
     {
-        private static readonly Dictionary<int, List<IReferenceResolver>> m_DomainsReferenceResolvers;
+        private static readonly Dictionary<int, List<IReferenceResolver>> m_DomainsAssemblyResolvers;
         private static readonly object m_Lock;
 
         static AppDomainExtension()
         {
-            m_DomainsReferenceResolvers = new Dictionary<int, List<IReferenceResolver>>();
+            m_DomainsAssemblyResolvers = new Dictionary<int, List<IReferenceResolver>>();
             m_Lock = new object();
         }
 
-        public static void ResolveBindingRedirects(this AppDomain appDomain)
-            => ResolveBindingRedirects(appDomain, new AppConfigBindingRedirectReferenceResolver());
+        public static void RegisterAssemblyReferenceResolver(this AppDomain appDomain)
+            => RegisterAssemblyReferenceResolver(appDomain, new AppConfigBindingRedirectReferenceResolver());
 
-        public static void ResolveBindingRedirects(this AppDomain appDomain,
+        public static void RegisterAssemblyReferenceResolver(this AppDomain appDomain,
             IReferenceResolver resolver)
         {
             lock (m_Lock)
             {
-                if (!m_DomainsReferenceResolvers.TryGetValue(appDomain.Id, out List<IReferenceResolver> resolvers))
+                if (!m_DomainsAssemblyResolvers.TryGetValue(appDomain.Id, out List<IReferenceResolver> resolvers))
                 {
                     resolvers = new List<IReferenceResolver>();
-                    m_DomainsReferenceResolvers.Add(appDomain.Id, resolvers);
+                    m_DomainsAssemblyResolvers.Add(appDomain.Id, resolvers);
                 }
 
                 resolvers.Add(resolver);
 
-                appDomain.AssemblyResolve -= OnAssemblyResolve;
-                appDomain.AssemblyResolve += OnAssemblyResolve;
+                appDomain.AssemblyResolve -= OnResolveMissingAssembly;
+                appDomain.AssemblyResolve += OnResolveMissingAssembly;
             }
         }
 
-        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
+        private static Assembly OnResolveMissingAssembly(object sender, ResolveEventArgs args)
         {
             var appDomain = sender as AppDomain;
             
-            var resolvers = m_DomainsReferenceResolvers[appDomain.Id];
+            var resolvers = m_DomainsAssemblyResolvers[appDomain.Id];
 
             var assmName = new AssemblyName(args.Name);
 
