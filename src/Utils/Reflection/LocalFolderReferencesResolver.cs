@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 
@@ -25,13 +26,18 @@ namespace Xarial.XToolkit.Reflection
         private readonly string m_SearchDir;
 
         private readonly AssemblyMatchFilter_e m_MatchFilter;
-        
+
+        private readonly string[] m_AssemblyNameFilters;
+
         public LocalFolderReferencesResolver(string searchDir,
-            AssemblyMatchFilter_e matchFilter = AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture)
+            AssemblyMatchFilter_e matchFilter = AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture,
+            string name = "", params string[] assemblyNameFilters) : base(name)
         {
             m_MatchFilter = matchFilter;
 
             m_SearchDir = searchDir;
+
+            m_AssemblyNameFilters = assemblyNameFilters;
         }
 
         protected override AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly,
@@ -44,10 +50,18 @@ namespace Xarial.XToolkit.Reflection
 
         protected override bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName)
         {
-            return (probeAssmName.Name == searchAssmName.Name)
-                && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.PublicKeyToken) || GetPublicKeyToken(probeAssmName) == GetPublicKeyToken(searchAssmName))
-                && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.Culture) || probeAssmName.CultureName == probeAssmName.CultureName)
-                && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.Version) || probeAssmName.Version == searchAssmName.Version);
+            if (m_AssemblyNameFilters?.Any() != true
+                || m_AssemblyNameFilters.Contains(searchAssmName.Name, StringComparer.CurrentCultureIgnoreCase))
+            {
+                return (probeAssmName.Name == searchAssmName.Name)
+                    && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.PublicKeyToken) || GetPublicKeyToken(probeAssmName) == GetPublicKeyToken(searchAssmName))
+                    && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.Culture) || probeAssmName.CultureName == probeAssmName.CultureName)
+                    && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.Version) || probeAssmName.Version == searchAssmName.Version);
+            }
+            else 
+            {
+                return false;
+            }
         }
     }
 }

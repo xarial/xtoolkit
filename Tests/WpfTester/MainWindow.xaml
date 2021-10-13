@@ -175,6 +175,20 @@
             <TabItem Header="InputBoxDialog">
                 <Button Click="OnShowInputBoxClick">Show Input Box</Button>
             </TabItem>
+            <TabItem Header="ExpandToggleButton">
+                <Grid DataContext="{Binding Path=ExpandToggleButton}">
+                    <ctrls:ExpandToggleButton IsChecked="{Binding Path=IsExpanded}"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="PopupMenu">
+                <Grid DataContext="{Binding Path=PopupMenu}" VerticalAlignment="Top" HorizontalAlignment="Left">
+                    <ctrls:PopupMenu>
+                        <Grid>
+                            <TextBlock Text="{Binding Path=Text}" Margin="10"/>
+                        </Grid>
+                    </ctrls:PopupMenu>
+                </Grid>
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>

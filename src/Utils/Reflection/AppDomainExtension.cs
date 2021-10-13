@@ -14,46 +14,34 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using Xarial.XToolkit.Helpers;
 
 namespace Xarial.XToolkit.Reflection
 {
-    public interface IReferenceResolver 
-    {
-        Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly);
-    }
-
     public static class AppDomainExtension
     {
-        private static readonly Dictionary<int, IReferenceResolver> m_DomainsReferenceResolvers;
+        private static readonly Dictionary<int, AssemblyResolver> m_DomainsAssemblyResolvers;
+        private static readonly object m_Lock;
 
         static AppDomainExtension()
         {
-            m_DomainsReferenceResolvers = new Dictionary<int, IReferenceResolver>();
+            m_DomainsAssemblyResolvers = new Dictionary<int, AssemblyResolver>();
+            m_Lock = new object();
         }
 
-        public static void ResolveBindingRedirects(this AppDomain appDomain)
-            => ResolveBindingRedirects(appDomain, new AppConfigBindingRedirectReferenceResolver());
-
-        public static void ResolveBindingRedirects(this AppDomain appDomain,
+        public static void RegisterGlobalAssemblyReferenceResolver(this AppDomain appDomain,
             IReferenceResolver resolver)
         {
-            m_DomainsReferenceResolvers[appDomain.Id] = resolver;
+            lock (m_Lock)
+            {
+                if (!m_DomainsAssemblyResolvers.TryGetValue(appDomain.Id, out AssemblyResolver assmResolver))
+                {
+                    assmResolver = new AssemblyResolver(appDomain);
+                    m_DomainsAssemblyResolvers.Add(appDomain.Id, assmResolver);
+                }
 
-            appDomain.AssemblyResolve -= OnAssemblyResolve;
-            appDomain.AssemblyResolve += OnAssemblyResolve;
-        }
-
-        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
-        {
-            var appDomain = sender as AppDomain;
-            
-            var resolver = m_DomainsReferenceResolvers[appDomain.Id];
-            
-            var assm = resolver.Resolve(appDomain, new AssemblyName(args.Name), args.RequestingAssembly);
-
-            Trace.WriteLine($"Assembly '{args.Name}' is resolved to '{assm?.Location}'", "Xarial.xToolkit");
-
-            return assm;
+                assmResolver.RegisterAssemblyReferenceResolver(resolver);
+            }
         }
     }
 }

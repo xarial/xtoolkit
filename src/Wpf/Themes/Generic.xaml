@@ -4,5 +4,7 @@
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/FlagEnumComboBox.xaml" />
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/NumberBox.xaml" />
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ProgressPanel.xaml" />
+        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ExpandToggleButton.xaml" />
+        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/PopupMenu.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>
