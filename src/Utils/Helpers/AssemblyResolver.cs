@@ -17,9 +17,15 @@ namespace Xarial.XToolkit.Helpers
     {
         private readonly List<IReferenceResolver> m_AssemblyResolvers;
         private readonly AppDomain m_AppDomain;
+        private readonly string m_LogName;
 
-        public AssemblyResolver(AppDomain appDomain)
+        public AssemblyResolver(AppDomain appDomain) : this(appDomain, "Xarial.xToolkit")
         {
+        }
+
+        public AssemblyResolver(AppDomain appDomain, string logName)
+        {
+            m_LogName = logName;
             m_AppDomain = appDomain;
             m_AssemblyResolvers = new List<IReferenceResolver>();
 
@@ -43,12 +49,12 @@ namespace Xarial.XToolkit.Helpers
 
                     if (assm != null)
                     {
-                        Trace.WriteLine($"Assembly '{args.Name}' is resolved to '{assm.Location}' via '{resolver.Name}' resolver", "Xarial.xToolkit");
+                        Trace.WriteLine($"Assembly '{args.Name}' is resolved to '{assm.Location}' via '{resolver.Name}' resolver", m_LogName);
                         return assm;
                     }
                     else
                     {
-                        Trace.WriteLine($"Assembly '{args.Name}' is not resolved via '{resolver.Name}' resolver", "Xarial.xToolkit");
+                        Trace.WriteLine($"Assembly '{args.Name}' is not resolved via '{resolver.Name}' resolver", m_LogName);
                     }
                 }
             }
