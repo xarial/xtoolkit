@@ -6,5 +6,6 @@
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ProgressPanel.xaml" />
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ExpandToggleButton.xaml" />
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/PopupMenu.xaml" />
+        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/CheckableComboBox.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

@@ -32,7 +32,7 @@ namespace Xarial.XToolkit.Reporting
         public static string ParseUserError(this Exception ex,
             out string fullLog, string genericError = "Generic error", params Type[] additionalUserExceptions)
         {
-            var res = new StringBuilder();
+            var res = new List<string>();
             var fullLogBuilder = new StringBuilder();
 
             additionalUserExceptions = additionalUserExceptions.Union(GlobalUserExceptionTypes).ToArray();
@@ -44,12 +44,10 @@ namespace Xarial.XToolkit.Reporting
 
                 if (curEx is IUserMessageException || additionalUserExceptions.Any(t => t.IsAssignableFrom(curEx.GetType())))
                 {
-                    if (res.Length != 0)
+                    if (!res.Contains(curEx.Message))
                     {
-                        res.Append(Environment.NewLine);
+                        res.Add(curEx.Message);
                     }
-
-                    res.Append(curEx.Message);
                 }
 
                 if (curEx.InnerException != null)
@@ -60,14 +58,14 @@ namespace Xarial.XToolkit.Reporting
 
             ProcessException(ex);
 
-            if (res.Length == 0)
+            if (!res.Any())
             {
-                res.Append(genericError);
+                res.Add(genericError);
             }
 
             fullLog = fullLogBuilder.ToString();
 
-            return res.ToString();
+            return string.Join(Environment.NewLine, res);
         }
     }
 }

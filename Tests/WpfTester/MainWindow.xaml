@@ -27,6 +27,13 @@
                     <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum3}"/>
                 </StackPanel>
             </TabItem>
+            <TabItem Header="CheckableComboBox">
+                <StackPanel Orientation="Vertical" DataContext="{Binding Path=CheckableComboBox}">
+                    <ctrls:CheckableComboBox Margin="2" ItemsSource="{Binding Path=ItemsSource1}" SelectedItems="{Binding Path=SelectedItems1}"/>
+                    <ctrls:CheckableComboBox Margin="2" ItemsSource="{Binding Path=ItemsSource2}" SelectedItems="{Binding Path=SelectedItems2}"/>
+                    <ctrls:CheckableComboBox Margin="2" ItemsSource="{Binding Path=ItemsSource3}" SelectedItems="{Binding Path=SelectedItems3}"/>
+                </StackPanel>
+            </TabItem>
             <TabItem Header="NumberBox">
                 <StackPanel Orientation="Vertical" DataContext="{Binding Path=NumberBox}">
                     <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}" />
