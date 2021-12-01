@@ -245,7 +245,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             base.OnApplyTemplate();
             m_ComboBox = (ComboBox)this.Template.FindName("PART_ComboBox", this);
             LoadItems(ItemsSource);
-            SetItemsChecked(SelectedItems);
+            SetItemsChecked(SelectedItems ?? new List<object>());
         }
 
         public CheckableComboBox() 
