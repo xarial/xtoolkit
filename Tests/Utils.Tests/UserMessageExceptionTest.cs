@@ -39,6 +39,13 @@ namespace Utils.Tests
             }
         }
 
+        public class MyException3 : Exception, IUserMessageException
+        {
+            public MyException3(string msg, Exception inner) : base(msg, inner)
+            {
+            }
+        }
+
         [Test]
         public void TestAdditionalTypeException()
         {
@@ -79,6 +86,15 @@ namespace Utils.Tests
             var err = ex.ParseUserError(out _);
 
             Assert.AreEqual("Generic error", err);
+        }
+
+        [Test]
+        public void TestDuplicateException()
+        {
+            var ex = new MyException3("ABC", new MyException3("ABC1", new MyException3("ABC", new MyException3("ABC2", null))));
+            var err = ex.ParseUserError(out _);
+
+            Assert.AreEqual("ABC\r\nABC1\r\nABC2", err);
         }
     }
 }

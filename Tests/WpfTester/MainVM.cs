@@ -17,6 +17,7 @@ namespace WpfTester
         public ProgressPanelVM ProgressPane { get; set; }
         public ExpandToggleButtonVM ExpandToggleButton { get; set; }
         public PopupMenuVM PopupMenu { get; set; }
+        public CheckableComboBoxVM CheckableComboBox { get; set; }
 
         public MainVM() 
         {
@@ -29,6 +30,7 @@ namespace WpfTester
             ProgressPane = new ProgressPanelVM();
             ExpandToggleButton = new ExpandToggleButtonVM();
             PopupMenu = new PopupMenuVM();
+            CheckableComboBox = new CheckableComboBoxVM();
         }
     }
 }
