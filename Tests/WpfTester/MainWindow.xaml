@@ -196,6 +196,26 @@
                     </ctrls:PopupMenu>
                 </Grid>
             </TabItem>
+            <TabItem Header="LabeledControl">
+                <Grid Grid.IsSharedSizeScope="True">
+                    <StackPanel DataContext="{Binding Path=LabeledControl}" Orientation="Vertical">
+                        <ctrls:LabeledControl Label="Test Label:" Margin="2" GridSharedSizeGroup="LabelGridGroup">
+                            <TextBox Text="Some Text 1"/>
+                        </ctrls:LabeledControl>
+                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" GridSharedSizeGroup="LabelGridGroup">
+                            <TextBox Text="{Binding Path=Text1}"/>
+                        </ctrls:LabeledControl>
+                        <ctrls:LabeledControl Label="Another Test Label Number 3:" Margin="2">
+                            <TextBox Text="Some Text 3"/>
+                            <ctrls:LabeledControl.TextBlockStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Foreground" Value="Green"/>
+                                </Style>
+                            </ctrls:LabeledControl.TextBlockStyle>
+                        </ctrls:LabeledControl>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>

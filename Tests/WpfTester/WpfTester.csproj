@@ -59,6 +59,7 @@
     <Compile Include="CheckableComboBoxVM.cs" />
     <Compile Include="EnumComboBoxVM.cs" />
     <Compile Include="ExpandToggleButtonVM.cs" />
+    <Compile Include="LabeledControlVM.cs" />
     <Compile Include="PopupMenuVM.cs" />
     <Compile Include="ProgressPanelVM.cs" />
     <Compile Include="TreeViewExVM.cs" />

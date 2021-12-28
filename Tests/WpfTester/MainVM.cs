@@ -18,6 +18,7 @@ namespace WpfTester
         public ExpandToggleButtonVM ExpandToggleButton { get; set; }
         public PopupMenuVM PopupMenu { get; set; }
         public CheckableComboBoxVM CheckableComboBox { get; set; }
+        public LabeledControlVM LabeledControl { get; set; }
 
         public MainVM() 
         {
@@ -31,6 +32,7 @@ namespace WpfTester
             ExpandToggleButton = new ExpandToggleButtonVM();
             PopupMenu = new PopupMenuVM();
             CheckableComboBox = new CheckableComboBoxVM();
+            LabeledControl = new LabeledControlVM();
         }
     }
 }
