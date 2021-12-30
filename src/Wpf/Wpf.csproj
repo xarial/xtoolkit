@@ -13,7 +13,7 @@
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XToolkit.Wpf</PackageId>
-    <VersionPrefix>0.3.1</VersionPrefix>
+    <VersionPrefix>0.3.2</VersionPrefix>
     <Authors>Xarial</Authors>
     <Product>xToolkit</Product>
     <Copyright>© 2021 Xarial Pty Limited</Copyright>
@@ -54,6 +54,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="Themes\LabeledControl.xaml">
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Themes\ExpandToggleButton.xaml">
       <SubType>Designer</SubType>
     </Page>
