@@ -19,6 +19,11 @@ using Xarial.XToolkit.Wpf.Utils;
 
 namespace WpfTester
 {
+    public class EnabledFlowDocument : FlowDocument
+    {
+        protected override bool IsEnabledCore => true;
+    }
+
     public partial class MainWindow : Window
     {
         private readonly MainVM m_Vm;
@@ -109,6 +114,16 @@ namespace WpfTester
 
                 throw new Exception();
             });
+        }
+
+        private void Hyperlink_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

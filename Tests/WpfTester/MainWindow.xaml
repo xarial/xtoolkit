@@ -216,6 +216,28 @@
                     </StackPanel>
                 </Grid>
             </TabItem>
+            <TabItem Header="ExpressionBox">
+                <RichTextBox BorderThickness="0" IsDocumentEnabled="True"
+                             VerticalContentAlignment="Center" AcceptsReturn="False" AcceptsTab="False" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                    <FlowDocument x:Name="doc">
+                        <Paragraph LineHeight="1">
+                            <Run Text="ABC"/>
+                            <Hyperlink Click="Hyperlink_Click">
+                                <TextBlock Text="Link"/>
+                            </Hyperlink>
+                            <Run Text="XYZ"/>
+                            <Button Click="Button_Click">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        
+                                    </Style>
+                                </Button.Style>
+                                <TextBlock Text="ClickMe!"/>
+                            </Button>
+                        </Paragraph>
+                    </FlowDocument>
+                </RichTextBox>
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>
