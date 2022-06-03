@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XToolkit.Services
+namespace Xarial.XToolkit.Services.Expressions
 {
     public interface IExpressionSolver
     {

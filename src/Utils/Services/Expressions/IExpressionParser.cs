@@ -3,63 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using Xarial.XToolkit.Services.Expressions.Exceptions;
 
-namespace Xarial.XToolkit.Services
+namespace Xarial.XToolkit.Services.Expressions
 {
-    public interface IExpressionElement
-    { 
-    }
-
-    public interface IExpressionFreeTextElement : IExpressionElement
-    {
-        string Text { get; }
-    }
-
-    [DebuggerDisplay("Free Text: '{" + nameof(Text) + "}'")]
-    public class ExpressionFreeTextElement : IExpressionFreeTextElement
-    {
-        public string Text { get; }
-
-        public ExpressionFreeTextElement(string text) 
-        {
-            Text = text;
-        }
-    }
-
-    public interface IExpressionVariableElement : IExpressionElement
-    {
-        string Name { get; }
-        IExpressionElement[] Arguments { get; }
-    }
-
-    [DebuggerDisplay("Variable: '{" + nameof(Name) + "}'")]
-    public class ExpressionVariableElement : IExpressionVariableElement
-    {
-        public string Name { get; }
-        public IExpressionElement[] Arguments { get; }
-
-        public ExpressionVariableElement(string name, IExpressionElement[] args) 
-        {
-            Name = name;
-            Arguments = args;
-        }
-    }
-
-    public interface IExpressionElementGroup : IExpressionElement 
-    {
-        IExpressionElement[] Children { get; }
-    }
-
-    public class ExpressionElementGroup : IExpressionElementGroup
-    {
-        public IExpressionElement[] Children { get; }
-
-        public ExpressionElementGroup(IExpressionElement[] children) 
-        {
-            Children = children;
-        }
-    }
-
     public interface IExpressionParser
     {
         IExpressionElement Parse(string expression);
@@ -108,6 +55,8 @@ namespace Xarial.XToolkit.Services
 
             bool varHasSpace = false;
 
+            bool isProtected = false;
+
             void CloseCurrentElement()
             {
                 if (currentElementType.HasValue)
@@ -132,6 +81,7 @@ namespace Xarial.XToolkit.Services
                     currentElementContent.Clear();
                     nested.Clear();
                     varHasSpace = false;
+                    isProtected = false;
 
                     elements.Add(newElem);
                 }
@@ -141,13 +91,13 @@ namespace Xarial.XToolkit.Services
             {
                 var thisChar = expression[position];
 
-                if (thisChar == m_VaribleStartTag)
+                if (!isProtected && thisChar == m_VaribleStartTag)
                 {
                     if (currentElementType.HasValue)
                     {
                         if (currentElementType == ExpressionElementType_e.Variable)
                         {
-                            throw new Exception($"Nested variables can only be used as arguments. Enclose variable into '{m_ArgumentStartTag}{m_ArgumentEndTag}'");
+                            throw new NestedVariableOutOfArgumentException(m_ArgumentStartTag, m_ArgumentEndTag);
                         }
 
                         CloseCurrentElement();
@@ -155,11 +105,11 @@ namespace Xarial.XToolkit.Services
 
                     currentElementType = ExpressionElementType_e.Variable;
                 }
-                else if (thisChar == m_VariableEndTag)
+                else if (!isProtected && thisChar == m_VariableEndTag)
                 {
                     CloseCurrentElement();
                 }
-                else if (thisChar == m_ArgumentStartTag)
+                else if (!isProtected && thisChar == m_ArgumentStartTag)
                 {
                     if (currentElementType == ExpressionElementType_e.Variable)
                     {
@@ -169,10 +119,10 @@ namespace Xarial.XToolkit.Services
                     }
                     else
                     {
-                        throw new Exception("Argument can only appear within the variable");
+                        throw new ArgumentOutOfVariableException();
                     }
                 }
-                else if (thisChar == m_ArgumentEndTag)
+                else if (!isProtected && thisChar == m_ArgumentEndTag)
                 {
                     if (isArgumentParsing) 
                     {
@@ -181,15 +131,17 @@ namespace Xarial.XToolkit.Services
                     }
                     else
                     {
-                        throw new Exception($"Argument is missing the opening tag '{m_ArgumentStartTag}'");
+                        throw new MissingArgumentOpeningTagException(m_ArgumentStartTag);
                     }
                 }
-                else if (thisChar == m_ProtectionSymbol)
+                else if (!isProtected && thisChar == m_ProtectionSymbol)
                 {
-                    //TODO: take next symbol litelarly
+                    isProtected = true;
                 }
                 else 
                 {
+                    isProtected = false;
+
                     if (!currentElementType.HasValue)
                     {
                         currentElementType = ExpressionElementType_e.FreeText;
@@ -210,7 +162,7 @@ namespace Xarial.XToolkit.Services
                         {
                             if (varHasSpace) 
                             {
-                                throw new Exception("Variables cannot have space");
+                                throw new VariableNameSpaceNotSupportedException();
                             }
                         }
                     }
@@ -227,7 +179,7 @@ namespace Xarial.XToolkit.Services
                 }
                 else
                 {
-                    throw new Exception("Variable or parameter is not closed");
+                    throw new NotClosedVariableOrParameterException();
                 }
             }
 

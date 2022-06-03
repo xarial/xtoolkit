@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XToolkit.Services;
+using Xarial.XToolkit.Services.Expressions;
+using Xarial.XToolkit.Services.Expressions.Exceptions;
 
 namespace Utils.Tests
 {
@@ -108,8 +110,23 @@ namespace Utils.Tests
         {
             var parser = new ExpressionParser();
 
-            var r1 = parser.Parse("\\{\\}\\[\\]\\\\");
-            var r2 = parser.Parse("a { x\\} }");
+            var r1 = parser.Parse(@"\{\}\[\]\\");
+            var r2 = parser.Parse(@"a { x\}[\{\}\[\]\\\\] }");
+
+            Assert.IsInstanceOf<IExpressionFreeTextElement>(r1);
+            Assert.AreEqual("{}[]\\", ((IExpressionFreeTextElement)r1).Text);
+
+            Assert.IsInstanceOf<IExpressionElementGroup>(r2);
+            Assert.AreEqual(2, ((IExpressionElementGroup)r2).Children.Length);
+
+            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r2).Children[0]);
+            Assert.AreEqual("a ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r2).Children[0]).Text);
+
+            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r2).Children[1]);
+            Assert.AreEqual("x}", ((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Name);
+            Assert.AreEqual(1, ((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Arguments[0]);
+            Assert.AreEqual("{}[]\\\\", ((IExpressionFreeTextElement)((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Arguments[0]).Text);
         }
 
         [Test]
@@ -210,6 +227,14 @@ namespace Utils.Tests
         [Test]
         public void ParseInvalidTest()
         {
+            var parser = new ExpressionParser();
+
+            Assert.Throws<ArgumentOutOfVariableException>(() => parser.Parse("a {x [y]} [z] z"));
+            Assert.Throws<MissingArgumentOpeningTagException>(() => parser.Parse("a b {x ]}"));
+            Assert.Throws<NestedVariableOutOfArgumentException>(() => parser.Parse("a {x {y}}"));
+            Assert.Throws<NotClosedVariableOrParameterException>(() => parser.Parse("a {b} {c"));
+            Assert.Throws<NotClosedVariableOrParameterException>(() => parser.Parse("a {b} {c [x] [y}"));
+            Assert.Throws<VariableNameSpaceNotSupportedException>(() => parser.Parse("a {b c} d"));
         }
     }
 }
