@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 
 namespace Xarial.XToolkit.Services.Expressions
 {
@@ -16,6 +17,16 @@ namespace Xarial.XToolkit.Services.Expressions
 
         public ExpressionVariableElement(string name, IExpressionElement[] args)
         {
+            if (string.IsNullOrEmpty(name)) 
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (name.Contains(" ")) 
+            {
+                throw new Exception("Variable name cannot contain a space");
+            }
+
             Name = name;
             Arguments = args;
         }

@@ -10,6 +10,7 @@ namespace Xarial.XToolkit.Services.Expressions
     public interface IExpressionParser
     {
         IExpressionElement Parse(string expression);
+        string CreateExpression(IExpressionElement element);
     }
 
     public class ExpressionParser : IExpressionParser
@@ -20,19 +21,30 @@ namespace Xarial.XToolkit.Services.Expressions
             FreeText
         }
 
-        private readonly char m_VaribleStartTag;
+        private readonly char m_VariableStartTag;
         private readonly char m_VariableEndTag;
         private readonly char m_ArgumentStartTag;
         private readonly char m_ArgumentEndTag;
-        private readonly char m_ProtectionSymbol;
+        private readonly char m_EscapeSymbol;
 
-        public ExpressionParser(char varibleStartTag, char variableEndTag, char argumentStartTag, char argumentEndTag, char protectionSymbol)
+        private readonly char[] m_SpecialSymbols;
+
+        public ExpressionParser(char variableStartTag, char variableEndTag, char argumentStartTag, char argumentEndTag, char escapeSymbol)
         {
-            m_VaribleStartTag = varibleStartTag;
+            m_VariableStartTag = variableStartTag;
             m_VariableEndTag = variableEndTag;
             m_ArgumentStartTag = argumentStartTag;
             m_ArgumentEndTag = argumentEndTag;
-            m_ProtectionSymbol = protectionSymbol;
+            m_EscapeSymbol = escapeSymbol;
+
+            m_SpecialSymbols = new char[]
+            {
+                m_VariableStartTag,
+                m_VariableEndTag,
+                m_ArgumentStartTag,
+                m_ArgumentEndTag,
+                m_EscapeSymbol
+            };
         }
 
         public ExpressionParser() : this('{', '}', '[', ']', '\\')
@@ -43,6 +55,74 @@ namespace Xarial.XToolkit.Services.Expressions
         {
             var startPos = 0;
             return GroupElements(EnumerateElements(expression, ref startPos, false));
+        }
+
+        public string CreateExpression(IExpressionElement element)
+        {
+            if (element == null)
+            {
+                throw new ArgumentNullException(nameof(element));
+            }
+
+            var expression = new StringBuilder();
+
+            AppendExpressionElement(element, expression);
+
+            return expression.ToString();
+        }
+
+        private void AppendExpressionElement(IExpressionElement element, StringBuilder expression)
+        {
+            switch (element)
+            {
+                case IExpressionElementGroup group:
+                    foreach (var child in group.Children) 
+                    {
+                        AppendExpressionElement(child, expression);
+                    }
+                    break;
+
+                case IExpressionFreeTextElement freeText:
+                    AppendText(freeText.Text, expression);
+                    break;
+
+                case IExpressionVariableElement variable:
+                    
+                    expression.Append(m_VariableStartTag);
+                    expression.Append(" ");
+                    AppendText(variable.Name, expression);
+                                        
+                    if (variable.Arguments != null)
+                    {
+                        foreach (var arg in variable.Arguments)
+                        {
+                            expression.Append(" ");
+                            expression.Append(m_ArgumentStartTag);
+                            AppendExpressionElement(arg, expression);
+                            expression.Append(m_ArgumentEndTag);
+                        }
+                    }
+                    expression.Append(" ");
+                    expression.Append(m_VariableEndTag);
+
+                    break;
+
+                default:
+                    throw new NotSupportedException();
+            }
+        }
+
+        private void AppendText(string text, StringBuilder expression) 
+        {
+            foreach (var symb in text) 
+            {
+                if (m_SpecialSymbols.Contains(symb)) 
+                {
+                    expression.Append(m_EscapeSymbol);
+                }
+
+                expression.Append(symb);
+            }
         }
 
         private IReadOnlyList<IExpressionElement> EnumerateElements(string expression, ref int position, bool isArgumentParsing) 
@@ -91,7 +171,7 @@ namespace Xarial.XToolkit.Services.Expressions
             {
                 var thisChar = expression[position];
 
-                if (!isProtected && thisChar == m_VaribleStartTag)
+                if (!isProtected && thisChar == m_VariableStartTag)
                 {
                     if (currentElementType.HasValue)
                     {
@@ -134,7 +214,7 @@ namespace Xarial.XToolkit.Services.Expressions
                         throw new MissingArgumentOpeningTagException(m_ArgumentStartTag);
                     }
                 }
-                else if (!isProtected && thisChar == m_ProtectionSymbol)
+                else if (!isProtected && thisChar == m_EscapeSymbol)
                 {
                     isProtected = true;
                 }

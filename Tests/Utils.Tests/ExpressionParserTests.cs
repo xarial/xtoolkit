@@ -236,5 +236,72 @@ namespace Utils.Tests
             Assert.Throws<NotClosedVariableOrParameterException>(() => parser.Parse("a {b} {c [x] [y}"));
             Assert.Throws<VariableNameSpaceNotSupportedException>(() => parser.Parse("a {b c} d"));
         }
+
+        [Test]
+        public void CreateExpressionTest() 
+        {
+            var parser = new ExpressionParser();
+
+            var elem = new ExpressionElementGroup(new IExpressionElement[]
+            {
+                new ExpressionFreeTextElement("AB"),
+                new ExpressionVariableElement("x", new IExpressionElement[0]),
+                new ExpressionFreeTextElement("CD"),
+                new ExpressionVariableElement("y", new IExpressionElement[0]),
+            });
+
+            var exp1 = parser.CreateExpression(elem);
+
+            Assert.AreEqual("AB{ x }CD{ y }", exp1);
+        }
+
+        [Test]
+        public void CreateExpressionNestedTest()
+        {
+            var parser = new ExpressionParser();
+
+            var elem = new ExpressionElementGroup(new IExpressionElement[]
+            {
+                new ExpressionFreeTextElement("AB"),
+                new ExpressionVariableElement("1", new IExpressionElement[]
+                {
+                    new ExpressionFreeTextElement("CD"),
+                    new ExpressionVariableElement("2", new IExpressionElement[]
+                    {
+                        new ExpressionVariableElement("3", new IExpressionElement[]
+                        {
+                            new ExpressionFreeTextElement("EF"),
+                            new ExpressionVariableElement("4", new IExpressionElement[0]),
+                            new ExpressionFreeTextElement("GH"),
+                        })
+                    })
+                }),
+                new ExpressionVariableElement("5", new IExpressionElement[0])
+            });
+
+            var exp1 = parser.CreateExpression(elem);
+
+            Assert.AreEqual("AB{ 1 [CD] [{ 2 [{ 3 [EF] [{ 4 }] [GH] }] }] }{ 5 }", exp1);
+        }
+
+        [Test]
+        public void CreateExpressionProtectedSymbolsTest()
+        {
+            var parser = new ExpressionParser();
+
+            var elem = new ExpressionElementGroup(new IExpressionElement[]
+            {
+                new ExpressionFreeTextElement("AB"),
+                new ExpressionVariableElement("x{}", new IExpressionElement[]
+                {
+                    new ExpressionFreeTextElement("CD[]_{}_\\_A"),
+                    new ExpressionVariableElement("[]_{}_\\_A", new IExpressionElement[0]),
+                }),
+            });
+
+            var exp1 = parser.CreateExpression(elem);
+
+            Assert.AreEqual(@"AB{ x\{\} [CD\[\]_\{\}_\\_A] [{ \[\]_\{\}_\\_A }] }", exp1);
+        }
     }
 }
