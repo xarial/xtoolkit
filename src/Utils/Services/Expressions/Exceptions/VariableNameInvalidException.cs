@@ -4,9 +4,9 @@ using System.Text;
 
 namespace Xarial.XToolkit.Services.Expressions.Exceptions
 {
-    public class VariableNameSpaceNotSupportedException : Exception
+    public class VariableNameInvalidException : Exception
     {
-        public VariableNameSpaceNotSupportedException() : base("Variables cannot have space") 
+        public VariableNameInvalidException() : base("Variable name cannot appear after arguments")
         {
         }
     }

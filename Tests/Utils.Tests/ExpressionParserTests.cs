@@ -20,11 +20,11 @@ namespace Utils.Tests
             var r1 = parser.Parse("");
             var r2 = parser.Parse("a");
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(r1);
-            Assert.AreEqual("", ((IExpressionFreeTextElement)r1).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(r1);
+            Assert.AreEqual("", ((IExpressionTokenText)r1).Text);
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(r2);
-            Assert.AreEqual("a", ((IExpressionFreeTextElement)r2).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(r2);
+            Assert.AreEqual("a", ((IExpressionTokenText)r2).Text);
         }
 
         [Test]
@@ -39,70 +39,70 @@ namespace Utils.Tests
             var r5 = parser.Parse("A{x}{y}C");
             var r6 = parser.Parse("A {   x} {  yz } C");
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(r1);
-            Assert.AreEqual("x", ((IExpressionVariableElement)r1).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)r1).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r1);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)r1).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)r1).Arguments.Length);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(r2);
-            Assert.AreEqual(2, ((IExpressionElementGroup)r2).Children.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r2).Children[0]);
-            Assert.AreEqual("A ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r2).Children[0]).Text);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r2).Children[1]);
-            Assert.AreEqual("x", ((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(r2);
+            Assert.AreEqual(2, ((IExpressionTokenGroup)r2).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r2).Children[0]);
+            Assert.AreEqual("A ", ((IExpressionTokenText)((IExpressionTokenGroup)r2).Children[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r2).Children[1]);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)((IExpressionTokenGroup)r2).Children[1]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r2).Children[1]).Arguments.Length);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(r3);
-            Assert.AreEqual(3, ((IExpressionElementGroup)r3).Children.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r3).Children[0]);
-            Assert.AreEqual("A ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r3).Children[0]).Text);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r3).Children[1]);
-            Assert.AreEqual("x", ((IExpressionVariableElement)((IExpressionElementGroup)r3).Children[1]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r3).Children[1]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r3).Children[2]);
-            Assert.AreEqual(" B", ((IExpressionFreeTextElement)((IExpressionElementGroup)r3).Children[2]).Text);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(r3);
+            Assert.AreEqual(3, ((IExpressionTokenGroup)r3).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r3).Children[0]);
+            Assert.AreEqual("A ", ((IExpressionTokenText)((IExpressionTokenGroup)r3).Children[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r3).Children[1]);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)((IExpressionTokenGroup)r3).Children[1]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r3).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r3).Children[2]);
+            Assert.AreEqual(" B", ((IExpressionTokenText)((IExpressionTokenGroup)r3).Children[2]).Text);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(r4);
-            Assert.AreEqual(5, ((IExpressionElementGroup)r4).Children.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r4).Children[0]);
-            Assert.AreEqual("A ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r4).Children[0]).Text);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r4).Children[1]);
-            Assert.AreEqual("x", ((IExpressionVariableElement)((IExpressionElementGroup)r4).Children[1]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r4).Children[1]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r4).Children[2]);
-            Assert.AreEqual(" ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r4).Children[2]).Text);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r4).Children[3]);
-            Assert.AreEqual("y", ((IExpressionVariableElement)((IExpressionElementGroup)r4).Children[3]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r4).Children[3]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r4).Children[4]);
-            Assert.AreEqual(" C", ((IExpressionFreeTextElement)((IExpressionElementGroup)r4).Children[4]).Text);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(r4);
+            Assert.AreEqual(5, ((IExpressionTokenGroup)r4).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r4).Children[0]);
+            Assert.AreEqual("A ", ((IExpressionTokenText)((IExpressionTokenGroup)r4).Children[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r4).Children[1]);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)((IExpressionTokenGroup)r4).Children[1]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r4).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r4).Children[2]);
+            Assert.AreEqual(" ", ((IExpressionTokenText)((IExpressionTokenGroup)r4).Children[2]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r4).Children[3]);
+            Assert.AreEqual("y", ((IExpressionTokenVariable)((IExpressionTokenGroup)r4).Children[3]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r4).Children[3]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r4).Children[4]);
+            Assert.AreEqual(" C", ((IExpressionTokenText)((IExpressionTokenGroup)r4).Children[4]).Text);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(r5);
-            Assert.AreEqual(4, ((IExpressionElementGroup)r5).Children.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r5).Children[0]);
-            Assert.AreEqual("A", ((IExpressionFreeTextElement)((IExpressionElementGroup)r5).Children[0]).Text);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r5).Children[1]);
-            Assert.AreEqual("x", ((IExpressionVariableElement)((IExpressionElementGroup)r5).Children[1]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r5).Children[1]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r5).Children[2]);
-            Assert.AreEqual("y", ((IExpressionVariableElement)((IExpressionElementGroup)r5).Children[2]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r5).Children[2]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r5).Children[3]);
-            Assert.AreEqual("C", ((IExpressionFreeTextElement)((IExpressionElementGroup)r5).Children[3]).Text);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(r5);
+            Assert.AreEqual(4, ((IExpressionTokenGroup)r5).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r5).Children[0]);
+            Assert.AreEqual("A", ((IExpressionTokenText)((IExpressionTokenGroup)r5).Children[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r5).Children[1]);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)((IExpressionTokenGroup)r5).Children[1]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r5).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r5).Children[2]);
+            Assert.AreEqual("y", ((IExpressionTokenVariable)((IExpressionTokenGroup)r5).Children[2]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r5).Children[2]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r5).Children[3]);
+            Assert.AreEqual("C", ((IExpressionTokenText)((IExpressionTokenGroup)r5).Children[3]).Text);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(r6);
-            Assert.AreEqual(5, ((IExpressionElementGroup)r6).Children.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r6).Children[0]);
-            Assert.AreEqual("A ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r6).Children[0]).Text);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r6).Children[1]);
-            Assert.AreEqual("x", ((IExpressionVariableElement)((IExpressionElementGroup)r6).Children[1]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r6).Children[1]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r6).Children[2]);
-            Assert.AreEqual(" ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r6).Children[2]).Text);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r6).Children[3]);
-            Assert.AreEqual("yz", ((IExpressionVariableElement)((IExpressionElementGroup)r6).Children[3]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)r6).Children[3]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r6).Children[4]);
-            Assert.AreEqual(" C", ((IExpressionFreeTextElement)((IExpressionElementGroup)r6).Children[4]).Text);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(r6);
+            Assert.AreEqual(5, ((IExpressionTokenGroup)r6).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r6).Children[0]);
+            Assert.AreEqual("A ", ((IExpressionTokenText)((IExpressionTokenGroup)r6).Children[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r6).Children[1]);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)((IExpressionTokenGroup)r6).Children[1]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r6).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r6).Children[2]);
+            Assert.AreEqual(" ", ((IExpressionTokenText)((IExpressionTokenGroup)r6).Children[2]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r6).Children[3]);
+            Assert.AreEqual("yz", ((IExpressionTokenVariable)((IExpressionTokenGroup)r6).Children[3]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)r6).Children[3]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r6).Children[4]);
+            Assert.AreEqual(" C", ((IExpressionTokenText)((IExpressionTokenGroup)r6).Children[4]).Text);
         }
 
         [Test]
@@ -112,21 +112,26 @@ namespace Utils.Tests
 
             var r1 = parser.Parse(@"\{\}\[\]\\");
             var r2 = parser.Parse(@"a { x\}[\{\}\[\]\\\\] }");
+            var r3 = parser.Parse(@"{\ b c }");
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(r1);
-            Assert.AreEqual("{}[]\\", ((IExpressionFreeTextElement)r1).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(r1);
+            Assert.AreEqual("{}[]\\", ((IExpressionTokenText)r1).Text);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(r2);
-            Assert.AreEqual(2, ((IExpressionElementGroup)r2).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(r2);
+            Assert.AreEqual(2, ((IExpressionTokenGroup)r2).Children.Length);
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)r2).Children[0]);
-            Assert.AreEqual("a ", ((IExpressionFreeTextElement)((IExpressionElementGroup)r2).Children[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)r2).Children[0]);
+            Assert.AreEqual("a ", ((IExpressionTokenText)((IExpressionTokenGroup)r2).Children[0]).Text);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r2).Children[1]);
-            Assert.AreEqual("x}", ((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Name);
-            Assert.AreEqual(1, ((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Arguments[0]);
-            Assert.AreEqual("{}[]\\\\", ((IExpressionFreeTextElement)((IExpressionVariableElement)((IExpressionElementGroup)r2).Children[1]).Arguments[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r2).Children[1]);
+            Assert.AreEqual("x}", ((IExpressionTokenVariable)((IExpressionTokenGroup)r2).Children[1]).Name);
+            Assert.AreEqual(1, ((IExpressionTokenVariable)((IExpressionTokenGroup)r2).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)((IExpressionTokenGroup)r2).Children[1]).Arguments[0]);
+            Assert.AreEqual("{}[]\\\\", ((IExpressionTokenText)((IExpressionTokenVariable)((IExpressionTokenGroup)r2).Children[1]).Arguments[0]).Text);
+
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r3);
+            Assert.AreEqual(" b c", ((IExpressionTokenVariable)r3).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)r3).Arguments.Length);
         }
 
         [Test]
@@ -136,22 +141,27 @@ namespace Utils.Tests
 
             var r1 = parser.Parse("{ x [1][2] }");
             var r2 = parser.Parse("{  xyz  [1]  [2]  }");
+            var r3 = parser.Parse("{ b c }");
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(r1);
-            Assert.AreEqual("x", ((IExpressionVariableElement)r1).Name);
-            Assert.AreEqual(2, ((IExpressionVariableElement)r1).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)r1).Arguments[0]);
-            Assert.AreEqual("1", ((IExpressionFreeTextElement)((IExpressionVariableElement)r1).Arguments[0]).Text);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)r1).Arguments[1]);
-            Assert.AreEqual("2", ((IExpressionFreeTextElement)((IExpressionVariableElement)r1).Arguments[1]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r1);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)r1).Name);
+            Assert.AreEqual(2, ((IExpressionTokenVariable)r1).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)r1).Arguments[0]);
+            Assert.AreEqual("1", ((IExpressionTokenText)((IExpressionTokenVariable)r1).Arguments[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)r1).Arguments[1]);
+            Assert.AreEqual("2", ((IExpressionTokenText)((IExpressionTokenVariable)r1).Arguments[1]).Text);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(r2);
-            Assert.AreEqual("xyz", ((IExpressionVariableElement)r2).Name);
-            Assert.AreEqual(2, ((IExpressionVariableElement)r2).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)r2).Arguments[0]);
-            Assert.AreEqual("1", ((IExpressionFreeTextElement)((IExpressionVariableElement)r2).Arguments[0]).Text);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)r2).Arguments[1]);
-            Assert.AreEqual("2", ((IExpressionFreeTextElement)((IExpressionVariableElement)r2).Arguments[1]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r2);
+            Assert.AreEqual("xyz", ((IExpressionTokenVariable)r2).Name);
+            Assert.AreEqual(2, ((IExpressionTokenVariable)r2).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)r2).Arguments[0]);
+            Assert.AreEqual("1", ((IExpressionTokenText)((IExpressionTokenVariable)r2).Arguments[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)r2).Arguments[1]);
+            Assert.AreEqual("2", ((IExpressionTokenText)((IExpressionTokenVariable)r2).Arguments[1]).Text);
+
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r3);
+            Assert.AreEqual("b c", ((IExpressionTokenVariable)r3).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)r3).Arguments.Length);
         }
 
         [Test]
@@ -163,78 +173,78 @@ namespace Utils.Tests
             var r2 = parser.Parse("{ x [1] [{y} { z[2] }] }");
             var r3 = parser.Parse("{ x [] [{y} ] [{y}]}");
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(r1);
-            Assert.AreEqual(2, ((IExpressionElementGroup)r1).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(r1);
+            Assert.AreEqual(2, ((IExpressionTokenGroup)r1).Children.Length);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r1).Children[0]);
-            Assert.AreEqual("x", ((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[0]).Name);
-            Assert.AreEqual(1, ((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[0]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[0]).Arguments[0]);
-            Assert.AreEqual("z", ((IExpressionVariableElement)((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[0]).Arguments[0]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[0]).Arguments[0]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r1).Children[0]);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[0]).Name);
+            Assert.AreEqual(1, ((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[0]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[0]).Arguments[0]);
+            Assert.AreEqual("z", ((IExpressionTokenVariable)((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[0]).Arguments[0]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[0]).Arguments[0]).Arguments.Length);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)r1).Children[1]);
-            Assert.AreEqual("y", ((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[1]).Name);
-            Assert.AreEqual(1, ((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[1]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[1]).Arguments[0]);
-            Assert.AreEqual("1", ((IExpressionFreeTextElement)((IExpressionVariableElement)((IExpressionElementGroup)r1).Children[1]).Arguments[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)r1).Children[1]);
+            Assert.AreEqual("y", ((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[1]).Name);
+            Assert.AreEqual(1, ((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[1]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[1]).Arguments[0]);
+            Assert.AreEqual("1", ((IExpressionTokenText)((IExpressionTokenVariable)((IExpressionTokenGroup)r1).Children[1]).Arguments[0]).Text);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(r2);
-            Assert.AreEqual("x", ((IExpressionVariableElement)r2).Name);
-            Assert.AreEqual(2, ((IExpressionVariableElement)r2).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r2);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)r2).Name);
+            Assert.AreEqual(2, ((IExpressionTokenVariable)r2).Arguments.Length);
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)r2).Arguments[0]);
-            Assert.AreEqual("1", ((IExpressionFreeTextElement)((IExpressionVariableElement)r2).Arguments[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)r2).Arguments[0]);
+            Assert.AreEqual("1", ((IExpressionTokenText)((IExpressionTokenVariable)r2).Arguments[0]).Text);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(((IExpressionVariableElement)r2).Arguments[1]);
-            Assert.AreEqual(3, ((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(((IExpressionTokenVariable)r2).Arguments[1]);
+            Assert.AreEqual(3, ((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children.Length);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[0]);
-            Assert.AreEqual("y", ((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[0]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[0]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[0]);
+            Assert.AreEqual("y", ((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[0]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[0]).Arguments.Length);
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[1]);
-            Assert.AreEqual(" ", ((IExpressionFreeTextElement)((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[1]).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[1]);
+            Assert.AreEqual(" ", ((IExpressionTokenText)((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[1]).Text);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[2]);
-            Assert.AreEqual("z", ((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[2]).Name);
-            Assert.AreEqual(1, ((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[2]).Arguments.Length);
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[2]).Arguments[0]);
-            Assert.AreEqual("2", ((IExpressionFreeTextElement)((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r2).Arguments[1]).Children[2]).Arguments[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[2]);
+            Assert.AreEqual("z", ((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[2]).Name);
+            Assert.AreEqual(1, ((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[2]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[2]).Arguments[0]);
+            Assert.AreEqual("2", ((IExpressionTokenText)((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r2).Arguments[1]).Children[2]).Arguments[0]).Text);
             
-            Assert.IsInstanceOf<IExpressionVariableElement>(r3);
-            Assert.AreEqual("x", ((IExpressionVariableElement)r3).Name);
-            Assert.AreEqual(3, ((IExpressionVariableElement)r3).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r3);
+            Assert.AreEqual("x", ((IExpressionTokenVariable)r3).Name);
+            Assert.AreEqual(3, ((IExpressionTokenVariable)r3).Arguments.Length);
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionVariableElement)r3).Arguments[0]);
-            Assert.AreEqual("", ((IExpressionFreeTextElement)((IExpressionVariableElement)r3).Arguments[0]).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenVariable)r3).Arguments[0]);
+            Assert.AreEqual("", ((IExpressionTokenText)((IExpressionTokenVariable)r3).Arguments[0]).Text);
 
-            Assert.IsInstanceOf<IExpressionElementGroup>(((IExpressionVariableElement)r3).Arguments[1]);
-            Assert.AreEqual(2, ((IExpressionElementGroup)((IExpressionVariableElement)r3).Arguments[1]).Children.Length);
+            Assert.IsInstanceOf<IExpressionTokenGroup>(((IExpressionTokenVariable)r3).Arguments[1]);
+            Assert.AreEqual(2, ((IExpressionTokenGroup)((IExpressionTokenVariable)r3).Arguments[1]).Children.Length);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionElementGroup)((IExpressionVariableElement)r3).Arguments[1]).Children[0]);
-            Assert.AreEqual("y", ((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r3).Arguments[1]).Children[0]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionElementGroup)((IExpressionVariableElement)r3).Arguments[1]).Children[0]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenGroup)((IExpressionTokenVariable)r3).Arguments[1]).Children[0]);
+            Assert.AreEqual("y", ((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r3).Arguments[1]).Children[0]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenGroup)((IExpressionTokenVariable)r3).Arguments[1]).Children[0]).Arguments.Length);
 
-            Assert.IsInstanceOf<IExpressionFreeTextElement>(((IExpressionElementGroup)((IExpressionVariableElement)r3).Arguments[1]).Children[1]);
-            Assert.AreEqual(" ", ((IExpressionFreeTextElement)((IExpressionElementGroup)((IExpressionVariableElement)r3).Arguments[1]).Children[1]).Text);
+            Assert.IsInstanceOf<IExpressionTokenText>(((IExpressionTokenGroup)((IExpressionTokenVariable)r3).Arguments[1]).Children[1]);
+            Assert.AreEqual(" ", ((IExpressionTokenText)((IExpressionTokenGroup)((IExpressionTokenVariable)r3).Arguments[1]).Children[1]).Text);
 
-            Assert.IsInstanceOf<IExpressionVariableElement>(((IExpressionVariableElement)r3).Arguments[2]);
-            Assert.AreEqual("y", ((IExpressionVariableElement)((IExpressionVariableElement)r3).Arguments[2]).Name);
-            Assert.AreEqual(0, ((IExpressionVariableElement)((IExpressionVariableElement)r3).Arguments[2]).Arguments.Length);
+            Assert.IsInstanceOf<IExpressionTokenVariable>(((IExpressionTokenVariable)r3).Arguments[2]);
+            Assert.AreEqual("y", ((IExpressionTokenVariable)((IExpressionTokenVariable)r3).Arguments[2]).Name);
+            Assert.AreEqual(0, ((IExpressionTokenVariable)((IExpressionTokenVariable)r3).Arguments[2]).Arguments.Length);
         }
 
         [Test]
         public void ParseInvalidTest()
         {
             var parser = new ExpressionParser();
-
+            
             Assert.Throws<ArgumentOutOfVariableException>(() => parser.Parse("a {x [y]} [z] z"));
             Assert.Throws<MissingArgumentOpeningTagException>(() => parser.Parse("a b {x ]}"));
             Assert.Throws<NestedVariableOutOfArgumentException>(() => parser.Parse("a {x {y}}"));
             Assert.Throws<NotClosedVariableOrParameterException>(() => parser.Parse("a {b} {c"));
             Assert.Throws<NotClosedVariableOrParameterException>(() => parser.Parse("a {b} {c [x] [y}"));
-            Assert.Throws<VariableNameSpaceNotSupportedException>(() => parser.Parse("a {b c} d"));
+            Assert.Throws<VariableNameInvalidException>(() => parser.Parse("{b [x] c}"));
         }
 
         [Test]
@@ -242,15 +252,15 @@ namespace Utils.Tests
         {
             var parser = new ExpressionParser();
 
-            var elem = new ExpressionElementGroup(new IExpressionElement[]
+            var t1 = new ExpressionTokenGroup(new IExpressionToken[]
             {
-                new ExpressionFreeTextElement("AB"),
-                new ExpressionVariableElement("x", new IExpressionElement[0]),
-                new ExpressionFreeTextElement("CD"),
-                new ExpressionVariableElement("y", new IExpressionElement[0]),
+                new ExpressionTokenText("AB"),
+                new ExpressionTokenVariable("x", new IExpressionToken[0]),
+                new ExpressionTokenText("CD"),
+                new ExpressionTokenVariable("y", new IExpressionToken[0]),
             });
 
-            var exp1 = parser.CreateExpression(elem);
+            var exp1 = parser.CreateExpression(t1);
 
             Assert.AreEqual("AB{ x }CD{ y }", exp1);
         }
@@ -260,26 +270,26 @@ namespace Utils.Tests
         {
             var parser = new ExpressionParser();
 
-            var elem = new ExpressionElementGroup(new IExpressionElement[]
+            var t1 = new ExpressionTokenGroup(new IExpressionToken[]
             {
-                new ExpressionFreeTextElement("AB"),
-                new ExpressionVariableElement("1", new IExpressionElement[]
+                new ExpressionTokenText("AB"),
+                new ExpressionTokenVariable("1", new IExpressionToken[]
                 {
-                    new ExpressionFreeTextElement("CD"),
-                    new ExpressionVariableElement("2", new IExpressionElement[]
+                    new ExpressionTokenText("CD"),
+                    new ExpressionTokenVariable("2", new IExpressionToken[]
                     {
-                        new ExpressionVariableElement("3", new IExpressionElement[]
+                        new ExpressionTokenVariable("3", new IExpressionToken[]
                         {
-                            new ExpressionFreeTextElement("EF"),
-                            new ExpressionVariableElement("4", new IExpressionElement[0]),
-                            new ExpressionFreeTextElement("GH"),
+                            new ExpressionTokenText("EF"),
+                            new ExpressionTokenVariable("4", new IExpressionToken[0]),
+                            new ExpressionTokenText("GH"),
                         })
                     })
                 }),
-                new ExpressionVariableElement("5", new IExpressionElement[0])
+                new ExpressionTokenVariable("5", new IExpressionToken[0])
             });
 
-            var exp1 = parser.CreateExpression(elem);
+            var exp1 = parser.CreateExpression(t1);
 
             Assert.AreEqual("AB{ 1 [CD] [{ 2 [{ 3 [EF] [{ 4 }] [GH] }] }] }{ 5 }", exp1);
         }
@@ -289,19 +299,26 @@ namespace Utils.Tests
         {
             var parser = new ExpressionParser();
 
-            var elem = new ExpressionElementGroup(new IExpressionElement[]
+            var t1 = new ExpressionTokenGroup(new IExpressionToken[]
             {
-                new ExpressionFreeTextElement("AB"),
-                new ExpressionVariableElement("x{}", new IExpressionElement[]
+                new ExpressionTokenText("AB"),
+                new ExpressionTokenVariable("x{}", new IExpressionToken[]
                 {
-                    new ExpressionFreeTextElement("CD[]_{}_\\_A"),
-                    new ExpressionVariableElement("[]_{}_\\_A", new IExpressionElement[0]),
+                    new ExpressionTokenText("CD[]_{}_\\_A"),
+                    new ExpressionTokenVariable("[]_{}_\\_A", new IExpressionToken[0]),
                 }),
             });
 
-            var exp1 = parser.CreateExpression(elem);
+            var t2 = new ExpressionTokenVariable(" a b", new IExpressionToken[] 
+            {
+                new ExpressionTokenText("x")
+            });
+
+            var exp1 = parser.CreateExpression(t1);
+            var exp2 = parser.CreateExpression(t2);
 
             Assert.AreEqual(@"AB{ x\{\} [CD\[\]_\{\}_\\_A] [{ \[\]_\{\}_\\_A }] }", exp1);
+            Assert.AreEqual(@"{ \ a b [x] }", exp2);
         }
     }
 }

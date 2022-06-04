@@ -6,6 +6,6 @@ namespace Xarial.XToolkit.Services.Expressions
 {
     public interface IExpressionSolver
     {
-        T Solve<T>(IExpressionElement[] elements);
+        T Solve<T>(IExpressionToken[] elements);
     }
 }

@@ -7,18 +7,87 @@ using Xarial.XToolkit.Services.Expressions.Exceptions;
 
 namespace Xarial.XToolkit.Services.Expressions
 {
+    /// <summary>
+    /// Service allows to parse expression into the <see cref="IExpressionToken"/>
+    /// </summary>
     public interface IExpressionParser
     {
-        IExpressionElement Parse(string expression);
-        string CreateExpression(IExpressionElement element);
+        /// <summary>
+        /// Parses tokens from the expression
+        /// </summary>
+        /// <param name="expression">Text expression</param>
+        /// <returns>Token</returns>
+        IExpressionToken Parse(string expression);
+
+        /// <summary>
+        /// Creates expression from the token
+        /// </summary>
+        /// <param name="token">Token to create expression from</param>
+        /// <returns>Expression</returns>
+        string CreateExpression(IExpressionToken token);
     }
 
+    /// <summary>
+    /// Default expression parses allows to specifying chars for the start and end tags of the variable, arguments and escape symbol
+    /// </summary>
     public class ExpressionParser : IExpressionParser
     {
-        private enum ExpressionElementType_e
+        private enum ExpressionTokenType_e
         {
             Variable,
-            FreeText
+            Text
+        }
+
+        /// <summary>
+        /// Represents the information about the currently parsing token
+        /// </summary>
+        private class ParsingState
+        {
+            /// <summary>
+            /// List of tokens collected for the current variables=
+            /// </summary>
+            internal List<IExpressionToken> VariableNestedTokens { get; }
+
+            /// <summary>
+            /// Type of current token or null if not yet set
+            /// </summary>
+            internal ExpressionTokenType_e? TokenType { get; set; }
+
+            /// <summary>
+            /// Content of the current token
+            /// </summary>
+            internal StringBuilder TokenContent { get; }
+
+            /// <summary>
+            /// Buffer of spaces from the current variable name
+            /// </summary>
+            /// <remarks>This is used to allow space in variable name but atuomatically trim the variable name and avoid excessive Trim operation.
+            /// This buffer wil lonly be added if another non empty char is identified in the variable name, e.g. this space buffer is between words of the variable name</remarks>
+            internal StringBuilder TokenNameSpaceBuffer { get; }
+
+            /// <summary>
+            /// Sets if the next char is protected and has to be considered as literal (even if it is a special symbol)
+            /// </summary>
+            internal bool CharProtected { get; set; }
+
+            /// <summary>
+            /// Indicates that the variable name was parsed (e.g. first argument encountered). This is used to handle the case where the text within variable appears after the arguments
+            /// </summary>
+            internal bool IsVariableNameParsed { get; set; }
+
+            internal ParsingState()
+            {
+                VariableNestedTokens = new List<IExpressionToken>();
+
+                TokenType = default;
+                TokenContent = new StringBuilder();
+
+                TokenNameSpaceBuffer = new StringBuilder();
+
+                CharProtected = false;
+
+                IsVariableNameParsed = false;
+            }
         }
 
         private readonly char m_VariableStartTag;
@@ -51,13 +120,13 @@ namespace Xarial.XToolkit.Services.Expressions
         {
         }
 
-        public IExpressionElement Parse(string expression)
+        public IExpressionToken Parse(string expression)
         {
             var startPos = 0;
-            return GroupElements(EnumerateElements(expression, ref startPos, false));
+            return GroupElements(ParseTokens(expression, ref startPos, false));
         }
 
-        public string CreateExpression(IExpressionElement element)
+        public string CreateExpression(IExpressionToken element)
         {
             if (element == null)
             {
@@ -71,25 +140,29 @@ namespace Xarial.XToolkit.Services.Expressions
             return expression.ToString();
         }
 
-        private void AppendExpressionElement(IExpressionElement element, StringBuilder expression)
+        private void AppendExpressionElement(IExpressionToken element, StringBuilder expression)
         {
             switch (element)
             {
-                case IExpressionElementGroup group:
+                case IExpressionTokenGroup group:
                     foreach (var child in group.Children) 
                     {
                         AppendExpressionElement(child, expression);
                     }
                     break;
 
-                case IExpressionFreeTextElement freeText:
-                    AppendText(freeText.Text, expression);
+                case IExpressionTokenText text:
+                    AppendText(text.Text, expression);
                     break;
 
-                case IExpressionVariableElement variable:
+                case IExpressionTokenVariable variable:
                     
                     expression.Append(m_VariableStartTag);
                     expression.Append(" ");
+                    if (variable.Name.StartsWith(" ")) 
+                    {
+                        expression.Append(m_EscapeSymbol);
+                    }
                     AppendText(variable.Name, expression);
                                         
                     if (variable.Arguments != null)
@@ -125,45 +198,36 @@ namespace Xarial.XToolkit.Services.Expressions
             }
         }
 
-        private IReadOnlyList<IExpressionElement> EnumerateElements(string expression, ref int position, bool isArgumentParsing) 
+        private IReadOnlyList<IExpressionToken> ParseTokens(string expression, ref int position, bool isArgumentParsing) 
         {
-            var elements = new List<IExpressionElement>();
-            var nested = new List<IExpressionElement>();
+            var tokens = new List<IExpressionToken>();
 
-            var currentElementType = default(ExpressionElementType_e?);
-            var currentElementContent = new StringBuilder();
+            var state = new ParsingState();
 
-            bool varHasSpace = false;
-
-            bool isProtected = false;
-
-            void CloseCurrentElement()
+            //complete current token and write to the return list
+            void FlushCurrentToken()
             {
-                if (currentElementType.HasValue)
+                if (state.TokenType.HasValue)
                 {
-                    IExpressionElement newElem;
+                    IExpressionToken newElem;
 
-                    switch (currentElementType.Value)
+                    switch (state.TokenType.Value)
                     {
-                        case ExpressionElementType_e.Variable:
-                            newElem = new ExpressionVariableElement(currentElementContent.ToString().Trim(), nested?.ToArray());
+                        case ExpressionTokenType_e.Variable:
+                            newElem = new ExpressionTokenVariable(state.TokenContent.ToString(), state.VariableNestedTokens?.ToArray());
                             break;
 
-                        case ExpressionElementType_e.FreeText:
-                            newElem = new ExpressionFreeTextElement(currentElementContent.ToString());
+                        case ExpressionTokenType_e.Text:
+                            newElem = new ExpressionTokenText(state.TokenContent.ToString());
                             break;
 
                         default:
                             throw new NotSupportedException();
                     }
 
-                    currentElementType = null;
-                    currentElementContent.Clear();
-                    nested.Clear();
-                    varHasSpace = false;
-                    isProtected = false;
+                    state = new ParsingState();
 
-                    elements.Add(newElem);
+                    tokens.Add(newElem);
                 }
             }
 
@@ -171,91 +235,104 @@ namespace Xarial.XToolkit.Services.Expressions
             {
                 var thisChar = expression[position];
 
-                if (!isProtected && thisChar == m_VariableStartTag)
+                if (!state.CharProtected && thisChar == m_VariableStartTag)
                 {
-                    if (currentElementType.HasValue)
+                    if (state.TokenType.HasValue)
                     {
-                        if (currentElementType == ExpressionElementType_e.Variable)
+                        if (state.TokenType == ExpressionTokenType_e.Variable)
                         {
                             throw new NestedVariableOutOfArgumentException(m_ArgumentStartTag, m_ArgumentEndTag);
                         }
 
-                        CloseCurrentElement();
+                        FlushCurrentToken();
                     }
 
-                    currentElementType = ExpressionElementType_e.Variable;
+                    state.TokenType = ExpressionTokenType_e.Variable;
                 }
-                else if (!isProtected && thisChar == m_VariableEndTag)
+                else if (!state.CharProtected && thisChar == m_VariableEndTag)
                 {
-                    CloseCurrentElement();
+                    FlushCurrentToken();
                 }
-                else if (!isProtected && thisChar == m_ArgumentStartTag)
+                else if (!state.CharProtected && thisChar == m_ArgumentStartTag)
                 {
-                    if (currentElementType == ExpressionElementType_e.Variable)
+                    if (state.TokenType == ExpressionTokenType_e.Variable)
                     {
+                        state.IsVariableNameParsed = true;
+
                         position++;
 
-                        nested.Add(GroupElements(EnumerateElements(expression, ref position, true)));
+                        state.VariableNestedTokens.Add(GroupElements(ParseTokens(expression, ref position, true)));
                     }
                     else
                     {
                         throw new ArgumentOutOfVariableException();
                     }
                 }
-                else if (!isProtected && thisChar == m_ArgumentEndTag)
+                else if (!state.CharProtected && thisChar == m_ArgumentEndTag)
                 {
                     if (isArgumentParsing) 
                     {
-                        CloseCurrentElement();
-                        return elements;
+                        FlushCurrentToken();
+                        return tokens;
                     }
                     else
                     {
                         throw new MissingArgumentOpeningTagException(m_ArgumentStartTag);
                     }
                 }
-                else if (!isProtected && thisChar == m_EscapeSymbol)
+                else if (!state.CharProtected && thisChar == m_EscapeSymbol)
                 {
-                    isProtected = true;
+                    state.CharProtected = true;
                 }
                 else 
                 {
-                    isProtected = false;
-
-                    if (!currentElementType.HasValue)
+                    if (!state.TokenType.HasValue)
                     {
-                        currentElementType = ExpressionElementType_e.FreeText;
+                        state.TokenType = ExpressionTokenType_e.Text;
                     }
 
-                    if (currentElementType == ExpressionElementType_e.Variable) 
+                    if (!state.CharProtected)
                     {
-                        if (thisChar == ' ') 
+                        if (state.TokenType == ExpressionTokenType_e.Variable)
                         {
-                            if (currentElementContent.Length != 0)
+                            if (thisChar == ' ')
                             {
-                                varHasSpace = true;
-                            }
+                                if (state.TokenContent.Length != 0)
+                                {
+                                    state.TokenNameSpaceBuffer.Append(thisChar);
+                                }
 
-                            continue;
-                        }
-                        else
-                        {
-                            if (varHasSpace) 
+                                continue;
+                            }
+                            else
                             {
-                                throw new VariableNameSpaceNotSupportedException();
+                                if (state.IsVariableNameParsed) 
+                                {
+                                    throw new VariableNameInvalidException();
+                                }
+
+                                if (state.TokenNameSpaceBuffer.Length > 0)
+                                {
+                                    state.TokenContent.Append(state.TokenNameSpaceBuffer);
+                                    state.TokenNameSpaceBuffer.Clear();
+                                }
                             }
                         }
                     }
+                    else
+                    {
+                        state.CharProtected = false;
+                    }
 
-                    currentElementContent.Append(thisChar);
+                    state.TokenContent.Append(thisChar);
                 }
             }
 
-            if (currentElementType.HasValue)
+            if (state.TokenType.HasValue)
             {
-                if (currentElementType == ExpressionElementType_e.FreeText)
+                if (state.TokenType == ExpressionTokenType_e.Text)
                 {
-                    CloseCurrentElement();
+                    FlushCurrentToken();
                 }
                 else
                 {
@@ -263,10 +340,10 @@ namespace Xarial.XToolkit.Services.Expressions
                 }
             }
 
-            return elements;
+            return tokens;
         }
 
-        private IExpressionElement GroupElements(IReadOnlyList<IExpressionElement> elements)
+        private IExpressionToken GroupElements(IReadOnlyList<IExpressionToken> elements)
         {
             if (elements.Count == 1)
             {
@@ -274,11 +351,11 @@ namespace Xarial.XToolkit.Services.Expressions
             }
             else if (elements.Count > 1)
             {
-                return new ExpressionElementGroup(elements.ToArray());
+                return new ExpressionTokenGroup(elements.ToArray());
             }
             else
             {
-                return new ExpressionFreeTextElement("");
+                return new ExpressionTokenText("");
             }
         }
     }
