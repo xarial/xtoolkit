@@ -95,11 +95,82 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void OnCopy(object sender, DataObjectCopyingEventArgs e)
         {
-            if (e.DataObject != null)
+            e.Handled = true;
+            e.CancelCommand();
+
+            IEnumerable<Tuple<Inline, int?, int?>> GetSelectedInlines() 
             {
-                e.DataObject.SetData(DataFormats.UnicodeText, "XYZ");
-                e.Handled = true;
+                var sel = m_TextBox.Selection;
+
+                if (!sel.IsEmpty)
+                {
+                    foreach (var inline in Inlines)
+                    {
+                        if (sel.Start.CompareTo(inline.ContentEnd) <= 0 && sel.End.CompareTo(inline.ContentStart) >= 0)
+                        {
+                            var hasStart = sel.Contains(inline.ContentStart);
+                            var hasEnd = sel.Contains(inline.ContentEnd);
+
+                            int? start = null;
+                            int? end = null;
+
+
+                            if (!hasStart)
+                            {
+                                start = inline.ContentStart.GetOffsetToPosition(sel.Start);
+                            }
+
+                            if (!hasEnd)
+                            {
+                                end = sel.End.GetOffsetToPosition(inline.ContentEnd);
+                            }
+
+                            yield return new Tuple<Inline, int?, int?>(inline, start, end);
+                        }
+                    }
+                }
+                else
+                {
+                    yield break;
+                }
             }
+
+            var expression = new StringBuilder();
+
+            var parser = GetParser();
+
+            foreach (var inline in GetSelectedInlines()) 
+            {
+                var token = GetExpressionToken(inline.Item1);
+
+                var tokenExpression = parser.CreateExpression(token);
+
+                if (inline.Item3.HasValue)
+                {
+                    tokenExpression = tokenExpression.Substring(0, tokenExpression.Length - inline.Item3.Value);
+                }
+
+                if (inline.Item2.HasValue) 
+                {
+                    tokenExpression = tokenExpression.Substring(inline.Item2.Value);
+                }
+
+                expression.Append(tokenExpression);
+            }
+
+            Clipboard.SetText(expression.ToString());
+        }
+
+        private void OnPaste(object sender, DataObjectPastingEventArgs e)
+        {
+            var parser = GetParser();
+
+            var expression = Clipboard.GetText();
+
+            Insert(parser.Parse(expression));
+
+            e.Handled = true;
+            e.CancelCommand();
         }
 
         public override void OnApplyTemplate()
@@ -107,22 +178,40 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_TextBox = (RichTextBox)this.Template.FindName("PART_RichTextBox", this);
             m_Doc = m_TextBox.Document;
             m_TextBox.TextChanged += OnTextChanged;
+            
             m_IsInit = true;
 
             DataObject.AddCopyingHandler(m_TextBox, OnCopy);
+            DataObject.AddPastingHandler(m_TextBox, OnPaste);
 
             RenderExpression(Expression);
         }
 
         public void Insert(IExpressionToken expressionToken) 
         {
-            var pos = m_TextBox.CaretPosition.GetInsertionPosition(LogicalDirection.Forward);
-
             using (var intChange = m_InternalChangeTracker.PerformInternalChange()) 
             {
+                TextPointer pos;
+
+                var sel = m_TextBox.Selection;
+
+                if (!sel.IsEmpty)
+                {
+                    pos = sel.Start;
+                    sel.Text = "";
+                }
+                else
+                {
+                    pos = m_TextBox.CaretPosition.GetInsertionPosition(LogicalDirection.Forward);
+                }
+
                 AddExpressionToken(Inlines, expressionToken, ref pos);
 
+                m_TextBox.CaretPosition = pos;
+
                 UpdateExpression();
+
+                m_TextBox.Focus();
             }
         }
 
@@ -160,7 +249,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     var par = new Paragraph()
                     {
-                        LineHeight = 1,
                         LineStackingStrategy = LineStackingStrategy.MaxHeight
                     };
                     m_Doc.Blocks.Add(par);
@@ -186,12 +274,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void UpdateExpression()
         {
-            var parser = ExpressionParser;
-
-            if (parser == null)
-            {
-                throw new NullReferenceException("Expression parser is not set");
-            }
+            var parser = GetParser();
             
             IExpressionToken token;
 
@@ -238,21 +321,22 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        /// <remarks><paramref name="inlines"/> parameter is not used directly, but keeping it to enforce updating the inline and creating new ones if needed</remarks>
         private void AddExpressionToken(InlineCollection inlines, IExpressionToken expressionToken, ref TextPointer pos) 
         {
             switch (expressionToken)
             {
                 case IExpressionTokenVariable variable:
-                    inlines.Add(new InlineUIContainer(new ExpressionVariableTokenControl(variable)
+                    var uiCont = new InlineUIContainer(new ExpressionVariableTokenControl(variable)
                     {
                         Title = variable.Name
-                    }, pos));
-                    //pos = pos.GetPositionAtOffset(1);
+                    }, pos);
+                    pos = uiCont.ContentEnd.GetInsertionPosition(LogicalDirection.Forward);
                     break;
 
                 case IExpressionTokenText text:
-                    inlines.Add(new Run(text.Text, pos));
-                    //pos = pos.GetPositionAtOffset(text.Text.Length);
+                    var run = new Run(text.Text, pos);
+                    pos = run.ContentEnd.GetInsertionPosition(LogicalDirection.Forward);
                     break;
 
                 case IExpressionTokenGroup group:
@@ -270,30 +354,13 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        private IExpressionToken GetExpressionToken(InlineCollection inlines) 
+        private IExpressionToken GetExpressionToken(IEnumerable<Inline> inlines) 
         {
             var tokens = new List<IExpressionToken>();
 
-            foreach (var inline in inlines) 
+            foreach (var inline in inlines)
             {
-                switch (inline) 
-                {
-                    case Run run:
-                        tokens.Add(new ExpressionTokenText(run.Text));
-                        break;
-
-                    case InlineUIContainer cont:
-                        if (cont.Child is ExpressionVariableTokenControl)
-                        {
-                            var varCtrl = (ExpressionVariableTokenControl)cont.Child;
-                            tokens.Add(varCtrl.Variable);
-                        }
-                        else 
-                        {
-                            throw new Exception("Not supported UI token");
-                        }
-                        break;
-                }
+                tokens.Add(GetExpressionToken(inline));
             }
 
             if (tokens.Count == 0)
@@ -308,6 +375,41 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 return new ExpressionTokenGroup(tokens.ToArray());
             }
+        }
+
+        private IExpressionToken GetExpressionToken(Inline inline)
+        {
+            switch (inline)
+            {
+                case Run run:
+                    return new ExpressionTokenText(run.Text);
+
+                case InlineUIContainer cont:
+                    if (cont.Child is ExpressionVariableTokenControl)
+                    {
+                        var varCtrl = (ExpressionVariableTokenControl)cont.Child;
+                        return varCtrl.Variable;
+                    }
+                    else
+                    {
+                        throw new Exception("Not supported UI token");
+                    }
+
+                default:
+                    throw new NotSupportedException("Not supported inline");
+            }
+        }
+
+        private IExpressionParser GetParser()
+        {
+            var parser = ExpressionParser;
+
+            if (parser == null)
+            {
+                throw new NullReferenceException("Expression parser is not set");
+            }
+
+            return parser;
         }
     }
 }
