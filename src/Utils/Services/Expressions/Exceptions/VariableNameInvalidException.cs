@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Xarial.XToolkit.Services.Expressions.Exceptions
 {
-    public class VariableNameInvalidException : Exception
+    public class VariableNameInvalidException : InvalidExpressionException
     {
         public VariableNameInvalidException() : base("Variable name cannot appear after arguments")
         {

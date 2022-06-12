@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Xarial.XToolkit.Services.Expressions.Exceptions
 {
-    public class MissingArgumentOpeningTagException : Exception
+    public class MissingArgumentOpeningTagException : InvalidExpressionException
     {
         public MissingArgumentOpeningTagException(char argumentStartTag) : base($"Argument is missing the opening tag '{argumentStartTag}'") 
         {

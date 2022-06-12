@@ -217,15 +217,33 @@
                 </Grid>
             </TabItem>
             <TabItem Header="ExpressionBox">
-                <Grid DataContext="{Binding Path=ExpressionBox}" VerticalAlignment="Top">
+                <Grid DataContext="{Binding Path=ExpressionBox}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
+                    <TextBox/>
                     <ctrls:ExpressionBox x:Name="expBox" Expression="{Binding Path=Expression1}" Grid.Column="0"/>
                     <Button Grid.Column="1" Command="{Binding Path=InsertVariableCommand}" CommandParameter="{Binding ElementName=expBox}">
                         <TextBlock Text="+"/>
                     </Button>
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression2}" Grid.Column="0" Grid.Row="1">
+                        <ctrls:ExpressionBox.Style>
+                            <Style TargetType="{x:Type ctrls:ExpressionBox}">
+                                <Style.Triggers>
+                                    <Trigger Property="Validation.HasError" Value="true">
+                                        <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ctrls:ExpressionBox.Style>
+                    </ctrls:ExpressionBox>
                 </Grid>
             </TabItem>
         </TabControl>

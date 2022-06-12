@@ -12,6 +12,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit.Services.Expressions;
+using Xarial.XToolkit.Reporting;
+using Xarial.XToolkit.Services.Expressions.Exceptions;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -114,7 +116,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                             int? start = null;
                             int? end = null;
 
-
                             if (!hasStart)
                             {
                                 start = inline.ContentStart.GetOffsetToPosition(sel.Start);
@@ -163,14 +164,23 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void OnPaste(object sender, DataObjectPastingEventArgs e)
         {
+            e.Handled = true;
+            e.CancelCommand();
+
             var parser = GetParser();
 
             var expression = Clipboard.GetText();
 
-            Insert(parser.Parse(expression));
+            try
+            {
+                var token = parser.Parse(expression);
 
-            e.Handled = true;
-            e.CancelCommand();
+                Insert(token);
+            }
+            catch (Exception ex)
+            {
+                SetExpressionError(ex);
+            }
         }
 
         public override void OnApplyTemplate()
@@ -229,7 +239,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         public static readonly DependencyProperty ExpressionProperty =
             DependencyProperty.Register(
             nameof(Expression), typeof(string),
-            typeof(ExpressionBox), new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnExpressionChanged));
+            typeof(ExpressionBox),
+            new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnExpressionChanged));
 
         public string Expression
         {
@@ -303,20 +314,22 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 using (var intChnage = m_InternalChangeTracker.PerformInternalChange()) 
                 {
-                    var parser = ExpressionParser;
-
-                    if (parser == null)
-                    {
-                        throw new NullReferenceException("Expression parser is not set");
-                    }
-
-                    var expressionToken = parser.Parse(expression);
-
                     m_Doc.Blocks.Clear();
 
-                    var pos = m_Doc.ContentStart;
+                    var parser = GetParser();
 
-                    AddExpressionToken(Inlines, expressionToken, ref pos);
+                    try
+                    {
+                        var expressionToken = parser.Parse(expression);
+
+                        var pos = m_Doc.ContentStart;
+
+                        AddExpressionToken(Inlines, expressionToken, ref pos);
+                    }
+                    catch (Exception ex)
+                    {
+                        SetExpressionError(ex);
+                    }
                 }
             }
         }
@@ -410,6 +423,16 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
 
             return parser;
+        }
+
+        private void SetExpressionError(Exception ex)
+        {
+            var bindingExpression = this.GetBindingExpression(ExpressionProperty);
+
+            var validationError = new ValidationError(new DataErrorValidationRule(), bindingExpression);
+            validationError.ErrorContent = ex is InvalidExpressionException ? ex.Message : ex.ParseUserError(out _, "Unknown error");
+
+            Validation.MarkInvalid(bindingExpression, validationError);
         }
     }
 }

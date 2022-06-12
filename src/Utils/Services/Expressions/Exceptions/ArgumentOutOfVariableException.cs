@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Xarial.XToolkit.Services.Expressions.Exceptions
 {
-    public class ArgumentOutOfVariableException : Exception
+    public class ArgumentOutOfVariableException : InvalidExpressionException
     {
         public ArgumentOutOfVariableException() : base("Argument can only appear within the variable") 
         {

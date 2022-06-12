@@ -15,7 +15,8 @@ namespace WpfTester
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
-        public string Expression1 { get; set; } = "Some Text {var1} Some Other Text { var2 [par1] [par2] }";
+        public string Expression1 { get; set; } = @"Some Text {var1} Some Other Text { var2 [par1] [par2] } \{a\}";
+        public string Expression2 { get; set; } = "x{abc";
 
         public ICommand InsertVariableCommand { get; }
 
