@@ -4,6 +4,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
+using Xarial.XToolkit.Wpf.Extensions;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -25,6 +26,18 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (FrameworkElement)GetValue(ContentProperty); }
             set { SetValue(ContentProperty, value); }
+        }
+
+        public static readonly DependencyProperty ToggleButtonStyleProperty =
+            DependencyProperty.Register(
+            nameof(ToggleButtonStyle), typeof(Style),
+            typeof(PopupMenu),
+            new PropertyMetadata(typeof(PopupMenu).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "ExpandToggleButtonStyle")));
+
+        public Style ToggleButtonStyle
+        {
+            get { return (Style)GetValue(ToggleButtonStyleProperty); }
+            set { SetValue(ToggleButtonStyleProperty, value); }
         }
     }
 }

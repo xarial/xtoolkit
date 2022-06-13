@@ -5,17 +5,42 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:ExpressionVariableTokenControl}">
-                    <Border BorderBrush="Black" BorderThickness="1" CornerRadius="5" Margin="2,0,2,-5" Background="Yellow">
+                    <Border BorderBrush="#FF707070" BorderThickness="1" CornerRadius="5" Margin="2,1,2,-5" Background="#FFDDDDDD">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBlock Text="{TemplateBinding Title}" FontWeight="Bold" Margin="1" Grid.Column="0"/>
-                            <local:PopupMenu Grid.Column="1">
+                            <TextBlock Text="{TemplateBinding Title}" FontWeight="Bold" Margin="2,1" Grid.Column="0"/>
+                            <local:PopupMenu Grid.Column="1" VerticalAlignment="Center">
                                 <Grid>
                                     <TextBlock Text="Arguments" Margin="10"/>
                                 </Grid>
+                                <local:PopupMenu.ToggleButtonStyle>
+                                    <Style TargetType="{x:Type ToggleButton}">
+                                        <Setter Property="Background" Value="Black"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                    <Grid MaxHeight="15" Margin="2" Background="Transparent">
+                                                        <Viewbox Stretch="Fill" VerticalAlignment="Center">
+                                                            <Path Fill="{TemplateBinding Background}" 
+                                                                  Data="m 117.77812 41.702169 c -2.46553 0 -4.93609 0.315404 -7.3007 0.678852 -0.37647 6.062045 -1.328 11.977882 -6.3541 14.059991 -5.037347 2.087095 -9.769292 -1.510893 -14.330363 -5.543414 -3.987965 2.911133 -7.631138 6.425494 -10.545104 10.411465 4.047372 4.574164 7.771653 9.276012 5.678313 14.329815 -2.0909 5.047768 -8.106395 5.980413 -14.195546 6.354384 -0.369956 2.390979 -0.540883 4.805469 -0.540883 7.300069 0 2.528161 0.161638 5.015755 0.540883 7.435756 6.089151 0.370455 12.104279 1.035295 14.195546 6.084063 2.09334 5.05328 -1.630626 10.02697 -5.678313 14.60066 2.899561 3.95642 6.585688 7.38068 10.545104 10.27528 4.546613 -4.014 9.310885 -7.48782 14.330363 -5.40723 5.04803 2.09009 5.98084 7.97039 6.3541 14.05947 2.36455 0.36547 4.83507 0.54518 7.3007 0.54518 2.46539 0 4.8008 -0.18026 7.16509 -0.54518 0.37247 -6.08908 1.30622 -11.96938 6.3542 -14.05947 5.01959 -2.07909 9.78412 1.39323 14.33036 5.40723 3.95924 -2.8946 7.64538 -6.31886 10.54517 -10.27528 -4.04743 -4.57369 -7.77171 -9.54738 -5.67845 -14.60066 2.09098 -5.047273 8.24136 -5.711089 14.33046 -6.084063 0.37948 -2.420001 0.54093 -4.908592 0.54093 -7.435756 0 -2.4946 -0.17108 -4.908093 -0.54093 -7.300069 -6.0891 -0.370455 -12.23967 -1.306616 -14.33046 -6.354384 -2.09326 -5.053803 1.63081 -9.755651 5.67845 -14.329815 -2.91396 -3.985971 -6.55715 -7.500332 -10.54517 -10.411465 -4.56096 4.032521 -9.2934 7.630509 -14.33036 5.543912 -5.0262 -2.082607 -5.97824 -7.998444 -6.3542 -14.060489 -2.36435 -0.360457 -4.6997 -0.678852 -7.16509 -0.678852 z m 0 32.041848 c 8.59813 0 15.54706 6.948638 15.54706 15.546821 0 8.597685 -6.94893 15.546322 -15.54706 15.546322 -8.59816 0 -15.68256 -6.948637 -15.68256 -15.546322 0 -8.598183 7.0844 -15.546821 15.68256 -15.546821 z"/>
+                                                        </Viewbox>
+                                                    </Grid>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsChecked" Value="True">
+                                                            <Setter Property="Background" Value="DarkGray" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="Gray" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </local:PopupMenu.ToggleButtonStyle>
                             </local:PopupMenu>
                         </Grid>
                     </Border>
@@ -27,12 +52,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:ExpressionBox}">
-                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
-                        <RichTextBox x:Name="PART_RichTextBox" IsDocumentEnabled="True" 
-                                 AcceptsReturn="False" AcceptsTab="False">
-                            <FlowDocument PageWidth="2000"/>
-                        </RichTextBox>
-                    </Border>
+                    <RichTextBox x:Name="PART_RichTextBox" IsDocumentEnabled="True" 
+                                 AcceptsReturn="False" AcceptsTab="False" BorderBrush="{TemplateBinding BorderBrush}"
+                                 BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                        <FlowDocument PageWidth="2000"/>
+                    </RichTextBox>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

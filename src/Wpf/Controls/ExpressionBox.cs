@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Reporting;
 using Xarial.XToolkit.Services.Expressions.Exceptions;
+using Xarial.XToolkit.Wpf.Extensions;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -88,6 +89,13 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionBox),
                 new FrameworkPropertyMetadata(typeof(ExpressionBox)));
+
+            BorderThicknessProperty.OverrideMetadata(
+                typeof(ExpressionBox), new FrameworkPropertyMetadata(new Thickness(1)));
+
+            BorderBrushProperty.OverrideMetadata(
+                typeof(ExpressionBox),
+                new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 171, 173, 179))));
         }
 
         public ExpressionBox() 
@@ -195,6 +203,12 @@ namespace Xarial.XToolkit.Wpf.Controls
             DataObject.AddPastingHandler(m_TextBox, OnPaste);
 
             RenderExpression(Expression);
+        }
+
+        protected override Size MeasureOverride(Size constraint)
+        {
+            var size = base.MeasureOverride(constraint);
+            return new Size(size.Width, size.Height + 4);
         }
 
         public void Insert(IExpressionToken expressionToken) 
@@ -428,11 +442,14 @@ namespace Xarial.XToolkit.Wpf.Controls
         private void SetExpressionError(Exception ex)
         {
             var bindingExpression = this.GetBindingExpression(ExpressionProperty);
+            
+            if (bindingExpression != null)
+            {
+                var validationError = new ValidationError(new DataErrorValidationRule(), bindingExpression);
+                validationError.ErrorContent = ex;
 
-            var validationError = new ValidationError(new DataErrorValidationRule(), bindingExpression);
-            validationError.ErrorContent = ex is InvalidExpressionException ? ex.Message : ex.ParseUserError(out _, "Unknown error");
-
-            Validation.MarkInvalid(bindingExpression, validationError);
+                Validation.MarkInvalid(bindingExpression, validationError);
+            }
         }
     }
 }

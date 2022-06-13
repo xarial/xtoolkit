@@ -229,11 +229,11 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox/>
-                    <ctrls:ExpressionBox x:Name="expBox" Expression="{Binding Path=Expression1}" Grid.Column="0"/>
+                    <ctrls:ExpressionBox x:Name="expBox" Expression="{Binding Path=Expression1}" Grid.Column="0" Margin="5"/>
                     <Button Grid.Column="1" Command="{Binding Path=InsertVariableCommand}" CommandParameter="{Binding ElementName=expBox}">
                         <TextBlock Text="+"/>
                     </Button>
-                    <ctrls:ExpressionBox Expression="{Binding Path=Expression2}" Grid.Column="0" Grid.Row="1">
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression2}" Grid.Column="0" Grid.Row="1" Margin="5">
                         <ctrls:ExpressionBox.Style>
                             <Style TargetType="{x:Type ctrls:ExpressionBox}">
                                 <Style.Triggers>
@@ -244,6 +244,7 @@
                             </Style>
                         </ctrls:ExpressionBox.Style>
                     </ctrls:ExpressionBox>
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
                 </Grid>
             </TabItem>
         </TabControl>
