@@ -36,8 +36,8 @@
             </TabItem>
             <TabItem Header="NumberBox">
                 <StackPanel Orientation="Vertical" DataContext="{Binding Path=NumberBox}">
-                    <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}" />
-                    <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}"/>
+                    <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}" Height="50" />
+                    <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}" MinimumValue="10" MaximumValue="100"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="TreeViewEx">
