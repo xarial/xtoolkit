@@ -33,7 +33,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
-    public class ExpressionVariableArgumentDescriptor: INotifyDataErrorInfo, INotifyPropertyChanged
+    public class ExpressionVariableArgumentDescriptor: INotifyPropertyChanged, INotifyDataErrorInfo
     {
         private class ExpressionVariableArgumentTextDescriptor : ExpressionVariableArgumentDescriptor
         {
@@ -59,13 +59,167 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        private class ExpressionVariableArgumentNumericDescriptor : ExpressionVariableArgumentDescriptor
+        {
+            public ExpressionVariableArgumentNumericDescriptor(string title, string tooltip)
+                : base(title, tooltip,
+                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericTemplate"))
+            {
+            }
+
+            protected override IExpressionToken GetToken(object value)
+                => new ExpressionTokenText(value?.ToString());
+
+            protected override object GetTokenValue(IExpressionToken token)
+            {
+                if (token is IExpressionTokenText)
+                {
+                    return int.Parse(((IExpressionTokenText)token).Text);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+                }
+            }
+        }
+
+        private class ExpressionVariableArgumentNumericDoubleDescriptor : ExpressionVariableArgumentDescriptor
+        {
+            public ExpressionVariableArgumentNumericDoubleDescriptor(string title, string tooltip)
+                : base(title, tooltip,
+                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericDoubleTemplate"))
+            {
+            }
+
+            protected override IExpressionToken GetToken(object value)
+                => new ExpressionTokenText(value?.ToString());
+
+            protected override object GetTokenValue(IExpressionToken token)
+            {
+                if (token is IExpressionTokenText)
+                {
+                    return double.Parse(((IExpressionTokenText)token).Text);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+                }
+            }
+        }
+
+        private class ExpressionVariableArgumentToggleDescriptor : ExpressionVariableArgumentDescriptor
+        {
+            public ExpressionVariableArgumentToggleDescriptor(string title, string tooltip)
+                : base(title, tooltip,
+                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentToggleTemplate"))
+            {
+            }
+
+            protected override IExpressionToken GetToken(object value)
+                => new ExpressionTokenText(value?.ToString());
+
+            protected override object GetTokenValue(IExpressionToken token)
+            {
+                if (token is IExpressionTokenText)
+                {
+                    return bool.Parse(((IExpressionTokenText)token).Text);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+                }
+            }
+        }
+
+        private class ExpressionVariableArgumentOptionsDescriptor : ExpressionVariableArgumentDescriptor
+        {
+            public ExpressionVariableArgumentOptionsDescriptor(string title, string tooltip, string[] items)
+                : base(title, tooltip,
+                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentOptionsTemplate"))
+            {
+                Items = items;
+            }
+
+            public string[] Items { get; }
+
+            protected override IExpressionToken GetToken(object value)
+                => new ExpressionTokenText(value?.ToString());
+
+            protected override object GetTokenValue(IExpressionToken token)
+            {
+                if (token is IExpressionTokenText)
+                {
+                    return ((IExpressionTokenText)token).Text;
+                }
+                else
+                {
+                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+                }
+            }
+        }
+
+        private class ExpressionVariableArgumentEnumOptionsDescriptor<TEnum> : ExpressionVariableArgumentDescriptor
+            where TEnum : Enum
+        {
+            public ExpressionVariableArgumentEnumOptionsDescriptor(string title, string tooltip, bool multi)
+                : base(title, tooltip, multi 
+                      ? typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumFlagOptionsTemplate")
+                      : typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumOptionsTemplate"))
+            {
+            }
+
+            protected override IExpressionToken GetToken(object value)
+                => new ExpressionTokenText(value?.ToString());
+
+            protected override object GetTokenValue(IExpressionToken token)
+            {
+                if (token is IExpressionTokenText)
+                {
+                    return Enum.Parse(typeof(TEnum), ((IExpressionTokenText)token).Text);
+                }
+                else
+                {
+                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+                }
+            }
+
+            public override object Value
+            {
+                get
+                {
+                    var val = base.Value;
+                    
+                    if (val == null) 
+                    {
+                        val = default(TEnum);
+                    }
+
+                    return val;
+                }
+                set => base.Value = value; 
+            }
+        }
+
         public static ExpressionVariableArgumentDescriptor CreateText(string title, string tooltip)
             => new ExpressionVariableArgumentTextDescriptor(title, tooltip);
 
-        public static ExpressionVariableArgumentDescriptor CreateNumeric(string title, string tooltip) => null;
-        public static ExpressionVariableArgumentDescriptor CreateNumericDouble(string title, string tooltip) => null;
-        public static ExpressionVariableArgumentDescriptor CreateToggle(string title, string tooltip) => null;
-        public static ExpressionVariableArgumentDescriptor CreateOptions(string title, string tooltip) => null;
+        public static ExpressionVariableArgumentDescriptor CreateNumeric(string title, string tooltip)
+            => new ExpressionVariableArgumentNumericDescriptor(title, tooltip);
+
+        public static ExpressionVariableArgumentDescriptor CreateNumericDouble(string title, string tooltip)
+            => new ExpressionVariableArgumentNumericDoubleDescriptor(title, tooltip);
+
+        public static ExpressionVariableArgumentDescriptor CreateToggle(string title, string tooltip)
+            => new ExpressionVariableArgumentToggleDescriptor(title, tooltip);
+
+        public static ExpressionVariableArgumentDescriptor CreateOptions(string title, string tooltip, params string[] items) 
+            => new ExpressionVariableArgumentOptionsDescriptor(title, tooltip, items);
+
+        public static ExpressionVariableArgumentDescriptor CreateOptions<TEnum>(string title, string tooltip)
+            where TEnum : Enum => new ExpressionVariableArgumentEnumOptionsDescriptor<TEnum>(title, tooltip, false);
+
+        public static ExpressionVariableArgumentDescriptor CreateMultipleOptions<TEnum>(string title, string tooltip)
+            where TEnum : Enum => new ExpressionVariableArgumentEnumOptionsDescriptor<TEnum>(title, tooltip, true);
 
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -80,6 +234,16 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        public IExpressionVariableDescriptor VariableDescriptor 
+        {
+            get => m_VariableDescriptor;
+            internal set 
+            {
+                m_VariableDescriptor = value;
+                this.NotifyChanged();
+            }
+        }
+
         public string Title 
         {
             get => m_Title;
@@ -90,12 +254,12 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        public string Tooltip
+        public string Description
         {
-            get => m_Tooltip;
+            get => m_Description;
             internal set
             {
-                m_Tooltip = value;
+                m_Description = value;
                 this.NotifyChanged();
             }
         }
@@ -114,28 +278,33 @@ namespace Xarial.XToolkit.Wpf.Controls
                 catch (Exception ex)
                 {
                     m_Error = ex;
-                    ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Token)));
+                    ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
                 }
             }
         }
 
         [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public object Value
+        public virtual object Value
         {
             get => m_Value;
             set
             {
                 m_Value = value;
                 m_Error = null;
+                ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
+
+                //NOTE: workaround, this needs to be called otherwise error will not be cleared
+                this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
             }
         }
 
         public bool HasErrors => m_Error != null;
 
         private string m_Title;
-        private string m_Tooltip;
+        private string m_Description;
         private object m_Value;
         private IExpressionParser m_Parser;
+        private IExpressionVariableDescriptor m_VariableDescriptor;
 
         private Exception m_Error;
 
@@ -143,22 +312,29 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
         }
 
-        public ExpressionVariableArgumentDescriptor(string title, string tooltip) 
-            : this(title, tooltip, typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>(
+        public ExpressionVariableArgumentDescriptor(string title, string desc) 
+            : this(title, desc, typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>(
                 "Themes/Generic.xaml", "ExpressionVariableArgumentExpressionTemplate")) 
         {
         }
 
-        public ExpressionVariableArgumentDescriptor(string title, string tooltip, DataTemplate template)
+        public ExpressionVariableArgumentDescriptor(string title, string desc, DataTemplate template)
         {
             m_Title = title;
-            m_Tooltip = tooltip;
+            m_Description = desc;
             Template = template;
         }
 
         public IEnumerable GetErrors(string propertyName)
         {
-            yield return m_Error;
+            if (m_Error != null)
+            {
+                yield return m_Error;
+            }
+            else
+            {
+                yield break;
+            }
         }
 
         protected virtual IExpressionToken GetToken(object value) => Parser.Parse(value?.ToString());
@@ -170,7 +346,7 @@ namespace Xarial.XToolkit.Wpf.Controls
     {
         string GetTitle(IExpressionTokenVariable variable);
         BitmapImage GetIcon(IExpressionTokenVariable variable);
-        string GetTooltip(IExpressionTokenVariable variable);
+        string GetDescription(IExpressionTokenVariable variable);
         Brush GetBackground(IExpressionTokenVariable variable);
         ExpressionVariableArgumentDescriptor[] GetArguments(IExpressionTokenVariable variable, out bool dynamic);
     }
@@ -178,6 +354,7 @@ namespace Xarial.XToolkit.Wpf.Controls
     public class ExpressionVariableTokenControl : Control
     {
         private DataGrid m_DataGrid;
+        private PopupMenu m_PopupEditor;
 
         static ExpressionVariableTokenControl()
         {
@@ -188,17 +365,28 @@ namespace Xarial.XToolkit.Wpf.Controls
         public override void OnApplyTemplate()
         {
             m_DataGrid = (DataGrid)this.Template.FindName("PART_DataGrid", this);
+            m_PopupEditor = (PopupMenu)this.Template.FindName("PART_PopupEditor", this);
+
+            m_PopupEditor.Closed += OnClosed;
+
             m_DataGrid.InitializingNewItem += OnInitializingNewItem;
+        }
+
+        private void OnClosed(PopupMenu popupMenu)
+        {
+            m_Variable = new ExpressionTokenVariable(m_VariableName, Arguments?.Select(a => a.Token).ToArray());
+
+            UpdateVariableControl(m_Variable);
         }
 
         private void OnInitializingNewItem(object sender, InitializingNewItemEventArgs e)
         {
             var argDesc = (ExpressionVariableArgumentDescriptor)e.NewItem;
             argDesc.Parser = m_Parser;
+            argDesc.VariableDescriptor = m_Descriptor;
         }
 
-        internal IExpressionTokenVariable Variable
-            => new ExpressionTokenVariable(m_VariableName, Arguments?.Select(a => a.Token).ToArray());
+        internal IExpressionTokenVariable Variable => m_Variable;
 
         private readonly IExpressionVariableDescriptor m_Descriptor;
 
@@ -210,9 +398,11 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private readonly IExpressionParser m_Parser;
 
-        internal ExpressionVariableTokenControl(IExpressionTokenVariable variable, IExpressionVariableDescriptor descriptor, IExpressionParser parser) 
+        private IExpressionTokenVariable m_Variable;
+
+        internal ExpressionVariableTokenControl(IExpressionTokenVariable variable, IExpressionVariableDescriptor descriptor, IExpressionParser parser)
         {
-            if (variable == null) 
+            if (variable == null)
             {
                 throw new ArgumentNullException(nameof(variable));
             }
@@ -224,14 +414,13 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             m_Parser = parser;
 
+            m_Variable = variable;
+
             m_VariableName = variable.Name;
 
             m_Descriptor = descriptor;
 
-            Title = m_Descriptor.GetTitle(variable);
-            Icon = m_Descriptor.GetIcon(variable);
-            ToolTip = m_Descriptor.GetTooltip(variable);
-            Background = m_Descriptor.GetBackground(variable);
+            UpdateVariableControl(variable);
 
             var args = m_Descriptor.GetArguments(variable, out bool dynamic);
 
@@ -241,24 +430,33 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 Arguments = new ObservableCollection<ExpressionVariableArgumentDescriptor>(args ?? new ExpressionVariableArgumentDescriptor[0]);
 
-                for (int i = 0; i < Arguments.Count; i++) 
+                for (int i = 0; i < Arguments.Count; i++)
                 {
                     var arg = Arguments[i];
 
                     arg.Parser = m_Parser;
+                    arg.VariableDescriptor = m_Descriptor;
 
-                    if (variable.Arguments != null && variable.Arguments.Length > i) 
+                    if (variable.Arguments != null && variable.Arguments.Length > i)
                     {
                         arg.Token = variable.Arguments[i];
                     }
                 }
 
-                if (DynamicArguments) 
+                if (DynamicArguments)
                 {
                     ResolveDynamicArgumentNames();
                     Arguments.CollectionChanged += OnDynamicArgumentsChanged;
                 }
             }
+        }
+
+        private void UpdateVariableControl(IExpressionTokenVariable variable)
+        {
+            Title = m_Descriptor.GetTitle(variable);
+            Icon = m_Descriptor.GetIcon(variable);
+            ToolTip = m_Descriptor.GetDescription(variable);
+            Background = m_Descriptor.GetBackground(variable);
         }
 
         private void OnDynamicArgumentsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -272,7 +470,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 var arg = Arguments[i];
                 arg.Title = $"#{i + 1}";
-                arg.Tooltip = $"Argument #{i + 1}";
+                arg.Description = $"Argument #{i + 1}";
             }
         }
 
@@ -344,7 +542,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             public string GetTitle(IExpressionTokenVariable variable) => variable.Name;
 
-            public string GetTooltip(IExpressionTokenVariable variable) => variable.Name;
+            public string GetDescription(IExpressionTokenVariable variable) => variable.Name;
         }
 
         private RichTextBox m_TextBox;

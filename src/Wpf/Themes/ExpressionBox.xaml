@@ -4,12 +4,42 @@
                     xmlns:conv="clr-namespace:Xarial.XToolkit.Wpf.Converters">
     <conv:ObjectIsNotNullVisibilityConverter x:Key="notNullVisConv"/>
     <local:DataGridCellIsNewItemPlaceholderConverter x:Key="isNewItemPlcConv"/>
+    
     <DataTemplate x:Key="ExpressionVariableArgumentExpressionTemplate">
-        <local:ExpressionBox Expression="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Tooltip}" BorderThickness="0" ExpressionParser="{Binding Path=Parser}"/>
+        <local:ExpressionBox Expression="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{Binding Path=Description}" BorderThickness="0"
+                             ExpressionParser="{Binding Path=Parser}"
+                             VariableDescriptor="{Binding Path=VariableDescriptor}"/>
     </DataTemplate>
+    
     <DataTemplate x:Key="ExpressionVariableArgumentTextTemplate">
-        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Tooltip}" BorderThickness="0" Background="Yellow"/>
+        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}" BorderThickness="0"/>
     </DataTemplate>
+    
+    <DataTemplate x:Key="ExpressionVariableArgumentNumericTemplate">
+        <local:NumberBoxInteger Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}" BorderThickness="0"/>
+    </DataTemplate>
+    
+    <DataTemplate x:Key="ExpressionVariableArgumentNumericDoubleTemplate">
+        <local:NumberBoxDouble Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}" BorderThickness="0"/>
+    </DataTemplate>
+    
+    <DataTemplate x:Key="ExpressionVariableArgumentToggleTemplate">
+        <CheckBox IsChecked="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}" HorizontalAlignment="Center"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ExpressionVariableArgumentOptionsTemplate">
+        <ComboBox SelectedValue="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ItemsSource="{Binding Path=Items}" ToolTip="{Binding Path=Description}"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ExpressionVariableArgumentEnumFlagOptionsTemplate">
+        <local:FlagEnumComboBox Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ExpressionVariableArgumentEnumOptionsTemplate">
+        <local:EnumComboBox Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}"/>
+    </DataTemplate>
+    
     <Style TargetType="{x:Type local:ExpressionVariableTokenControl}">
         <Setter Property="Template">
             <Setter.Value>
@@ -21,9 +51,9 @@
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <Image Source="{TemplateBinding Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0"/>
+                            <Image Source="{TemplateBinding Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2,1"/>
                             <TextBlock Text="{TemplateBinding Title}" FontWeight="Bold" Margin="2,1" Grid.Column="1"/>
-                            <local:PopupMenu Grid.Column="2" Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
+                            <local:PopupMenu x:Name="PART_PopupEditor" Grid.Column="2" Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
                                 <DataGrid x:Name="PART_DataGrid" ItemsSource="{Binding Path=Arguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                           CanUserAddRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                           CanUserDeleteRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
@@ -47,7 +77,7 @@
                                     <DataGrid.RowHeaderTemplate>
                                         <DataTemplate>
                                             <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}, Path=Item}">
-                                                <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Tooltip}"/>
+                                                <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
                                             </Grid>
                                         </DataTemplate>
                                     </DataGrid.RowHeaderTemplate>

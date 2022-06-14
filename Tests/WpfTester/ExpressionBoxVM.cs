@@ -7,14 +7,42 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using WpfTester.Properties;
 using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Controls;
+using Xarial.XToolkit.Wpf.Extensions;
 
 namespace WpfTester
 {
+    public enum Options_e 
+    {
+        [EnumDisplayName("First Item")]
+        Item1,
+        Item2,
+        Item3
+    }
+
+    [Flags]
+    public enum MultiOptions_e
+    {
+        [EnumDisplayName("First Item")]
+        Item1 = 1,
+        Item2 = 2,
+        Item3 = 4,
+        Item4 = 8
+    }
+
     public class MyExpressionVariableDescriptor : IExpressionVariableDescriptor
     {
+        private readonly BitmapImage m_Var1Icon;
+
+        public MyExpressionVariableDescriptor() 
+        {
+            m_Var1Icon = Resources.icon.ToBitmapImage();
+            m_Var1Icon.Freeze();
+        }
+
         public ExpressionVariableArgumentDescriptor[] GetArguments(IExpressionTokenVariable variable, out bool dynamic)
         {
             if (string.Equals(variable.Name, "var1", StringComparison.CurrentCultureIgnoreCase))
@@ -23,7 +51,14 @@ namespace WpfTester
 
                 return new ExpressionVariableArgumentDescriptor[]
                 {
-                    ExpressionVariableArgumentDescriptor.CreateText("Text Argument", "Sample Text Argument")
+                    ExpressionVariableArgumentDescriptor.CreateText("Text Argument", "Sample Text Argument"),
+                    ExpressionVariableArgumentDescriptor.CreateNumeric("Numeric Argument", "Numeric Text Argument"),
+                    ExpressionVariableArgumentDescriptor.CreateNumericDouble("Numeric Double Argument", "Sample Numeric Double Argument"),
+                    ExpressionVariableArgumentDescriptor.CreateToggle("Toggle Argument", "Sample Toggle Argument"),
+                    ExpressionVariableArgumentDescriptor.CreateOptions("Options Argument", "Sample Options Argument", "A", "B", "C", "D"),
+                    ExpressionVariableArgumentDescriptor.CreateOptions<Options_e>("Enum Options Argument", "Sample Enum Options Argument"),
+                    ExpressionVariableArgumentDescriptor.CreateMultipleOptions<MultiOptions_e>("Enum Multi Options Argument", "Sample Enum Multi Argument"),
+                    new ExpressionVariableArgumentDescriptor("Default Argument", "Sample Default Argument")
                 };
             }
             else if (string.Equals(variable.Name, "var2", StringComparison.CurrentCultureIgnoreCase))
@@ -45,11 +80,21 @@ namespace WpfTester
 
         public Brush GetBackground(IExpressionTokenVariable variable) => Brushes.Yellow;
 
-        public BitmapImage GetIcon(IExpressionTokenVariable variable) => null;
+        public BitmapImage GetIcon(IExpressionTokenVariable variable) 
+        {
+            if (string.Equals(variable.Name, "var1", StringComparison.CurrentCultureIgnoreCase))
+            {
+                return m_Var1Icon;
+            }
+            else 
+            {
+                return null;
+            }
+        }
 
         public string GetTitle(IExpressionTokenVariable variable) => $"_{variable.Name}_[{variable.Arguments?.Length} args(s)]";
 
-        public string GetTooltip(IExpressionTokenVariable variable) => null;
+        public string GetDescription(IExpressionTokenVariable variable) => $"Variable {variable.Name} with {variable.Arguments?.Length} argument(s)";
     }
 
     public class ExpressionBoxVM : INotifyPropertyChanged
