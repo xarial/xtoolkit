@@ -229,7 +229,7 @@
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
                     <TextBox/>
-                    <ctrls:ExpressionBox x:Name="expBox" Expression="{Binding Path=Expression1}" Grid.Column="0" Margin="5">
+                    <ctrls:ExpressionBox x:Name="expBox" Expression="{Binding Path=Expression1}" VariableLinks="{Binding Path=VariableLinks}" Grid.Column="0" Margin="5">
                         <ctrls:ExpressionBox.VariableDescriptor>
                             <local:MyExpressionVariableDescriptor/>
                         </ctrls:ExpressionBox.VariableDescriptor>

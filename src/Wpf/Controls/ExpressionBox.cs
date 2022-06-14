@@ -19,6 +19,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Collections;
 using System.Globalization;
+using Xarial.XToolkit.Wpf.Dialogs;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -244,6 +245,16 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        public IEnumerable<ExpressionVariableLink> VariableLinks
+        {
+            get => m_VariableLinks;
+            internal set
+            {
+                m_VariableLinks = value;
+                this.NotifyChanged();
+            }
+        }
+
         public string Title 
         {
             get => m_Title;
@@ -303,8 +314,10 @@ namespace Xarial.XToolkit.Wpf.Controls
         private string m_Title;
         private string m_Description;
         private object m_Value;
+
         private IExpressionParser m_Parser;
         private IExpressionVariableDescriptor m_VariableDescriptor;
+        private IEnumerable<ExpressionVariableLink> m_VariableLinks;
 
         private Exception m_Error;
 
@@ -356,6 +369,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         private DataGrid m_DataGrid;
         private PopupMenu m_PopupEditor;
 
+        private bool m_Edit;
+
         static ExpressionVariableTokenControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionVariableTokenControl),
@@ -370,6 +385,27 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_PopupEditor.Closed += OnClosed;
 
             m_DataGrid.InitializingNewItem += OnInitializingNewItem;
+
+            if (m_Edit) 
+            {
+                Edit();
+                m_Edit = false;
+            }
+        }
+
+        public void Edit() 
+        {
+            if (Arguments != null)
+            {
+                if (m_PopupEditor != null)
+                {
+                    m_PopupEditor.IsOpen = true;
+                }
+                else 
+                {
+                    m_Edit = true;
+                }
+            }
         }
 
         private void OnClosed(PopupMenu popupMenu)
@@ -382,13 +418,14 @@ namespace Xarial.XToolkit.Wpf.Controls
         private void OnInitializingNewItem(object sender, InitializingNewItemEventArgs e)
         {
             var argDesc = (ExpressionVariableArgumentDescriptor)e.NewItem;
-            argDesc.Parser = m_Parser;
-            argDesc.VariableDescriptor = m_Descriptor;
+            InitArgumentDescriptor(argDesc);
         }
 
         internal IExpressionTokenVariable Variable => m_Variable;
 
+        private readonly IExpressionParser m_Parser;
         private readonly IExpressionVariableDescriptor m_Descriptor;
+        private readonly IEnumerable<ExpressionVariableLink> m_VariableLinks;
 
         public ObservableCollection<ExpressionVariableArgumentDescriptor> Arguments { get; }
 
@@ -396,11 +433,10 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public bool DynamicArguments { get; }
 
-        private readonly IExpressionParser m_Parser;
-
         private IExpressionTokenVariable m_Variable;
 
-        internal ExpressionVariableTokenControl(IExpressionTokenVariable variable, IExpressionVariableDescriptor descriptor, IExpressionParser parser)
+        internal ExpressionVariableTokenControl(IExpressionTokenVariable variable,
+            IExpressionVariableDescriptor descriptor, IExpressionParser parser, IEnumerable<ExpressionVariableLink> variableLinks)
         {
             if (variable == null)
             {
@@ -420,6 +456,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             m_Descriptor = descriptor;
 
+            m_VariableLinks = variableLinks;
+
             UpdateVariableControl(variable);
 
             var args = m_Descriptor.GetArguments(variable, out bool dynamic);
@@ -434,8 +472,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     var arg = Arguments[i];
 
-                    arg.Parser = m_Parser;
-                    arg.VariableDescriptor = m_Descriptor;
+                    InitArgumentDescriptor(arg);
 
                     if (variable.Arguments != null && variable.Arguments.Length > i)
                     {
@@ -494,6 +531,44 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (BitmapImage)GetValue(IconProperty); }
             set { SetValue(IconProperty, value); }
+        }
+
+        private void InitArgumentDescriptor(ExpressionVariableArgumentDescriptor argDesc)
+        {
+            argDesc.Parser = m_Parser;
+            argDesc.VariableDescriptor = m_Descriptor;
+            argDesc.VariableLinks = m_VariableLinks;
+        }
+    }
+
+    public class ExpressionVariableLink 
+    {
+        public static ExpressionVariableLink Custom
+        { get; } = new ExpressionVariableLink("Insert New Variable...", "Insert new variable with the specified name", null, () =>
+        {
+            if (InputBox.Show("ExpressionBox", "Variable Name", null, out string varName))
+            {
+                return new ExpressionTokenVariable(varName, null);
+            }
+            else
+            {
+                return null;
+            }
+        }, true);
+
+        public string Title { get; }
+        public string Description { get; }
+        public BitmapImage Icon { get; }
+        public Func<IExpressionTokenVariable> Factory { get; }
+        public bool EnterArgs { get; }
+
+        public ExpressionVariableLink(string title, string description, BitmapImage icon, Func<IExpressionTokenVariable> factory, bool enterArgs) 
+        {
+            Title = title;
+            Description = description;
+            Icon = icon;
+            Factory = factory;
+            EnterArgs = enterArgs;
         }
     }
 
@@ -564,9 +639,23 @@ namespace Xarial.XToolkit.Wpf.Controls
                 new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromRgb(171, 173, 179))));
         }
 
+        public ICommand InsertVariableCommand { get; }
+
         public ExpressionBox() 
         {
             m_InternalChangeTracker = new InternalChangeTracker();
+
+            InsertVariableCommand = new RelayCommand<ExpressionVariableLink>(InsertVariable);
+        }
+
+        private void InsertVariable(ExpressionVariableLink link)
+        {
+            var var = link.Factory.Invoke();
+
+            if (var != null) 
+            {
+                Insert(var, link.EnterArgs);
+            }
         }
 
         private void OnCopy(object sender, DataObjectCopyingEventArgs e)
@@ -649,7 +738,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 var token = parser.Parse(expression);
 
-                Insert(token);
+                Insert(token, false);
             }
             catch (Exception ex)
             {
@@ -680,7 +769,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             return new Size(size.Width, size.Height + OFFSET);
         }
 
-        public void Insert(IExpressionToken expressionToken) 
+        public void Insert(IExpressionToken expressionToken, bool enterArgs) 
         {
             using (var intChange = m_InternalChangeTracker.PerformInternalChange()) 
             {
@@ -698,7 +787,19 @@ namespace Xarial.XToolkit.Wpf.Controls
                     pos = m_TextBox.CaretPosition.GetInsertionPosition(LogicalDirection.Forward);
                 }
 
-                AddExpressionToken(Inlines, expressionToken, ref pos);
+                var inlines = AddExpressionToken(Inlines, expressionToken, ref pos);
+
+                if (enterArgs)
+                {
+                    var cont = inlines.OfType<InlineUIContainer>().FirstOrDefault();
+
+                    if (cont?.Child is ExpressionVariableTokenControl)
+                    {
+                        var varCtrl = (ExpressionVariableTokenControl)cont.Child;
+
+                        varCtrl.Edit();
+                    }
+                }
 
                 m_TextBox.CaretPosition = pos;
 
@@ -740,6 +841,17 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (IExpressionVariableDescriptor)GetValue(VariableDescriptorProperty); }
             set { SetValue(VariableDescriptorProperty, value); }
+        }
+
+        public static readonly DependencyProperty VariableLinksProperty =
+            DependencyProperty.Register(
+            nameof(VariableLinks), typeof(IEnumerable<ExpressionVariableLink>),
+            typeof(ExpressionBox), new PropertyMetadata(new ExpressionVariableLink[] { ExpressionVariableLink.Custom }));
+
+        public IEnumerable<ExpressionVariableLink> VariableLinks
+        {
+            get { return (IEnumerable<ExpressionVariableLink>)GetValue(VariableLinksProperty); }
+            set { SetValue(VariableLinksProperty, value); }
         }
 
         private InlineCollection Inlines 
@@ -829,18 +941,22 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
         /// <remarks><paramref name="inlines"/> parameter is not used directly, but keeping it to enforce updating the inline and creating new ones if needed</remarks>
-        private void AddExpressionToken(InlineCollection inlines, IExpressionToken expressionToken, ref TextPointer pos) 
+        private IReadOnlyList<Inline> AddExpressionToken(InlineCollection inlines, IExpressionToken expressionToken, ref TextPointer pos) 
         {
+            var res = new List<Inline>();
+
             switch (expressionToken)
             {
                 case IExpressionTokenVariable variable:
-                    var uiCont = new InlineUIContainer(new ExpressionVariableTokenControl(variable, VariableDescriptor, GetParser()), pos);
+                    var uiCont = new InlineUIContainer(new ExpressionVariableTokenControl(variable, VariableDescriptor, GetParser(), VariableLinks), pos);
                     pos = uiCont.ContentEnd.GetInsertionPosition(LogicalDirection.Forward);
+                    res.Add(uiCont);
                     break;
 
                 case IExpressionTokenText text:
                     var run = new Run(text.Text, pos);
                     pos = run.ContentEnd.GetInsertionPosition(LogicalDirection.Forward);
+                    res.Add(run);
                     break;
 
                 case IExpressionTokenGroup group:
@@ -848,7 +964,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                     {
                         foreach (var child in group.Children)
                         {
-                            AddExpressionToken(inlines, child, ref pos);
+                            res.AddRange(AddExpressionToken(inlines, child, ref pos));
                         }
                     }
                     break;
@@ -856,6 +972,8 @@ namespace Xarial.XToolkit.Wpf.Controls
                 default:
                     throw new NotSupportedException("Expression token is not supported");
             }
+
+            return res;
         }
 
         private IExpressionToken GetExpressionToken(IEnumerable<Inline> inlines) 

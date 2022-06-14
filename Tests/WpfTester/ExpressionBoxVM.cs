@@ -71,6 +71,11 @@ namespace WpfTester
                     ExpressionVariableArgumentDescriptor.CreateText("Argument2", "Second Argument")
                 };
             }
+            else if (string.Equals(variable.Name, "var3", StringComparison.CurrentCultureIgnoreCase)) 
+            {
+                dynamic = false;
+                return null;
+            }
             else 
             {
                 dynamic = true;
@@ -106,14 +111,27 @@ namespace WpfTester
 
         public ICommand InsertVariableCommand { get; }
 
+        private readonly BitmapImage m_Var1Icon;
+
+        public ExpressionVariableLink[] VariableLinks { get; } 
+
         public ExpressionBoxVM() 
         {
             InsertVariableCommand = new RelayCommand<ExpressionBox>(InsertVariable);
+            m_Var1Icon = Resources.icon.ToBitmapImage();
+            m_Var1Icon.Freeze();
+
+            VariableLinks = new ExpressionVariableLink[]
+            {
+                ExpressionVariableLink.Custom,
+                new ExpressionVariableLink("Insert 'var1'...", "Inserting 'var1'", m_Var1Icon, () => new ExpressionTokenVariable("var1", null), true),
+                new ExpressionVariableLink("Insert 'var2'", "Inserting 'var2'", null, () => new ExpressionTokenVariable("var2", new IExpressionToken[] { new ExpressionTokenText("X"), new ExpressionTokenText("Y") }), false)
+            };
         }
 
         private void InsertVariable(ExpressionBox expBox)
         {
-            expBox.Insert(new ExpressionTokenVariable("var3", null));
+            expBox.Insert(new ExpressionTokenVariable("var3", null), false);
         }
     }
 }
