@@ -5,12 +5,53 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Controls;
 
 namespace WpfTester
 {
+    public class MyExpressionVariableDescriptor : IExpressionVariableDescriptor
+    {
+        public IExpressionVariableArgumentDescriptor[] GetArguments(IExpressionTokenVariable variable, out bool dynamic)
+        {
+            if (string.Equals(variable.Name, "var1", StringComparison.CurrentCultureIgnoreCase))
+            {
+                dynamic = false;
+
+                return new IExpressionVariableArgumentDescriptor[]
+                {
+                ExpressionVariableArguments.CreateText("Text Argument", "Sample Text Argument")
+                };
+            }
+            else if (string.Equals(variable.Name, "var2", StringComparison.CurrentCultureIgnoreCase))
+            {
+                dynamic = true;
+
+                return new IExpressionVariableArgumentDescriptor[]
+                {
+                    ExpressionVariableArguments.CreateText("Argument1", "First Argument"),
+                    ExpressionVariableArguments.CreateText("Argument2", "Second Argument")
+                };
+            }
+            else 
+            {
+                dynamic = true;
+                return null;
+            }
+        }
+
+        public Brush GetBackground(IExpressionTokenVariable variable) => Brushes.Yellow;
+
+        public BitmapImage GetIcon(IExpressionTokenVariable variable) => null;
+
+        public string GetTitle(IExpressionTokenVariable variable) => $"_{variable.Name}_[{variable.Arguments?.Length} args(s)]";
+
+        public string GetTooltip(IExpressionTokenVariable variable) => null;
+    }
+
     public class ExpressionBoxVM : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;

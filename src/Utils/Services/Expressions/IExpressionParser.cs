@@ -187,14 +187,17 @@ namespace Xarial.XToolkit.Services.Expressions
 
         private void AppendText(string text, StringBuilder expression) 
         {
-            foreach (var symb in text) 
+            if (!string.IsNullOrEmpty(text))
             {
-                if (m_SpecialSymbols.Contains(symb)) 
+                foreach (var symb in text)
                 {
-                    expression.Append(m_EscapeSymbol);
-                }
+                    if (m_SpecialSymbols.Contains(symb))
+                    {
+                        expression.Append(m_EscapeSymbol);
+                    }
 
-                expression.Append(symb);
+                    expression.Append(symb);
+                }
             }
         }
 
