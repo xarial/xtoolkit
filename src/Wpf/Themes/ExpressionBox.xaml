@@ -3,8 +3,12 @@
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls"
                     xmlns:conv="clr-namespace:Xarial.XToolkit.Wpf.Converters">
     <conv:ObjectIsNotNullVisibilityConverter x:Key="notNullVisConv"/>
+    <local:DataGridCellIsNewItemPlaceholderConverter x:Key="isNewItemPlcConv"/>
+    <DataTemplate x:Key="ExpressionVariableArgumentExpressionTemplate">
+        <local:ExpressionBox Expression="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Tooltip}" BorderThickness="0" ExpressionParser="{Binding Path=Parser}"/>
+    </DataTemplate>
     <DataTemplate x:Key="ExpressionVariableArgumentTextTemplate">
-        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Tooltip}" BorderThickness="0"/>
+        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Tooltip}" BorderThickness="0" Background="Yellow"/>
     </DataTemplate>
     <Style TargetType="{x:Type local:ExpressionVariableTokenControl}">
         <Setter Property="Template">
@@ -20,11 +24,26 @@
                             <Image Source="{TemplateBinding Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0"/>
                             <TextBlock Text="{TemplateBinding Title}" FontWeight="Bold" Margin="2,1" Grid.Column="1"/>
                             <local:PopupMenu Grid.Column="2" Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
-                                <DataGrid ItemsSource="{Binding Path=Arguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
+                                <DataGrid x:Name="PART_DataGrid" ItemsSource="{Binding Path=Arguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                           CanUserAddRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                           CanUserDeleteRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                           ColumnWidth="*" RowHeaderWidth="NaN" AutoGenerateColumns="False"
                                           MinWidth="100" MinHeight="100" MaxWidth="300" MaxHeight="500">
+                                    <DataGrid.Resources>
+                                        <Style TargetType="{x:Type DataGridCell}">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Converter={StaticResource isNewItemPlcConv}}" Value="True">
+                                                    <Setter Property="Template">
+                                                        <Setter.Value>
+                                                            <ControlTemplate>
+                                                                <TextBlock Text="Add New Argument" Foreground="Gray" FontStyle="Italic"/>
+                                                            </ControlTemplate>
+                                                        </Setter.Value>
+                                                    </Setter>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </DataGrid.Resources>
                                     <DataGrid.RowHeaderTemplate>
                                         <DataTemplate>
                                             <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}, Path=Item}">
@@ -33,7 +52,7 @@
                                         </DataTemplate>
                                     </DataGrid.RowHeaderTemplate>
                                     <DataGrid.Columns>
-                                        <DataGridTemplateColumn IsReadOnly="True" Header="Value">
+                                        <DataGridTemplateColumn IsReadOnly="False" Header="Value">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <ContentPresenter ContentTemplate="{Binding Path=Template}" Content="{Binding}"/>

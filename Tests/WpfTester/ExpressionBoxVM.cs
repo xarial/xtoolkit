@@ -15,25 +15,25 @@ namespace WpfTester
 {
     public class MyExpressionVariableDescriptor : IExpressionVariableDescriptor
     {
-        public IExpressionVariableArgumentDescriptor[] GetArguments(IExpressionTokenVariable variable, out bool dynamic)
+        public ExpressionVariableArgumentDescriptor[] GetArguments(IExpressionTokenVariable variable, out bool dynamic)
         {
             if (string.Equals(variable.Name, "var1", StringComparison.CurrentCultureIgnoreCase))
             {
                 dynamic = false;
 
-                return new IExpressionVariableArgumentDescriptor[]
+                return new ExpressionVariableArgumentDescriptor[]
                 {
-                ExpressionVariableArguments.CreateText("Text Argument", "Sample Text Argument")
+                    ExpressionVariableArgumentDescriptor.CreateText("Text Argument", "Sample Text Argument")
                 };
             }
             else if (string.Equals(variable.Name, "var2", StringComparison.CurrentCultureIgnoreCase))
             {
                 dynamic = true;
 
-                return new IExpressionVariableArgumentDescriptor[]
+                return new ExpressionVariableArgumentDescriptor[]
                 {
-                    ExpressionVariableArguments.CreateText("Argument1", "First Argument"),
-                    ExpressionVariableArguments.CreateText("Argument2", "Second Argument")
+                    ExpressionVariableArgumentDescriptor.CreateText("Argument1", "First Argument"),
+                    ExpressionVariableArgumentDescriptor.CreateText("Argument2", "Second Argument")
                 };
             }
             else 

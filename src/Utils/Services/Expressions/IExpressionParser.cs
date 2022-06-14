@@ -234,100 +234,103 @@ namespace Xarial.XToolkit.Services.Expressions
                 }
             }
 
-            for (; position < expression.Length; position++) 
+            if (expression != null)
             {
-                var thisChar = expression[position];
-
-                if (!state.CharProtected && thisChar == m_VariableStartTag)
+                for (; position < expression.Length; position++)
                 {
-                    if (state.TokenType.HasValue)
+                    var thisChar = expression[position];
+
+                    if (!state.CharProtected && thisChar == m_VariableStartTag)
+                    {
+                        if (state.TokenType.HasValue)
+                        {
+                            if (state.TokenType == ExpressionTokenType_e.Variable)
+                            {
+                                throw new NestedVariableOutOfArgumentException(m_ArgumentStartTag, m_ArgumentEndTag);
+                            }
+
+                            FlushCurrentToken();
+                        }
+
+                        state.TokenType = ExpressionTokenType_e.Variable;
+                    }
+                    else if (!state.CharProtected && thisChar == m_VariableEndTag)
+                    {
+                        FlushCurrentToken();
+                    }
+                    else if (!state.CharProtected && thisChar == m_ArgumentStartTag)
                     {
                         if (state.TokenType == ExpressionTokenType_e.Variable)
                         {
-                            throw new NestedVariableOutOfArgumentException(m_ArgumentStartTag, m_ArgumentEndTag);
+                            state.IsVariableNameParsed = true;
+
+                            position++;
+
+                            state.VariableNestedTokens.Add(GroupElements(ParseTokens(expression, ref position, true)));
                         }
-
-                        FlushCurrentToken();
-                    }
-
-                    state.TokenType = ExpressionTokenType_e.Variable;
-                }
-                else if (!state.CharProtected && thisChar == m_VariableEndTag)
-                {
-                    FlushCurrentToken();
-                }
-                else if (!state.CharProtected && thisChar == m_ArgumentStartTag)
-                {
-                    if (state.TokenType == ExpressionTokenType_e.Variable)
-                    {
-                        state.IsVariableNameParsed = true;
-
-                        position++;
-
-                        state.VariableNestedTokens.Add(GroupElements(ParseTokens(expression, ref position, true)));
-                    }
-                    else
-                    {
-                        throw new ArgumentOutOfVariableException();
-                    }
-                }
-                else if (!state.CharProtected && thisChar == m_ArgumentEndTag)
-                {
-                    if (isArgumentParsing) 
-                    {
-                        FlushCurrentToken();
-                        return tokens;
-                    }
-                    else
-                    {
-                        throw new MissingArgumentOpeningTagException(m_ArgumentStartTag);
-                    }
-                }
-                else if (!state.CharProtected && thisChar == m_EscapeSymbol)
-                {
-                    state.CharProtected = true;
-                }
-                else 
-                {
-                    if (!state.TokenType.HasValue)
-                    {
-                        state.TokenType = ExpressionTokenType_e.Text;
-                    }
-
-                    if (!state.CharProtected)
-                    {
-                        if (state.TokenType == ExpressionTokenType_e.Variable)
+                        else
                         {
-                            if (thisChar == ' ')
-                            {
-                                if (state.TokenContent.Length != 0)
-                                {
-                                    state.TokenNameSpaceBuffer.Append(thisChar);
-                                }
-
-                                continue;
-                            }
-                            else
-                            {
-                                if (state.IsVariableNameParsed) 
-                                {
-                                    throw new VariableNameInvalidException();
-                                }
-
-                                if (state.TokenNameSpaceBuffer.Length > 0)
-                                {
-                                    state.TokenContent.Append(state.TokenNameSpaceBuffer);
-                                    state.TokenNameSpaceBuffer.Clear();
-                                }
-                            }
+                            throw new ArgumentOutOfVariableException();
                         }
+                    }
+                    else if (!state.CharProtected && thisChar == m_ArgumentEndTag)
+                    {
+                        if (isArgumentParsing)
+                        {
+                            FlushCurrentToken();
+                            return tokens;
+                        }
+                        else
+                        {
+                            throw new MissingArgumentOpeningTagException(m_ArgumentStartTag);
+                        }
+                    }
+                    else if (!state.CharProtected && thisChar == m_EscapeSymbol)
+                    {
+                        state.CharProtected = true;
                     }
                     else
                     {
-                        state.CharProtected = false;
-                    }
+                        if (!state.TokenType.HasValue)
+                        {
+                            state.TokenType = ExpressionTokenType_e.Text;
+                        }
 
-                    state.TokenContent.Append(thisChar);
+                        if (!state.CharProtected)
+                        {
+                            if (state.TokenType == ExpressionTokenType_e.Variable)
+                            {
+                                if (thisChar == ' ')
+                                {
+                                    if (state.TokenContent.Length != 0)
+                                    {
+                                        state.TokenNameSpaceBuffer.Append(thisChar);
+                                    }
+
+                                    continue;
+                                }
+                                else
+                                {
+                                    if (state.IsVariableNameParsed)
+                                    {
+                                        throw new VariableNameInvalidException();
+                                    }
+
+                                    if (state.TokenNameSpaceBuffer.Length > 0)
+                                    {
+                                        state.TokenContent.Append(state.TokenNameSpaceBuffer);
+                                        state.TokenNameSpaceBuffer.Clear();
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            state.CharProtected = false;
+                        }
+
+                        state.TokenContent.Append(thisChar);
+                    }
                 }
             }
 
