@@ -57,7 +57,18 @@ namespace Xarial.XToolkit.Wpf.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (value == TrueValue)
+            {
+                return !Reverse;
+            }
+            else if (value == FalseValue)
+            {
+                return Reverse;
+            }
+            else 
+            {
+                return null;
+            }
         }
     }
 

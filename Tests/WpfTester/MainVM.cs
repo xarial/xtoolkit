@@ -8,17 +8,18 @@ namespace WpfTester
 {
     public class MainVM
     {
-        public FlagEnumComboBoxVM FlagEnumComboBox { get; set; }
-        public NumberBoxVM NumberBox { get; set; }
-        public TreeViewExVM TreeViewEx { get; set; }
-        public EnumComboBoxVM EnumComboBox { get; set; }
-        public XDataGridVM XDataGrid { get; set; }
-        public XListViewVM XListView { get; set; }
-        public ProgressPanelVM ProgressPane { get; set; }
-        public ExpandToggleButtonVM ExpandToggleButton { get; set; }
-        public PopupMenuVM PopupMenu { get; set; }
-        public CheckableComboBoxVM CheckableComboBox { get; set; }
-        public LabeledControlVM LabeledControl { get; set; }
+        public FlagEnumComboBoxVM FlagEnumComboBox { get; }
+        public NumberBoxVM NumberBox { get; }
+        public TreeViewExVM TreeViewEx { get; }
+        public EnumComboBoxVM EnumComboBox { get; }
+        public XDataGridVM XDataGrid { get; }
+        public XListViewVM XListView { get; }
+        public ProgressPanelVM ProgressPane { get; }
+        public ExpandToggleButtonVM ExpandToggleButton { get; }
+        public PopupMenuVM PopupMenu { get; }
+        public CheckableComboBoxVM CheckableComboBox { get; }
+        public LabeledControlVM LabeledControl { get; }
+        public ExpressionBoxVM ExpressionBox { get; }
 
         public MainVM() 
         {
@@ -33,6 +34,7 @@ namespace WpfTester
             PopupMenu = new PopupMenuVM();
             CheckableComboBox = new CheckableComboBoxVM();
             LabeledControl = new LabeledControlVM();
+            ExpressionBox = new ExpressionBoxVM();
         }
     }
 }

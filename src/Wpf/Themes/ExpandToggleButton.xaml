@@ -2,11 +2,11 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls">
 
-    <Style TargetType="{x:Type local:ExpandToggleButton}">
+    <Style TargetType="{x:Type ToggleButton}" x:Key="ExpandToggleButtonStyle">
         <Setter Property="Background" Value="#444"/>
         <Setter Property="Template">
             <Setter.Value>
-                <ControlTemplate TargetType="{x:Type local:ExpandToggleButton}">
+                <ControlTemplate TargetType="{x:Type ToggleButton}">
                     <Grid Width="15" Height="13" Background="Transparent">
                         <Path x:Name="ExpandPath"
                               HorizontalAlignment="Left" 
@@ -27,5 +27,7 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Style TargetType="{x:Type local:ExpandToggleButton}" BasedOn="{StaticResource ExpandToggleButtonStyle}"/>
 
 </ResourceDictionary>

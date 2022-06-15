@@ -36,8 +36,8 @@
             </TabItem>
             <TabItem Header="NumberBox">
                 <StackPanel Orientation="Vertical" DataContext="{Binding Path=NumberBox}">
-                    <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}" />
-                    <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}"/>
+                    <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}" Height="50" />
+                    <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}" MinimumValue="10" MaximumValue="100"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="TreeViewEx">
@@ -214,6 +214,41 @@
                             </ctrls:LabeledControl.TextBlockStyle>
                         </ctrls:LabeledControl>
                     </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="ExpressionBox">
+                <Grid DataContext="{Binding Path=ExpressionBox}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox/>
+                    <ctrls:ExpressionBox x:Name="expBox" Expression="{Binding Path=Expression1}" VariableLinks="{Binding Path=VariableLinks}" Grid.Column="0" Margin="5">
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <local:MyExpressionVariableDescriptor/>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+                    <Button Grid.Column="1" Command="{Binding Path=InsertVariableCommand}" CommandParameter="{Binding ElementName=expBox}">
+                        <TextBlock Text="+"/>
+                    </Button>
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression2}" Grid.Column="0" Grid.Row="1" Margin="5">
+                        <ctrls:ExpressionBox.Style>
+                            <Style TargetType="{x:Type ctrls:ExpressionBox}">
+                                <Style.Triggers>
+                                    <Trigger Property="Validation.HasError" Value="true">
+                                        <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ctrls:ExpressionBox.Style>
+                    </ctrls:ExpressionBox>
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
                 </Grid>
             </TabItem>
         </TabControl>

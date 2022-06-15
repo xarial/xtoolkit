@@ -15,9 +15,10 @@ namespace Xarial.XToolkit
         /// Checks if the specified text matches any of the provided filters
         /// </summary>
         /// <param name="text">FilePath</param>
+        /// <param name="ignoreCase">Ignore the case</param>
         /// <param name="filters">Filters</param>
         /// <returns></returns>
-        public static bool MatchesAnyFilter(string text, params string[] filters)
+        public static bool MatchesAnyFilter(string text, bool ignoreCase, params string[] filters)
         {
             if (filters?.Any() == false)
             {
@@ -27,15 +28,21 @@ namespace Xarial.XToolkit
             {
                 const string ANY_FILTER = "*";
 
+                var regexOpts = ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None;
+
                 return filters.Any(f =>
                 {
                     var regex = (f.StartsWith(ANY_FILTER) ? "" : "^")
                         + Regex.Escape(f).Replace($"\\{ANY_FILTER}", ".*").Replace("\\?", ".")
                         + (f.EndsWith(ANY_FILTER) ? "" : "$");
 
-                    return Regex.IsMatch(text, regex, RegexOptions.IgnoreCase);
+                    return Regex.IsMatch(text, regex, regexOpts);
                 });
             }
         }
+
+        /// <inheritdoc/>
+        public static bool MatchesAnyFilter(string text, params string[] filters)
+            => MatchesAnyFilter(text, true, filters);
     }
 }

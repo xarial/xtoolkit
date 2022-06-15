@@ -8,5 +8,6 @@
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/PopupMenu.xaml" />
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/CheckableComboBox.xaml" />
         <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/LabeledControl.xaml" />
+        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ExpressionBox.xaml" />
     </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

@@ -14,12 +14,17 @@ namespace Wpf.Tests
             conv.TrueValue = "A";
             conv.FalseValue = "B";
 
-            var res1 = conv.Convert(true, typeof(bool), null, CultureInfo.CurrentCulture);
-            var res2 = conv.Convert(false, typeof(bool), null, CultureInfo.CurrentCulture);
+            var res1 = conv.Convert(true, typeof(string), null, CultureInfo.CurrentCulture);
+            var res2 = conv.Convert(false, typeof(string), null, CultureInfo.CurrentCulture);
+
+            var res3 = conv.ConvertBack("A", typeof(bool), null, CultureInfo.CurrentCulture);
+            var res4 = conv.ConvertBack("B", typeof(bool), null, CultureInfo.CurrentCulture);
 
             Assert.AreEqual("A", res1);
             Assert.AreEqual("B", res2);
-            Assert.Throws<NotImplementedException>(() => conv.ConvertBack("", typeof(bool), null, CultureInfo.CurrentCulture));
+
+            Assert.AreEqual(true, res3);
+            Assert.AreEqual(false, res4);
         }
     }
 }
