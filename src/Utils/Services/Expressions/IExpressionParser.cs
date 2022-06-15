@@ -126,28 +126,28 @@ namespace Xarial.XToolkit.Services.Expressions
             return GroupElements(ParseTokens(expression, ref startPos, false));
         }
 
-        public string CreateExpression(IExpressionToken element)
+        public string CreateExpression(IExpressionToken token)
         {
-            if (element == null)
+            if (token == null)
             {
-                throw new ArgumentNullException(nameof(element));
+                throw new ArgumentNullException(nameof(token));
             }
 
             var expression = new StringBuilder();
 
-            AppendExpressionElement(element, expression);
+            AppendExpressionToken(token, expression);
 
             return expression.ToString();
         }
 
-        private void AppendExpressionElement(IExpressionToken element, StringBuilder expression)
+        private void AppendExpressionToken(IExpressionToken token, StringBuilder expression)
         {
-            switch (element)
+            switch (token)
             {
                 case IExpressionTokenGroup group:
                     foreach (var child in group.Children) 
                     {
-                        AppendExpressionElement(child, expression);
+                        AppendExpressionToken(child, expression);
                     }
                     break;
 
@@ -171,7 +171,7 @@ namespace Xarial.XToolkit.Services.Expressions
                         {
                             expression.Append(" ");
                             expression.Append(m_ArgumentStartTag);
-                            AppendExpressionElement(arg, expression);
+                            AppendExpressionToken(arg, expression);
                             expression.Append(m_ArgumentEndTag);
                         }
                     }

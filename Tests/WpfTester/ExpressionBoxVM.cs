@@ -124,8 +124,8 @@ namespace WpfTester
             VariableLinks = new ExpressionVariableLink[]
             {
                 ExpressionVariableLink.Custom,
-                new ExpressionVariableLink("Insert 'var1'...", "Inserting 'var1'", m_Var1Icon, () => new ExpressionTokenVariable("var1", null), true),
-                new ExpressionVariableLink("Insert 'var2'", "Inserting 'var2'", null, () => new ExpressionTokenVariable("var2", new IExpressionToken[] { new ExpressionTokenText("X"), new ExpressionTokenText("Y") }), false)
+                new ExpressionVariableLink("Insert 'var1'...", "Inserting 'var1'", m_Var1Icon, s => new ExpressionTokenVariable("var1", null), true),
+                new ExpressionVariableLink("Insert 'var2'", "Inserting 'var2'", null, s => new ExpressionTokenVariable("var2", new IExpressionToken[] { new ExpressionTokenText("X"), new ExpressionTokenText("Y") }), false)
             };
         }
 

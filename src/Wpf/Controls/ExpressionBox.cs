@@ -541,12 +541,13 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
+    public delegate IExpressionTokenVariable ExpressionVariableFactoryDelegate(ExpressionBox sender);
+
     public class ExpressionVariableLink 
     {
-        public static ExpressionVariableLink Custom
-        { get; } = new ExpressionVariableLink("Insert New Variable...", "Insert new variable with the specified name", null, () =>
+        public static ExpressionVariableLink Custom { get; } = new ExpressionVariableLink("Insert New Variable...", "Insert a new variable with the specified name", null, sender =>
         {
-            if (InputBox.Show("ExpressionBox", "Variable Name", null, out string varName))
+            if (InputBox.ShowAtCursor("ExpressionBox", "Variable Name", out string varName))
             {
                 return new ExpressionTokenVariable(varName, null);
             }
@@ -559,10 +560,10 @@ namespace Xarial.XToolkit.Wpf.Controls
         public string Title { get; }
         public string Description { get; }
         public BitmapImage Icon { get; }
-        public Func<IExpressionTokenVariable> Factory { get; }
+        public ExpressionVariableFactoryDelegate Factory { get; }
         public bool EnterArgs { get; }
 
-        public ExpressionVariableLink(string title, string description, BitmapImage icon, Func<IExpressionTokenVariable> factory, bool enterArgs) 
+        public ExpressionVariableLink(string title, string description, BitmapImage icon, ExpressionVariableFactoryDelegate factory, bool enterArgs) 
         {
             Title = title;
             Description = description;
@@ -650,7 +651,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void InsertVariable(ExpressionVariableLink link)
         {
-            var var = link.Factory.Invoke();
+            var var = link.Factory.Invoke(this);
 
             if (var != null) 
             {
@@ -852,6 +853,19 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (IEnumerable<ExpressionVariableLink>)GetValue(VariableLinksProperty); }
             set { SetValue(VariableLinksProperty, value); }
+        }
+
+
+        public static readonly DependencyProperty VariableLinksMenuTemplateProperty =
+            DependencyProperty.Register(
+            nameof(VariableLinksMenuTemplate), typeof(DataTemplate),
+            typeof(ExpressionBox),
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "VariableLinksMenuTemplate")));
+
+        public DataTemplate VariableLinksMenuTemplate
+        {
+            get { return (DataTemplate)GetValue(VariableLinksMenuTemplateProperty); }
+            set { SetValue(VariableLinksMenuTemplateProperty, value); }
         }
 
         private InlineCollection Inlines 

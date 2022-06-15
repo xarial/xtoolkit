@@ -140,6 +140,27 @@
             </Setter.Value>
         </Setter>
     </Style>
+    <DataTemplate x:Key="VariableLinksMenuTemplate">
+        <ItemsControl ItemsSource="{Binding VariableLinks, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}" Margin="5">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2,1"/>
+                        <TextBlock Grid.Column="1" Margin="2">
+                            <Hyperlink Command="{Binding Path=InsertVariableCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"
+                                       CommandParameter="{Binding}">
+                                <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
+                            </Hyperlink>
+                        </TextBlock>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+    </DataTemplate>
     <Style TargetType="{x:Type local:ExpressionBox}">
         <Setter Property="Template">
             <Setter.Value>
@@ -157,25 +178,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Margin="2" FontWeight="Bold"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
                                 <local:PopupMenu Grid.Column="1">
-                                    <ItemsControl ItemsSource="{TemplateBinding VariableLinks}" Margin="5">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid>
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="Auto"/>
-                                                        <ColumnDefinition Width="*"/>
-                                                    </Grid.ColumnDefinitions>
-                                                    <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2,1"/>
-                                                    <TextBlock Grid.Column="1" Margin="2">
-                                                        <Hyperlink Command="{Binding Path=InsertVariableCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"
-                                                                   CommandParameter="{Binding}">
-                                                            <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
-                                                        </Hyperlink>
-                                                    </TextBlock>
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                    <ContentPresenter ContentTemplate="{TemplateBinding VariableLinksMenuTemplate}"/>
                                 </local:PopupMenu>
                             </Grid>
                         </Border>

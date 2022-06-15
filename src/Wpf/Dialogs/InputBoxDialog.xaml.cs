@@ -21,14 +21,46 @@ namespace Xarial.XToolkit.Wpf.Dialogs
 {
 	public static class InputBox 
 	{
+		public static bool ShowAtCursor(string title, string prompt, out string value) 
+		{
+			var cursorPos = System.Windows.Forms.Cursor.Position;
+
+			Point pos;
+
+			using (var graphics = System.Drawing.Graphics.FromHwnd(IntPtr.Zero))
+			{
+				const int DPI = 96;
+
+				var scaleX = graphics.DpiX / DPI;
+				var scaleY = graphics.DpiY / DPI;
+
+				pos = new Point(cursorPos.X / scaleX, cursorPos.Y / scaleY);
+			}
+
+			return Show(title, prompt, pos, out value);
+		}
+
+		public static bool Show(string title, string prompt, Point pos, out string value)
+			=> Show(title, prompt, null, WindowStartupLocation.Manual, pos, out value);
+
 		public static bool Show(string title, string prompt, Window parentWnd, out string value)
+			=> Show(title, prompt, parentWnd, parentWnd != null ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen, null, out value);
+
+		private static bool Show(string title, string prompt, Window parentWnd, WindowStartupLocation startupLocation, Point? pos, out string value)
 		{
 			var dlg = new InputBoxDialog()
 			{
 				Title = title,
 				Prompt = prompt,
-				Owner = parentWnd
+				Owner = parentWnd,
+				WindowStartupLocation = startupLocation
 			};
+
+			if (pos.HasValue) 
+			{
+				dlg.Left = pos.Value.X;
+				dlg.Top = pos.Value.Y;
+			}
 
 			if (dlg.ShowDialog() == true)
 			{
