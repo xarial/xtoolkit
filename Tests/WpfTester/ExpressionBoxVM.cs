@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -108,12 +109,13 @@ namespace WpfTester
 
         public string Expression1 { get; set; } = @"Some Text {var1} Some Other Text { var2 [par1] [par2] } \{a\}";
         public string Expression2 { get; set; } = "x{abc";
+        public string Expression3 { get; set; }
 
         public ICommand InsertVariableCommand { get; }
 
         private readonly BitmapImage m_Var1Icon;
 
-        public ExpressionVariableLink[] VariableLinks { get; } 
+        public ObservableCollection<IExpressionVariableLink> VariableLinks { get; } 
 
         public ExpressionBoxVM() 
         {
@@ -121,12 +123,12 @@ namespace WpfTester
             m_Var1Icon = Resources.icon.ToBitmapImage();
             m_Var1Icon.Freeze();
 
-            VariableLinks = new ExpressionVariableLink[]
+            VariableLinks = new ObservableCollection<IExpressionVariableLink>(new IExpressionVariableLink[]
             {
-                ExpressionVariableLink.Custom,
+                new GenericExpressionVariableLink(),
                 new ExpressionVariableLink("Insert 'var1'...", "Inserting 'var1'", m_Var1Icon, s => new ExpressionTokenVariable("var1", null), true),
                 new ExpressionVariableLink("Insert 'var2'", "Inserting 'var2'", null, s => new ExpressionTokenVariable("var2", new IExpressionToken[] { new ExpressionTokenText("X"), new ExpressionTokenText("Y") }), false)
-            };
+            });
         }
 
         private void InsertVariable(ExpressionBox expBox)
