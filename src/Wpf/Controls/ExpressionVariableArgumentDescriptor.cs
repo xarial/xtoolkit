@@ -5,176 +5,238 @@ using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Wpf.Extensions;
 using System.ComponentModel;
 using System.Collections;
+using System.Reflection;
+using System.Collections.ObjectModel;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
+    public class ExpressionVariableArgumentTextDescriptor : ExpressionVariableArgumentDescriptor
+    {
+        public ExpressionVariableArgumentTextDescriptor() : this("", "")
+        {
+        }
+
+        public ExpressionVariableArgumentTextDescriptor(string title, string tooltip)
+            : base(title, tooltip,
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentTextTemplate"))
+        {
+        }
+
+        protected override IExpressionToken GetToken(object value)
+            => new ExpressionTokenText(value?.ToString());
+
+        protected override object GetTokenValue(IExpressionToken token)
+        {
+            if (token is IExpressionTokenText)
+            {
+                return ((IExpressionTokenText)token).Text;
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+            }
+        }
+    }
+
+    public class ExpressionVariableArgumentNumericDescriptor : ExpressionVariableArgumentDescriptor
+    {
+        public ExpressionVariableArgumentNumericDescriptor() : this("", "")
+        {
+        }
+
+        public ExpressionVariableArgumentNumericDescriptor(string title, string tooltip)
+            : base(title, tooltip,
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericTemplate"))
+        {
+        }
+
+        protected override IExpressionToken GetToken(object value)
+            => new ExpressionTokenText(value?.ToString());
+
+        protected override object GetTokenValue(IExpressionToken token)
+        {
+            if (token is IExpressionTokenText)
+            {
+                return int.Parse(((IExpressionTokenText)token).Text);
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+            }
+        }
+    }
+
+    public class ExpressionVariableArgumentNumericDoubleDescriptor : ExpressionVariableArgumentDescriptor
+    {
+        public ExpressionVariableArgumentNumericDoubleDescriptor() : this("", "")
+        {
+        }
+
+        public ExpressionVariableArgumentNumericDoubleDescriptor(string title, string tooltip)
+            : base(title, tooltip,
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericDoubleTemplate"))
+        {
+        }
+
+        protected override IExpressionToken GetToken(object value)
+            => new ExpressionTokenText(value?.ToString());
+
+        protected override object GetTokenValue(IExpressionToken token)
+        {
+            if (token is IExpressionTokenText)
+            {
+                return double.Parse(((IExpressionTokenText)token).Text);
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+            }
+        }
+    }
+
+    public class ExpressionVariableArgumentToggleDescriptor : ExpressionVariableArgumentDescriptor
+    {
+        public ExpressionVariableArgumentToggleDescriptor() : this("", "")
+        {
+        }
+
+        public ExpressionVariableArgumentToggleDescriptor(string title, string tooltip)
+            : base(title, tooltip,
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentToggleTemplate"))
+        {
+        }
+
+        protected override IExpressionToken GetToken(object value)
+            => new ExpressionTokenText(value?.ToString());
+
+        protected override object GetTokenValue(IExpressionToken token)
+        {
+            if (token is IExpressionTokenText)
+            {
+                return bool.Parse(((IExpressionTokenText)token).Text);
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+            }
+        }
+    }
+
+    public class ExpressionVariableArgumentOptionsDescriptor : ExpressionVariableArgumentDescriptor
+    {
+        public ExpressionVariableArgumentOptionsDescriptor() : this("", "")
+        {
+        }
+
+        public ExpressionVariableArgumentOptionsDescriptor(string title, string tooltip, params string[] items)
+            : base(title, tooltip,
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentOptionsTemplate"))
+        {
+            Items = new Collection<string>();
+
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    Items.Add(item);
+                }
+            }
+        }
+
+        public Collection<string> Items { get; }
+
+        protected override IExpressionToken GetToken(object value)
+            => new ExpressionTokenText(value?.ToString());
+
+        protected override object GetTokenValue(IExpressionToken token)
+        {
+            if (token is IExpressionTokenText)
+            {
+                return ((IExpressionTokenText)token).Text;
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+            }
+        }
+    }
+
+    public class ExpressionVariableArgumentEnumOptionsDescriptor : ExpressionVariableArgumentDescriptor
+    {
+        private Type m_EnumType;
+
+        public ExpressionVariableArgumentEnumOptionsDescriptor() 
+        {
+        }
+
+        public ExpressionVariableArgumentEnumOptionsDescriptor(string title, string tooltip, Type enumType)
+            : base(title, tooltip, null)
+        {
+            EnumType = enumType;
+        }
+
+        public Type EnumType 
+        {
+            get => m_EnumType;
+            set 
+            {
+                if (value == null) 
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+
+                if (!value.IsEnum) 
+                {
+                    throw new InvalidCastException("Specified type is not an Enum");
+                }
+
+                m_EnumType = value;
+
+                if (m_EnumType.GetCustomAttribute<FlagsAttribute>() != null)
+                {
+                    Template = typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumFlagOptionsTemplate");
+                }
+                else 
+                {
+                    Template = typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumOptionsTemplate");
+                }
+            }
+        }
+
+        protected override IExpressionToken GetToken(object value)
+            => new ExpressionTokenText(value?.ToString());
+
+        protected override object GetTokenValue(IExpressionToken token)
+        {
+            if (token is IExpressionTokenText)
+            {
+                return Enum.Parse(EnumType, ((IExpressionTokenText)token).Text);
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+            }
+        }
+
+        public override object Value
+        {
+            get
+            {
+                var val = base.Value;
+
+                if (val == null)
+                {   
+                    val = Enum.ToObject(EnumType, 0);
+                }
+
+                return val;
+            }
+            set => base.Value = value;
+        }
+    }
+
     public class ExpressionVariableArgumentDescriptor: INotifyPropertyChanged, INotifyDataErrorInfo
     {
-        private class ExpressionVariableArgumentTextDescriptor : ExpressionVariableArgumentDescriptor
-        {
-            public ExpressionVariableArgumentTextDescriptor(string title, string tooltip)
-                : base(title, tooltip,
-                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentTextTemplate"))
-            {
-            }
-
-            protected override IExpressionToken GetToken(object value)
-                => new ExpressionTokenText(value?.ToString());
-
-            protected override object GetTokenValue(IExpressionToken token)
-            {
-                if (token is IExpressionTokenText)
-                {
-                    return ((IExpressionTokenText)token).Text;
-                }
-                else
-                {
-                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-                }
-            }
-        }
-
-        private class ExpressionVariableArgumentNumericDescriptor : ExpressionVariableArgumentDescriptor
-        {
-            public ExpressionVariableArgumentNumericDescriptor(string title, string tooltip)
-                : base(title, tooltip,
-                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericTemplate"))
-            {
-            }
-
-            protected override IExpressionToken GetToken(object value)
-                => new ExpressionTokenText(value?.ToString());
-
-            protected override object GetTokenValue(IExpressionToken token)
-            {
-                if (token is IExpressionTokenText)
-                {
-                    return int.Parse(((IExpressionTokenText)token).Text);
-                }
-                else
-                {
-                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-                }
-            }
-        }
-
-        private class ExpressionVariableArgumentNumericDoubleDescriptor : ExpressionVariableArgumentDescriptor
-        {
-            public ExpressionVariableArgumentNumericDoubleDescriptor(string title, string tooltip)
-                : base(title, tooltip,
-                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericDoubleTemplate"))
-            {
-            }
-
-            protected override IExpressionToken GetToken(object value)
-                => new ExpressionTokenText(value?.ToString());
-
-            protected override object GetTokenValue(IExpressionToken token)
-            {
-                if (token is IExpressionTokenText)
-                {
-                    return double.Parse(((IExpressionTokenText)token).Text);
-                }
-                else
-                {
-                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-                }
-            }
-        }
-
-        private class ExpressionVariableArgumentToggleDescriptor : ExpressionVariableArgumentDescriptor
-        {
-            public ExpressionVariableArgumentToggleDescriptor(string title, string tooltip)
-                : base(title, tooltip,
-                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentToggleTemplate"))
-            {
-            }
-
-            protected override IExpressionToken GetToken(object value)
-                => new ExpressionTokenText(value?.ToString());
-
-            protected override object GetTokenValue(IExpressionToken token)
-            {
-                if (token is IExpressionTokenText)
-                {
-                    return bool.Parse(((IExpressionTokenText)token).Text);
-                }
-                else
-                {
-                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-                }
-            }
-        }
-
-        private class ExpressionVariableArgumentOptionsDescriptor : ExpressionVariableArgumentDescriptor
-        {
-            public ExpressionVariableArgumentOptionsDescriptor(string title, string tooltip, string[] items)
-                : base(title, tooltip,
-                      typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentOptionsTemplate"))
-            {
-                Items = items;
-            }
-
-            public string[] Items { get; }
-
-            protected override IExpressionToken GetToken(object value)
-                => new ExpressionTokenText(value?.ToString());
-
-            protected override object GetTokenValue(IExpressionToken token)
-            {
-                if (token is IExpressionTokenText)
-                {
-                    return ((IExpressionTokenText)token).Text;
-                }
-                else
-                {
-                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-                }
-            }
-        }
-
-        private class ExpressionVariableArgumentEnumOptionsDescriptor<TEnum> : ExpressionVariableArgumentDescriptor
-            where TEnum : Enum
-        {
-            public ExpressionVariableArgumentEnumOptionsDescriptor(string title, string tooltip, bool multi)
-                : base(title, tooltip, multi 
-                      ? typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumFlagOptionsTemplate")
-                      : typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumOptionsTemplate"))
-            {
-            }
-
-            protected override IExpressionToken GetToken(object value)
-                => new ExpressionTokenText(value?.ToString());
-
-            protected override object GetTokenValue(IExpressionToken token)
-            {
-                if (token is IExpressionTokenText)
-                {
-                    return Enum.Parse(typeof(TEnum), ((IExpressionTokenText)token).Text);
-                }
-                else
-                {
-                    throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-                }
-            }
-
-            public override object Value
-            {
-                get
-                {
-                    var val = base.Value;
-                    
-                    if (val == null) 
-                    {
-                        val = default(TEnum);
-                    }
-
-                    return val;
-                }
-                set => base.Value = value; 
-            }
-        }
-
         public static ExpressionVariableArgumentDescriptor CreateText(string title, string tooltip)
             => new ExpressionVariableArgumentTextDescriptor(title, tooltip);
 
@@ -191,10 +253,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             => new ExpressionVariableArgumentOptionsDescriptor(title, tooltip, items);
 
         public static ExpressionVariableArgumentDescriptor CreateOptions<TEnum>(string title, string tooltip)
-            where TEnum : Enum => new ExpressionVariableArgumentEnumOptionsDescriptor<TEnum>(title, tooltip, false);
-
-        public static ExpressionVariableArgumentDescriptor CreateMultipleOptions<TEnum>(string title, string tooltip)
-            where TEnum : Enum => new ExpressionVariableArgumentEnumOptionsDescriptor<TEnum>(title, tooltip, true);
+            where TEnum : Enum => new ExpressionVariableArgumentEnumOptionsDescriptor(title, tooltip, typeof(TEnum));
 
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
         public event PropertyChangedEventHandler PropertyChanged;
@@ -235,7 +294,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         public string Title 
         {
             get => m_Title;
-            internal set 
+            set 
             {
                 m_Title = value;
                 this.NotifyChanged();
@@ -245,14 +304,22 @@ namespace Xarial.XToolkit.Wpf.Controls
         public string Description
         {
             get => m_Description;
-            internal set
+            set
             {
                 m_Description = value;
                 this.NotifyChanged();
             }
         }
 
-        public DataTemplate Template { get; }
+        public DataTemplate Template 
+        {
+            get => m_Template;
+            set 
+            {
+                m_Template = value;
+                this.NotifyChanged();
+            }
+        }
 
         public IExpressionToken Token
         {
@@ -290,6 +357,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private string m_Title;
         private string m_Description;
+        private DataTemplate m_Template;
         private object m_Value;
 
         private IExpressionParser m_Parser;
@@ -312,7 +380,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             m_Title = title;
             m_Description = desc;
-            Template = template;
+            m_Template = template;
         }
 
         public IEnumerable GetErrors(string propertyName)

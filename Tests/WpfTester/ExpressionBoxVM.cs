@@ -58,7 +58,7 @@ namespace WpfTester
                     ExpressionVariableArgumentDescriptor.CreateToggle("Toggle Argument", "Sample Toggle Argument"),
                     ExpressionVariableArgumentDescriptor.CreateOptions("Options Argument", "Sample Options Argument", "A", "B", "C", "D"),
                     ExpressionVariableArgumentDescriptor.CreateOptions<Options_e>("Enum Options Argument", "Sample Enum Options Argument"),
-                    ExpressionVariableArgumentDescriptor.CreateMultipleOptions<MultiOptions_e>("Enum Multi Options Argument", "Sample Enum Multi Argument"),
+                    ExpressionVariableArgumentDescriptor.CreateOptions<MultiOptions_e>("Enum Multi Options Argument", "Sample Enum Multi Argument"),
                     new ExpressionVariableArgumentDescriptor("Default Argument", "Sample Default Argument")
                 };
             }
@@ -86,7 +86,7 @@ namespace WpfTester
 
         public Brush GetBackground(IExpressionTokenVariable variable) => Brushes.Yellow;
 
-        public BitmapImage GetIcon(IExpressionTokenVariable variable) 
+        public ImageSource GetIcon(IExpressionTokenVariable variable) 
         {
             if (string.Equals(variable.Name, "var1", StringComparison.CurrentCultureIgnoreCase))
             {

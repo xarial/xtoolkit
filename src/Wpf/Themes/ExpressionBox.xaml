@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls"
                     xmlns:conv="clr-namespace:Xarial.XToolkit.Wpf.Converters">
+    
     <conv:ObjectIsNotNullVisibilityConverter x:Key="notNullVisConv"/>
     <conv:EnumerableIsNotEmptyVisibilityConverter x:Key="enumIsNotEmptyToVisConv"/>
     
@@ -32,11 +33,11 @@
             </Grid.ColumnDefinitions>
             <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2,1"/>
             <TextBlock Grid.Column="1" Margin="2">
-                            <Hyperlink Command="{Binding Path=InsertVariableCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"
-                                       CommandParameter="{Binding}">
-                                <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
-                            </Hyperlink>
-                        </TextBlock>
+                <Hyperlink Command="{Binding Path=InsertVariableCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"
+                            CommandParameter="{Binding}">
+                    <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
+                </Hyperlink>
+            </TextBlock>
         </Grid>
     </DataTemplate>
 
@@ -178,7 +179,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Margin="2" FontWeight="Bold"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
-                                <local:PopupMenu Grid.Column="1" Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
+                                <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1" Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
                                     <ContentPresenter ContentTemplate="{TemplateBinding VariableLinksMenuTemplate}"/>
                                 </local:PopupMenu>
                             </Grid>

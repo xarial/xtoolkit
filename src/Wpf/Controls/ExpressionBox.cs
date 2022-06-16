@@ -194,12 +194,12 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public static readonly DependencyProperty IconProperty =
             DependencyProperty.Register(
-            nameof(Icon), typeof(BitmapImage),
+            nameof(Icon), typeof(ImageSource),
             typeof(ExpressionVariableTokenControl));
 
-        public BitmapImage Icon
+        public ImageSource Icon
         {
-            get { return (BitmapImage)GetValue(IconProperty); }
+            get { return (ImageSource)GetValue(IconProperty); }
             set { SetValue(IconProperty, value); }
         }
 
@@ -252,7 +252,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             public Brush GetBackground(IExpressionTokenVariable variable) => new SolidColorBrush(Color.FromRgb(221, 221, 221));
 
-            public BitmapImage GetIcon(IExpressionTokenVariable variable) => null;
+            public ImageSource GetIcon(IExpressionTokenVariable variable) => null;
 
             public string GetTitle(IExpressionTokenVariable variable) => variable.Name;
 
@@ -261,6 +261,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private RichTextBox m_TextBox;
         private FlowDocument m_Doc;
+        private PopupMenu m_VariableLinksMenu;
+
         private readonly InternalChangeTracker m_InternalChangeTracker;
 
         private bool m_IsInit;
@@ -296,6 +298,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             if (var != null) 
             {
                 Insert(var, link.EnterArguments);
+                m_VariableLinksMenu.IsOpen = false;
             }
         }
 
@@ -390,6 +393,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         public override void OnApplyTemplate()
         {
             m_TextBox = (RichTextBox)this.Template.FindName("PART_RichTextBox", this);
+            m_VariableLinksMenu = (PopupMenu)this.Template.FindName("PART_VariableLinksMenu", this);
+
             m_Doc = m_TextBox.Document;
             m_TextBox.TextChanged += OnTextChanged;
             
