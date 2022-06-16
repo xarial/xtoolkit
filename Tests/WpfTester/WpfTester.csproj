@@ -119,7 +119,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\icon.png" />
+    <Resource Include="Resources\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Licenses.txt" />

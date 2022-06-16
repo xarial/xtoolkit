@@ -2,7 +2,10 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls"
                     xmlns:conv="clr-namespace:Xarial.XToolkit.Wpf.Converters">
+    
     <conv:ObjectIsNotNullVisibilityConverter x:Key="notNullVisConv"/>
+    <conv:EnumerableIsNotEmptyVisibilityConverter x:Key="enumIsNotEmptyToVisConv"/>
+    
     <local:DataGridCellIsNewItemPlaceholderConverter x:Key="isNewItemPlcConv"/>
     
     <DataTemplate x:Key="ExpressionVariableArgumentExpressionTemplate">
@@ -12,7 +15,32 @@
                              VariableDescriptor="{Binding Path=VariableDescriptor}"
                              VariableLinks="{Binding Path=VariableLinks}"/>
     </DataTemplate>
-    
+
+    <ControlTemplate x:Key="NewArgumentItemTemplate">
+        <TextBlock Text="Add New Argument" Foreground="Gray" FontStyle="Italic"/>
+    </ControlTemplate>
+
+    <DataTemplate x:Key="VariableLinksMenuTemplate">
+        <ItemsControl ItemsSource="{Binding Path=VariableLinks, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"
+                      ItemTemplate="{Binding Path=VariableLinksMenuItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}" Margin="5"/>
+    </DataTemplate>
+
+    <DataTemplate x:Key="VariableLinksMenuItemTemplate">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2,1"/>
+            <TextBlock Grid.Column="1" Margin="2">
+                <Hyperlink Command="{Binding Path=InsertVariableCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"
+                            CommandParameter="{Binding}">
+                    <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
+                </Hyperlink>
+            </TextBlock>
+        </Grid>
+    </DataTemplate>
+
     <DataTemplate x:Key="ExpressionVariableArgumentTextTemplate">
         <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}" BorderThickness="0"/>
     </DataTemplate>
@@ -40,7 +68,7 @@
     <DataTemplate x:Key="ExpressionVariableArgumentEnumOptionsTemplate">
         <local:EnumComboBox Value="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" ToolTip="{Binding Path=Description}"/>
     </DataTemplate>
-    
+
     <Style TargetType="{x:Type local:ExpressionVariableTokenControl}">
         <Setter Property="Template">
             <Setter.Value>
@@ -74,13 +102,7 @@
                                         <Style TargetType="{x:Type DataGridCell}">
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding Converter={StaticResource isNewItemPlcConv}}" Value="True">
-                                                    <Setter Property="Template">
-                                                        <Setter.Value>
-                                                            <ControlTemplate>
-                                                                <TextBlock Text="Add New Argument" Foreground="Gray" FontStyle="Italic"/>
-                                                            </ControlTemplate>
-                                                        </Setter.Value>
-                                                    </Setter>
+                                                    <Setter Property="Template" Value="{Binding Path=NewArgumentItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -140,27 +162,7 @@
             </Setter.Value>
         </Setter>
     </Style>
-    <DataTemplate x:Key="VariableLinksMenuTemplate">
-        <ItemsControl ItemsSource="{Binding VariableLinks, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}" Margin="5">
-            <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2,1"/>
-                        <TextBlock Grid.Column="1" Margin="2">
-                            <Hyperlink Command="{Binding Path=InsertVariableCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"
-                                       CommandParameter="{Binding}">
-                                <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
-                            </Hyperlink>
-                        </TextBlock>
-                    </Grid>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-    </DataTemplate>
+        
     <Style TargetType="{x:Type local:ExpressionBox}">
         <Setter Property="Template">
             <Setter.Value>
@@ -177,7 +179,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Margin="2" FontWeight="Bold"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
-                                <local:PopupMenu Grid.Column="1">
+                                <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1" Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
                                     <ContentPresenter ContentTemplate="{TemplateBinding VariableLinksMenuTemplate}"/>
                                 </local:PopupMenu>
                             </Grid>
