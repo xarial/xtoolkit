@@ -95,7 +95,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private readonly IExpressionParser m_Parser;
         private readonly IExpressionVariableDescriptor m_Descriptor;
-        private readonly IEnumerable<IExpressionVariableLink> m_VariableLinks;
+        private readonly Collection<IExpressionVariableLink> m_VariableLinks;
 
         public ObservableCollection<ExpressionVariableArgumentDescriptor> Arguments { get; }
 
@@ -106,7 +106,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         private IExpressionTokenVariable m_Variable;
 
         internal ExpressionVariableTokenControl(IExpressionTokenVariable variable,
-            IExpressionVariableDescriptor descriptor, IExpressionParser parser, IEnumerable<IExpressionVariableLink> variableLinks)
+            IExpressionVariableDescriptor descriptor, IExpressionParser parser, Collection<IExpressionVariableLink> variableLinks)
         {
             if (variable == null)
             {
@@ -534,6 +534,18 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (ControlTemplate)GetValue(NewArgumentItemTemplateProperty); }
             set { SetValue(NewArgumentItemTemplateProperty, value); }
+        }
+
+        public static readonly DependencyProperty ArgumentLabelTemplateProperty =
+            DependencyProperty.Register(
+            nameof(ArgumentLabelTemplate), typeof(DataTemplate),
+            typeof(ExpressionBox),
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ArgumentLabelTemplate")));
+
+        public DataTemplate ArgumentLabelTemplate
+        {
+            get { return (DataTemplate)GetValue(ArgumentLabelTemplateProperty); }
+            set { SetValue(ArgumentLabelTemplateProperty, value); }
         }
 
         private InlineCollection Inlines 

@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf"
         xmlns:local="clr-namespace:WpfTester"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
@@ -259,10 +260,20 @@
                             <ctrls:ExpressionVariableDescriptor>
                                 <ctrls:ExpressionVariableArgumentsInfo VariableName="prp" TitleFormat="{}Property '{0}'" DescriptionFormat="Property Variable" Dynamic="False">
                                     <ctrls:ExpressionVariableArgumentsInfo.Arguments>
-                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the property"/>
+                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the property" HasAdvancedEditor="True"/>
                                     </ctrls:ExpressionVariableArgumentsInfo.Arguments>
                                 </ctrls:ExpressionVariableArgumentsInfo>
-                                <ctrls:ExpressionVariableArgumentsInfo VariableName="b" TitleFormat="Variable 'b'" Background="LightBlue" Icon="/WpfTester;component/Resources/icon.png" DescriptionFormat="Variable 'b'" Dynamic="True"/>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="b" TitleFormat="Variable 'b'" Background="LightBlue" Icon="/WpfTester;component/Resources/icon.png" DescriptionFormat="Variable 'b'" Dynamic="True">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentOptionsDescriptor Title="Options" Icon="/WpfTester;component/Resources/icon.png">
+                                            <ctrls:ExpressionVariableArgumentOptionsDescriptor.Items>
+                                                <sys:String>Item 1</sys:String>
+                                                <sys:String>Item 2</sys:String>
+                                                <sys:String>Item 3</sys:String>
+                                            </ctrls:ExpressionVariableArgumentOptionsDescriptor.Items>
+                                        </ctrls:ExpressionVariableArgumentOptionsDescriptor>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
                             </ctrls:ExpressionVariableDescriptor>
                         </ctrls:ExpressionBox.VariableDescriptor>
                     </ctrls:ExpressionBox>

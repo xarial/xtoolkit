@@ -18,7 +18,7 @@ namespace Xarial.XToolkit.Services.Expressions
         string Solve(IExpressionToken token);
     }
 
-    public delegate string VariableSolverDelegate(string name, string[] args);
+    public delegate string VariableValueProviderDelegate(string name, string[] args);
 
     public class ExpressionSolver : IExpressionSolver
     {
@@ -38,7 +38,7 @@ namespace Xarial.XToolkit.Services.Expressions
         {
             private readonly StringComparison m_Comparison;
 
-            internal VariableCacheKeyEqualityComparer(StringComparison comparison = StringComparison.CurrentCulture) 
+            internal VariableCacheKeyEqualityComparer(StringComparison comparison) 
             {
                 m_Comparison = comparison;
             }
@@ -85,14 +85,18 @@ namespace Xarial.XToolkit.Services.Expressions
             public int GetHashCode(VariableCacheKey obj) => 0;
         }
 
-        private readonly VariableSolverDelegate m_Solver;
+        private readonly VariableValueProviderDelegate m_Solver;
 
-        public ExpressionSolver(VariableSolverDelegate solver) 
+        private readonly StringComparison m_Comparison;
+
+        public ExpressionSolver(VariableValueProviderDelegate solver, StringComparison comparison = StringComparison.CurrentCultureIgnoreCase) 
         {
             if (solver == null) 
             {
                 throw new ArgumentNullException(nameof(solver));
             }
+
+            m_Comparison = comparison;
 
             m_Solver = solver;
         }
@@ -104,7 +108,7 @@ namespace Xarial.XToolkit.Services.Expressions
                 throw new ArgumentNullException(nameof(token));
             }
 
-            return Resolve(token, new Dictionary<VariableCacheKey, string>(new VariableCacheKeyEqualityComparer()));
+            return Resolve(token, new Dictionary<VariableCacheKey, string>(new VariableCacheKeyEqualityComparer(m_Comparison)));
         }
 
         private string Resolve(IExpressionToken token, Dictionary<VariableCacheKey, string> variableCache)
