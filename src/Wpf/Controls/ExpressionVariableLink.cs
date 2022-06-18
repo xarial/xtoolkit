@@ -34,11 +34,11 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
-    public class GenericExpressionVariableLink : IExpressionVariableLink
+    public class ExpressionVariableLinkGeneric : IExpressionVariableLink
     {
         public ExpressionVariableFactoryDelegate Factory { get; }
 
-        public GenericExpressionVariableLink(string title, string description, bool enterArgs, string inputTitle, string inputPrompt)
+        public ExpressionVariableLinkGeneric(string title, string description, bool enterArgs, string inputTitle, string inputPrompt)
         {
             Title = title;
             Description = description;
@@ -50,7 +50,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             Factory = NewVariable;
         }
 
-        public GenericExpressionVariableLink() : this("Insert New Variable...", "Insert a new variable with the specified name", true, "ExpressionBox", "Variable Name")
+        public ExpressionVariableLinkGeneric() : this("Insert New Variable...", "Insert a new variable with the specified name", true, "ExpressionBox", "Variable Name")
         {
         }
 

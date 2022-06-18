@@ -59,7 +59,7 @@ namespace WpfTester
                     ExpressionVariableArgumentDescriptor.CreateOptions("Options Argument", "Sample Options Argument", null, "A", "B", "C", "D"),
                     ExpressionVariableArgumentDescriptor.CreateOptions<Options_e>("Enum Options Argument", "Sample Enum Options Argument", null),
                     ExpressionVariableArgumentDescriptor.CreateOptions<MultiOptions_e>("Enum Multi Options Argument", "Sample Enum Multi Argument", null),
-                    new ExpressionVariableArgumentDescriptor("Default Argument", "Sample Default Argument", null)
+                    new ExpressionVariableArgumentExpressionDescriptor("Default Argument", "Sample Default Argument", null)
                 };
             }
             else if (string.Equals(variable.Name, "var2", StringComparison.CurrentCultureIgnoreCase))
@@ -125,7 +125,7 @@ namespace WpfTester
 
             VariableLinks = new ObservableCollection<IExpressionVariableLink>(new IExpressionVariableLink[]
             {
-                new GenericExpressionVariableLink(),
+                new ExpressionVariableLinkGeneric(),
                 new ExpressionVariableLink("Insert 'var1'...", "Inserting 'var1'", m_Var1Icon, s => new ExpressionTokenVariable("var1", null), true),
                 new ExpressionVariableLink("Insert 'var2'", "Inserting 'var2'", null, s => new ExpressionTokenVariable("var2", new IExpressionToken[] { new ExpressionTokenText("X"), new ExpressionTokenText("Y") }), false)
             });

@@ -11,7 +11,7 @@ using System.Windows.Media;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
-    public class ExpressionVariableArgumentDescriptor : INotifyPropertyChanged, INotifyDataErrorInfo
+    public abstract class ExpressionVariableArgumentDescriptor : INotifyPropertyChanged, INotifyDataErrorInfo
     {
         public static ExpressionVariableArgumentDescriptor CreateText(string title, string tooltip, ImageSource icon)
             => new ExpressionVariableArgumentTextDescriptor(title, tooltip, icon);
@@ -33,39 +33,6 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
         public event PropertyChangedEventHandler PropertyChanged;
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public IExpressionParser Parser
-        {
-            get => m_Parser;
-            internal set
-            {
-                m_Parser = value;
-                this.NotifyChanged();
-            }
-        }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public IExpressionVariableDescriptor VariableDescriptor
-        {
-            get => m_VariableDescriptor;
-            internal set
-            {
-                m_VariableDescriptor = value;
-                this.NotifyChanged();
-            }
-        }
-
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-        public Collection<IExpressionVariableLink> VariableLinks
-        {
-            get => m_VariableLinks;
-            internal set
-            {
-                m_VariableLinks = value;
-                this.NotifyChanged();
-            }
-        }
 
         public string Title
         {
@@ -145,7 +112,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public virtual object Value
         {
             get => m_Value;
@@ -160,6 +126,40 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        public IExpressionParser ExpressionParser
+        {
+            get => m_ExpressionParser;
+            set
+            {
+                m_ExpressionParser = value;
+                this.NotifyChanged();
+            }
+        }
+
+        public IExpressionVariableDescriptor VariableDescriptor
+        {
+            get => m_VariableDescriptor;
+            set
+            {
+                m_VariableDescriptor = value;
+                this.NotifyChanged();
+            }
+        }
+
+        public Collection<IExpressionVariableLink> VariableLinks
+        {
+            get => m_VariableLinks;
+            set
+            {
+                m_VariableLinks = value;
+                this.NotifyChanged();
+            }
+        }
+
+        private IExpressionParser m_ExpressionParser;
+        private IExpressionVariableDescriptor m_VariableDescriptor;
+        private Collection<IExpressionVariableLink> m_VariableLinks;
+
         public bool HasErrors => m_Error != null;
 
         private string m_Title;
@@ -172,28 +172,26 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private object m_Value;
 
-        private IExpressionParser m_Parser;
-        private IExpressionVariableDescriptor m_VariableDescriptor;
-        private Collection<IExpressionVariableLink> m_VariableLinks;
-
         private Exception m_Error;
 
-        public ExpressionVariableArgumentDescriptor() : this("", "", null)
+        //NOTE: need to keey the public parameterless constructor so DataGrid allows to create new items
+        public ExpressionVariableArgumentDescriptor() 
         {
         }
 
-        public ExpressionVariableArgumentDescriptor(string title, string desc, ImageSource icon)
-            : this(title, desc, icon, typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>(
-                "Themes/Generic.xaml", "ExpressionVariableArgumentExpressionTemplate"))
-        {
-        }
-
-        public ExpressionVariableArgumentDescriptor(string title, string desc, ImageSource icon, DataTemplate template)
+        protected ExpressionVariableArgumentDescriptor(string title, string desc, ImageSource icon, DataTemplate template)
         {
             m_Title = title;
             m_Description = desc;
             m_Icon = icon;
             m_Template = template;
+        }
+
+        internal void Init(IExpressionParser expParser, IExpressionVariableDescriptor varsDescriptor, Collection<IExpressionVariableLink> varsLinks) 
+        {
+            ExpressionParser = expParser;
+            VariableDescriptor = varsDescriptor;
+            VariableLinks = varsLinks;
         }
 
         public IEnumerable GetErrors(string propertyName)
@@ -208,9 +206,26 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        protected virtual IExpressionToken GetToken(object value) => Parser.Parse(value?.ToString());
+        protected abstract IExpressionToken GetToken(object value);
 
-        protected virtual object GetTokenValue(IExpressionToken token) => Parser.CreateExpression(token);
+        protected abstract object GetTokenValue(IExpressionToken token);
+    }
+
+    public class ExpressionVariableArgumentExpressionDescriptor : ExpressionVariableArgumentDescriptor 
+    {
+        public ExpressionVariableArgumentExpressionDescriptor() : this("", "", null)
+        {
+        }
+
+        public ExpressionVariableArgumentExpressionDescriptor(string title, string tooltip, ImageSource icon)
+            : base(title, tooltip, icon,
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentExpressionTemplate"))
+        {
+        }
+
+        protected override IExpressionToken GetToken(object value) => ExpressionParser.Parse(value?.ToString());
+
+        protected override object GetTokenValue(IExpressionToken token) => ExpressionParser.CreateExpression(token);
     }
 
     public class ExpressionVariableArgumentTextDescriptor : ExpressionVariableArgumentDescriptor
@@ -368,12 +383,12 @@ namespace Xarial.XToolkit.Wpf.Controls
     {
         private Type m_EnumType;
 
-        public ExpressionVariableArgumentEnumOptionsDescriptor() 
+        public ExpressionVariableArgumentEnumOptionsDescriptor()
         {
         }
 
         public ExpressionVariableArgumentEnumOptionsDescriptor(string title, string tooltip, ImageSource icon, Type enumType)
-            : base(title, tooltip, icon)
+            : base(title, tooltip, icon, null)
         {
             EnumType = enumType;
         }

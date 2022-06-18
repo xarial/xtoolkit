@@ -54,7 +54,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             m_PopupEditor.Closed += OnClosed;
 
-            m_DataGrid.InitializingNewItem += OnInitializingNewItem;
+            m_DataGrid.AddingNewItem += OnAddingNewItem;
 
             if (m_Edit) 
             {
@@ -85,10 +85,11 @@ namespace Xarial.XToolkit.Wpf.Controls
             UpdateVariableControl(m_Variable);
         }
 
-        private void OnInitializingNewItem(object sender, InitializingNewItemEventArgs e)
+        private void OnAddingNewItem(object sender, AddingNewItemEventArgs e)
         {
-            var argDesc = (ExpressionVariableArgumentDescriptor)e.NewItem;
-            InitArgumentDescriptor(argDesc);
+            var argDesc = new ExpressionVariableArgumentExpressionDescriptor("", "", null);
+            argDesc.Init(m_Parser, m_Descriptor, m_VariableLinks);
+            e.NewItem = argDesc;
         }
 
         internal IExpressionTokenVariable Variable => m_Variable;
@@ -141,8 +142,8 @@ namespace Xarial.XToolkit.Wpf.Controls
                 for (int i = 0; i < Arguments.Count; i++)
                 {
                     var arg = Arguments[i];
-
-                    InitArgumentDescriptor(arg);
+                    
+                    arg.Init(m_Parser, m_Descriptor, m_VariableLinks);
 
                     if (variable.Arguments != null && variable.Arguments.Length > i)
                     {
@@ -202,13 +203,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             get { return (ImageSource)GetValue(IconProperty); }
             set { SetValue(IconProperty, value); }
         }
-
-        private void InitArgumentDescriptor(ExpressionVariableArgumentDescriptor argDesc)
-        {
-            argDesc.Parser = m_Parser;
-            argDesc.VariableDescriptor = m_Descriptor;
-            argDesc.VariableLinks = m_VariableLinks;
-        }
     }
 
     public class ExpressionBox : Control
@@ -247,7 +241,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             {   
                 dynamic = true;
 
-                return variable.Arguments?.Select(a => new ExpressionVariableArgumentDescriptor()).ToArray();
+                return variable.Arguments?.Select(a => new ExpressionVariableArgumentExpressionDescriptor()).ToArray();
             }
 
             public Brush GetBackground(IExpressionTokenVariable variable) => new SolidColorBrush(Color.FromRgb(221, 221, 221));
