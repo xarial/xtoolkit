@@ -95,20 +95,18 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        public IExpressionToken Token
+        internal IExpressionToken GetToken(IExpressionParser expParser) => CreateToken(Value, expParser);
+
+        internal void SetToken(IExpressionToken token, IExpressionParser expParser) 
         {
-            get => GetToken(Value);
-            set
+            try
             {
-                try
-                {
-                    Value = GetTokenValue(value);
-                }
-                catch (Exception ex)
-                {
-                    m_Error = ex;
-                    ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
-                }
+                Value = GetTokenValue(token, expParser);
+            }
+            catch (Exception ex)
+            {
+                m_Error = ex;
+                ErrorsChanged?.Invoke(this, new DataErrorsChangedEventArgs(nameof(Value)));
             }
         }
 
@@ -125,40 +123,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                 this.PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(""));
             }
         }
-
-        public IExpressionParser ExpressionParser
-        {
-            get => m_ExpressionParser;
-            set
-            {
-                m_ExpressionParser = value;
-                this.NotifyChanged();
-            }
-        }
-
-        public IExpressionVariableDescriptor VariableDescriptor
-        {
-            get => m_VariableDescriptor;
-            set
-            {
-                m_VariableDescriptor = value;
-                this.NotifyChanged();
-            }
-        }
-
-        public Collection<IExpressionVariableLink> VariableLinks
-        {
-            get => m_VariableLinks;
-            set
-            {
-                m_VariableLinks = value;
-                this.NotifyChanged();
-            }
-        }
-
-        private IExpressionParser m_ExpressionParser;
-        private IExpressionVariableDescriptor m_VariableDescriptor;
-        private Collection<IExpressionVariableLink> m_VariableLinks;
 
         public bool HasErrors => m_Error != null;
 
@@ -187,13 +151,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_Template = template;
         }
 
-        internal void Init(IExpressionParser expParser, IExpressionVariableDescriptor varsDescriptor, Collection<IExpressionVariableLink> varsLinks) 
-        {
-            ExpressionParser = expParser;
-            VariableDescriptor = varsDescriptor;
-            VariableLinks = varsLinks;
-        }
-
         public IEnumerable GetErrors(string propertyName)
         {
             if (m_Error != null)
@@ -206,9 +163,9 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        protected abstract IExpressionToken GetToken(object value);
+        protected abstract IExpressionToken CreateToken(object value, IExpressionParser expParser);
 
-        protected abstract object GetTokenValue(IExpressionToken token);
+        protected abstract object GetTokenValue(IExpressionToken token, IExpressionParser expParser);
     }
 
     public class ExpressionVariableArgumentExpressionDescriptor : ExpressionVariableArgumentDescriptor 
@@ -223,9 +180,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
         }
 
-        protected override IExpressionToken GetToken(object value) => ExpressionParser.Parse(value?.ToString());
+        protected override IExpressionToken CreateToken(object value, IExpressionParser expParser) => expParser.Parse(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token) => ExpressionParser.CreateExpression(token);
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => expParser.CreateExpression(token);
     }
 
     public class ExpressionVariableArgumentTextDescriptor : ExpressionVariableArgumentDescriptor
@@ -240,10 +197,10 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
         }
 
-        protected override IExpressionToken GetToken(object value)
+        protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
         {
             if (token is IExpressionTokenText)
             {
@@ -268,10 +225,10 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
         }
 
-        protected override IExpressionToken GetToken(object value)
+        protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
         {
             if (token is IExpressionTokenText)
             {
@@ -296,10 +253,10 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
         }
 
-        protected override IExpressionToken GetToken(object value)
+        protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
         {
             if (token is IExpressionTokenText)
             {
@@ -324,10 +281,10 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
         }
 
-        protected override IExpressionToken GetToken(object value)
+        protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
         {
             if (token is IExpressionTokenText)
             {
@@ -363,10 +320,10 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public Collection<string> Items { get; }
 
-        protected override IExpressionToken GetToken(object value)
+        protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
         {
             if (token is IExpressionTokenText)
             {
@@ -421,10 +378,10 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        protected override IExpressionToken GetToken(object value)
+        protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
         {
             if (token is IExpressionTokenText)
             {

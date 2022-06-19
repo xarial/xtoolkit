@@ -253,8 +253,10 @@
                     <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
                     <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3">
                         <ctrls:ExpressionBox.VariableLinks>
-                            <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Insert 'prp' variable" EnterArguments="True"/>
-                            <ctrls:NamedExpressionVariableLink VariableName="b" Title="Insert 'b' variable" Icon="/WpfTester;component/Resources/icon.png"/>
+                            <ctrls:ExpressionVariableLinkCollection>
+                                <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Insert 'prp' variable" EnterArguments="True"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="b" Title="Insert 'b' variable" Icon="/WpfTester;component/Resources/icon.png"/>
+                            </ctrls:ExpressionVariableLinkCollection>
                         </ctrls:ExpressionBox.VariableLinks>
                         <ctrls:ExpressionBox.VariableDescriptor>
                             <ctrls:ExpressionVariableDescriptor>

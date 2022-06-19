@@ -8,7 +8,7 @@
     
     <conv:ObjectIsNotNullVisibilityConverter x:Key="notNullVisConv"/>
     <conv:EnumerableIsNotEmptyVisibilityConverter x:Key="enumIsNotEmptyToVisConv"/>
-
+    
     <local:DataGridCellIsNewItemPlaceholderConverter x:Key="isNewItemPlcConv"/>
 
     <ControlTemplate x:Key="NewArgumentItemTemplate">
@@ -50,9 +50,9 @@
     <DataTemplate x:Key="ExpressionVariableArgumentExpressionTemplate">
         <local:ExpressionBox Expression="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="{Binding Path=Description}" BorderThickness="0"
-                             ExpressionParser="{Binding Path=ExpressionParser}"
-                             VariableDescriptor="{Binding Path=VariableDescriptor}"
-                             VariableLinks="{Binding Path=VariableLinks}"/>
+                             ExpressionParser="{Binding Path=Owner.ExpressionParser, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
+                             VariableDescriptor="{Binding Path=Owner.VariableDescriptor, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
+                             VariableLinks="{Binding Path=Owner.VariableLinks, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"/>
     </DataTemplate>
 
     <DataTemplate x:Key="ExpressionVariableArgumentTextTemplate">
@@ -178,7 +178,7 @@
                                                 <DataTemplate>
                                                     <Grid>
                                                         <ContentPresenter ContentTemplate="{Binding Path=Template}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVisRev}}"/>
-                                                        <!--<ContentPresenter ContentTemplate="{StaticResource ExpressionVariableArgumentExpressionTemplate}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVis}}"/>-->
+                                                        <ContentPresenter ContentTemplate="{StaticResource ExpressionVariableArgumentExpressionTemplate}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVis}}"/>
                                                     </Grid>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>

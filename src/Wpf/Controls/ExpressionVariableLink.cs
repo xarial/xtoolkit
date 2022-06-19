@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Xarial.XToolkit.Services.Expressions;
@@ -7,6 +8,10 @@ using Xarial.XToolkit.Wpf.Dialogs;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
+    public class ExpressionVariableLinkCollection : Collection<IExpressionVariableLink> 
+    {
+    }
+
     public interface IExpressionVariableLink 
     {
         string Title { get; }
