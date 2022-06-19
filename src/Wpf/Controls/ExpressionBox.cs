@@ -36,6 +36,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
     public class ExpressionVariableTokenControl : Control, INotifyPropertyChanged
     {
+        internal event Action<ExpressionVariableTokenControl> VariableUpdated;
+
         static ExpressionVariableTokenControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionVariableTokenControl),
@@ -85,6 +87,8 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_Variable = new ExpressionTokenVariable(m_VariableName, Arguments?.Select(a => a.GetToken(Owner.GetExpressionParser())).ToArray());
 
             UpdateVariableControl(m_Variable);
+
+            VariableUpdated?.Invoke(this);
         }
 
         private void OnAddingNewItem(object sender, AddingNewItemEventArgs e)
@@ -440,15 +444,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        protected override Size MeasureOverride(Size constraint)
-        {
-            //adding extra space for the height so the varibale controls are fit inside otherwise they can be cropped
-            const int OFFSET = 4;
-
-            var size = base.MeasureOverride(constraint);
-            return new Size(size.Width, size.Height + OFFSET);
-        }
-
         public void Insert(IExpressionToken expressionToken, bool enterArgs) 
         {
             using (var intChange = m_InternalChangeTracker.PerformInternalChange()) 
@@ -481,9 +476,9 @@ namespace Xarial.XToolkit.Wpf.Controls
                     }
                 }
 
-                m_TextBox.CaretPosition = pos;
-
                 UpdateExpression();
+
+                m_TextBox.CaretPosition = pos;
 
                 m_TextBox.Focus();
             }
@@ -618,11 +613,14 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void OnTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (!m_InternalChangeTracker.IsInternalChange)
+            if (e.Changes.Any())
             {
-                using (var intChange = m_InternalChangeTracker.PerformInternalChange())
+                if (!m_InternalChangeTracker.IsInternalChange)
                 {
-                    UpdateExpression();
+                    using (var intChange = m_InternalChangeTracker.PerformInternalChange())
+                    {
+                        UpdateExpression();
+                    }
                 }
             }
         }
@@ -686,7 +684,12 @@ namespace Xarial.XToolkit.Wpf.Controls
             switch (expressionToken)
             {
                 case IExpressionTokenVariable variable:
-                    var uiCont = new InlineUIContainer(new ExpressionVariableTokenControl(this, variable), pos);
+                    var varCtrl = new ExpressionVariableTokenControl(this, variable);
+                    varCtrl.VariableUpdated += OnVariableUpdated;
+                    var uiCont = new InlineUIContainer(varCtrl, pos) 
+                    {
+                        BaselineAlignment = BaselineAlignment.Center 
+                    };
                     pos = uiCont.ContentEnd.GetInsertionPosition(LogicalDirection.Forward);
                     res.Add(uiCont);
                     break;
@@ -712,6 +715,11 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
 
             return res;
+        }
+
+        private void OnVariableUpdated(ExpressionVariableTokenControl sender)
+        {
+            UpdateExpression();
         }
 
         private IExpressionToken GetExpressionToken(IEnumerable<Inline> inlines) 

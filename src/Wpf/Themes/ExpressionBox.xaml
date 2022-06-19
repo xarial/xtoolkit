@@ -87,7 +87,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:ExpressionVariableTokenControl}">
-                    <Border BorderBrush="#FF707070" BorderThickness="1" CornerRadius="5" Margin="2,1,2,-5" Background="{TemplateBinding Background}">
+                    <Border BorderBrush="#FF707070" BorderThickness="1" CornerRadius="5" Margin="2" Background="{TemplateBinding Background}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -179,7 +179,7 @@
                                                 <DataTemplate>
                                                     <Grid>
                                                         <ContentPresenter ContentTemplate="{Binding Path=Template}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVisRev}}"/>
-                                                        <ContentPresenter ContentTemplate="{StaticResource ExpressionVariableArgumentExpressionTemplate}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVis}}"/>
+                                                        <!--<ContentPresenter ContentTemplate="{StaticResource ExpressionVariableArgumentExpressionTemplate}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVis}}"/>-->
                                                     </Grid>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
