@@ -59,7 +59,7 @@ namespace WpfTester
                     ExpressionVariableArgumentDescriptor.CreateOptions("Options Argument", "Sample Options Argument", null, "A", "B", "C", "D"),
                     ExpressionVariableArgumentDescriptor.CreateOptions<Options_e>("Enum Options Argument", "Sample Enum Options Argument", null),
                     ExpressionVariableArgumentDescriptor.CreateOptions<MultiOptions_e>("Enum Multi Options Argument", "Sample Enum Multi Argument", null),
-                    new ExpressionVariableArgumentExpressionDescriptor("Default Argument", "Sample Default Argument", null)
+                    ExpressionVariableArgumentDescriptor.CreateExpression("Default Argument", "Sample Default Argument", null)
                 };
             }
             else if (string.Equals(variable.Name, "var2", StringComparison.CurrentCultureIgnoreCase))
@@ -72,10 +72,18 @@ namespace WpfTester
                     ExpressionVariableArgumentDescriptor.CreateText("Argument2", "Second Argument", null)
                 };
             }
-            else if (string.Equals(variable.Name, "var3", StringComparison.CurrentCultureIgnoreCase)) 
+            else if (string.Equals(variable.Name, "var3", StringComparison.CurrentCultureIgnoreCase))
             {
                 dynamic = false;
                 return null;
+            }
+            else if (string.Equals(variable.Name, "var4", StringComparison.CurrentCultureIgnoreCase))
+            {
+                dynamic = false;
+                return new ExpressionVariableArgumentDescriptor[]
+                {
+                    ExpressionVariableArgumentDescriptor.CreateExpression("Default Argument", "Sample Default Argument", null)
+                };
             }
             else 
             {

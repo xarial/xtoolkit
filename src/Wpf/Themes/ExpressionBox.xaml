@@ -128,7 +128,8 @@
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="Auto"/>
                                                 </Grid.ColumnDefinitions>
-                                                <ToggleButton Grid.Column="0" ToolTip="Advanced editor mode" Cursor="Hand" IsChecked="{Binding Path=IsAdvancedEditor}"
+                                                <!--NOTE: if binding for the IsChecked is propagated (e.g. used the current context of the grid, then when check box is checked - bound property is not updated-->
+                                                <ToggleButton Grid.Column="0" ToolTip="Advanced editor mode" Cursor="Hand" IsChecked="{Binding Path=Item.IsAdvancedEditor, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}}"
                                                               Visibility="{Binding Path=HasAdvancedEditor, Converter={StaticResource boolToVis}}">
                                                     <ToggleButton.Style>
                                                         <Style TargetType="{x:Type ToggleButton}">

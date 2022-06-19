@@ -31,6 +31,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         public static ExpressionVariableArgumentDescriptor CreateOptions<TEnum>(string title, string tooltip, ImageSource icon)
             where TEnum : Enum => new ExpressionVariableArgumentEnumOptionsDescriptor(title, tooltip, icon, typeof(TEnum));
 
+        public static ExpressionVariableArgumentDescriptor CreateExpression(string title, string tooltip, ImageSource icon)
+            => new ExpressionVariableArgumentExpressionDescriptor(title, tooltip, icon);
+
         public event EventHandler<DataErrorsChangedEventArgs> ErrorsChanged;
         public event PropertyChangedEventHandler PropertyChanged;
 
