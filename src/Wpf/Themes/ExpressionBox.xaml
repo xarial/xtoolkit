@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls"
+                    xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
                     xmlns:conv="clr-namespace:Xarial.XToolkit.Wpf.Converters">
 
     <conv:BooleanVisibilityConverter x:Key="boolToVis"/>
@@ -130,14 +131,15 @@
                                                 </Grid.ColumnDefinitions>
                                                 <!--NOTE: if binding for the IsChecked is propagated (e.g. used the current context of the grid, then when check box is checked - bound property is not updated-->
                                                 <ToggleButton Grid.Column="0" ToolTip="Advanced editor mode" Cursor="Hand" IsChecked="{Binding Path=Item.IsAdvancedEditor, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}}"
-                                                              Visibility="{Binding Path=HasAdvancedEditor, Converter={StaticResource boolToVis}}">
+                                                              Visibility="{Binding Path=HasAdvancedEditor, Converter={StaticResource boolToVis}}"
+                                                              VerticalAlignment="Top">
                                                     <ToggleButton.Style>
                                                         <Style TargetType="{x:Type ToggleButton}">
                                                             <Setter Property="Background" Value="LightGray"/>
                                                             <Setter Property="Template">
                                                                 <Setter.Value>
                                                                     <ControlTemplate TargetType="{x:Type ToggleButton}">
-                                                                        <Grid MaxHeight="15" Margin="2" Background="Transparent">
+                                                                        <Grid MaxHeight="10" Background="Transparent">
                                                                             <Viewbox Stretch="Fill" VerticalAlignment="Center">
                                                                                 <Path Fill="{TemplateBinding Background}" 
                                                                                       Data="M 3.4724 8.5186 6.5029 1.4475 h 6.9448 L 8.4285 6.5298 h 4.1353 L 4.451 15.6212 6.5344 8.487 Z"/>
@@ -161,12 +163,6 @@
                                             </Grid>
                                         </DataTemplate>
                                     </DataGrid.RowHeaderTemplate>
-                                    <DataGrid.RowHeaderStyle>
-                                        <Style TargetType="DataGridRowHeader">
-                                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-                                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-                                        </Style>
-                                    </DataGrid.RowHeaderStyle>
                                     <DataGrid.ColumnHeaderStyle>
                                         <Style TargetType="DataGridColumnHeader">
                                             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -178,7 +174,7 @@
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
                                                     <Grid>
-                                                        <ContentPresenter ContentTemplate="{Binding Path=Template}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVisRev}}"/>
+                                                        <ContentPresenter ContentTemplate="{Binding Path=Template}" Content="{Binding}"/>
                                                         <!--<ContentPresenter ContentTemplate="{StaticResource ExpressionVariableArgumentExpressionTemplate}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVis}}"/>-->
                                                     </Grid>
                                                 </DataTemplate>

@@ -69,7 +69,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public DataTemplate Template
         {
-            get => m_Template;
+            get => IsAdvancedEditor ? m_AdvancedEditorTemplate.Value : m_Template;
             set
             {
                 m_Template = value;
@@ -87,7 +87,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
         public bool IsAdvancedEditor
         {
             get => m_IsAdvancedEditor;
@@ -95,16 +94,34 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 m_IsAdvancedEditor = value;
                 this.NotifyChanged();
+                this.NotifyChanged(nameof(Template));
             }
         }
 
-        internal IExpressionToken GetToken(IExpressionParser expParser) => CreateToken(Value, expParser);
+        internal IExpressionToken GetToken(IExpressionParser expParser)
+        {
+            if (IsAdvancedEditor)
+            {
+                return expParser.Parse(Value?.ToString());
+            }
+            else
+            {
+                return CreateToken(Value, expParser);
+            }
+        }
 
         internal void SetToken(IExpressionToken token, IExpressionParser expParser) 
         {
             try
             {
-                Value = GetTokenValue(token, expParser);
+                if (IsAdvancedEditor)
+                {
+                    Value = expParser.CreateExpression(token);
+                }
+                else 
+                {
+                    Value = GetTokenValue(token, expParser);
+                }
             }
             catch (Exception ex)
             {
@@ -141,12 +158,16 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private Exception m_Error;
 
+        private Lazy<DataTemplate> m_AdvancedEditorTemplate;
+
         //NOTE: need to keey the public parameterless constructor so DataGrid allows to create new items
         public ExpressionVariableArgumentDescriptor() 
         {
+            m_AdvancedEditorTemplate = new Lazy<DataTemplate>(() => typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>(
+                "Themes/Generic.xaml", "ExpressionVariableArgumentExpressionTemplate"));
         }
 
-        protected ExpressionVariableArgumentDescriptor(string title, string desc, ImageSource icon, DataTemplate template)
+        protected ExpressionVariableArgumentDescriptor(string title, string desc, ImageSource icon, DataTemplate template) : this()
         {
             m_Title = title;
             m_Description = desc;

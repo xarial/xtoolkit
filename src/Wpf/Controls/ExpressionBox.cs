@@ -175,12 +175,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             if (args?.Any() == true || dynamic)
             {
-                Arguments = new ObservableCollection<ExpressionVariableArgumentDescriptor>();
-
-                foreach (var arg in args) 
-                {
-                    Arguments.Add(arg);
-                }
+                Arguments = new ObservableCollection<ExpressionVariableArgumentDescriptor>(args ?? new ExpressionVariableArgumentDescriptor[0]);
 
                 if (variable.Arguments?.Length > Arguments.Count && dynamic)
                 {
