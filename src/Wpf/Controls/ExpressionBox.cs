@@ -327,6 +327,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         private IExpressionParser m_DefaultParser;
 
         private string m_CachedText;
+        private int m_CachedVariablesCount;
 
         public ICommand InsertVariableCommand { get; }
 
@@ -369,7 +370,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public void Insert(IExpressionToken expressionToken, bool enterArgs) 
         {
-            using (var intChange = m_InternalChangeTracker.PerformInternalChange()) 
+            using (var intChange = m_InternalChangeTracker.PerformInternalChange())
             {
                 TextPointer pos;
 
@@ -402,6 +403,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 UpdateExpression();
 
                 m_CachedText = GetCachedText();
+                m_CachedVariablesCount = GetCachedVariablesCount();
 
                 m_TextBox.CaretPosition = pos;
 
@@ -565,10 +567,13 @@ namespace Xarial.XToolkit.Wpf.Controls
             if (e.Changes.Any())
             {
                 var cachedText = GetCachedText();
+                var cachedVarsCount = GetCachedVariablesCount();
 
-                if (!string.Equals(m_CachedText, cachedText))
+                //NOTE: cached text will have variables replaced with empty string whch means if the varible replaced with the empty string in the UI - then text will not be changed
+                if (!string.Equals(m_CachedText, cachedText) || cachedVarsCount != m_CachedVariablesCount)
                 {
                     m_CachedText = cachedText;
+                    m_CachedVariablesCount = cachedVarsCount;
 
                     if (!m_InternalChangeTracker.IsInternalChange)
                     {
@@ -600,6 +605,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
         private string GetCachedText() => new TextRange(m_Doc.ContentStart, m_Doc.ContentEnd).Text;
+
+        private int GetCachedVariablesCount() => Inlines.OfType<InlineUIContainer>().Count();
 
         private static void OnExpressionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) 
         {
