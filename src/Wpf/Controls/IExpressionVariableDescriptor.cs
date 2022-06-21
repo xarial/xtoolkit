@@ -53,7 +53,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             dynamic = info.Dynamic;
 
-            return info.Arguments?.ToArray();
+            return info.Arguments.Select(a => a.Clone())?.ToArray();
         }
 
         public Brush GetBackground(IExpressionTokenVariable variable) => GetInfo(variable).Background;

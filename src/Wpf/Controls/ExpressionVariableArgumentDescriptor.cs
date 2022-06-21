@@ -77,7 +77,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        public bool HasAdvancedEditor
+        public virtual bool HasAdvancedEditor
         {
             get => m_HasAdvancedEditor;
             set
@@ -87,7 +87,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        public bool IsAdvancedEditor
+        public virtual bool IsAdvancedEditor
         {
             get => m_IsAdvancedEditor;
             set
@@ -110,7 +110,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        internal void SetToken(IExpressionToken token, IExpressionParser expParser) 
+        internal void SetToken(IExpressionToken token, IExpressionParser expParser)
         {
             try
             {
@@ -118,7 +118,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     Value = expParser.CreateExpression(token);
                 }
-                else 
+                else
                 {
                     Value = GetTokenValue(token, expParser);
                 }
@@ -161,7 +161,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         private Lazy<DataTemplate> m_AdvancedEditorTemplate;
 
         //NOTE: need to keey the public parameterless constructor so DataGrid allows to create new items
-        public ExpressionVariableArgumentDescriptor() 
+        public ExpressionVariableArgumentDescriptor()
         {
             m_AdvancedEditorTemplate = new Lazy<DataTemplate>(() => typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>(
                 "Themes/Generic.xaml", "ExpressionVariableArgumentExpressionTemplate"));
@@ -190,6 +190,40 @@ namespace Xarial.XToolkit.Wpf.Controls
         protected abstract IExpressionToken CreateToken(object value, IExpressionParser expParser);
 
         protected abstract object GetTokenValue(IExpressionToken token, IExpressionParser expParser);
+
+        public abstract ExpressionVariableArgumentDescriptor Clone();
+    }
+
+    internal static class ExpressionVariableArgumentDescriptorExtension
+    {
+        internal static T CastTextToken<T>(this ExpressionVariableArgumentDescriptor argDesc, IExpressionToken token, IExpressionParser expParser)
+            => (T)CastTextToken(argDesc, typeof(T), token, expParser);
+
+        internal static object CastTextToken(this ExpressionVariableArgumentDescriptor argDesc, Type type, IExpressionToken token, IExpressionParser expParser) 
+        {
+            if (token is IExpressionTokenText)
+            {
+                var textVal = ((IExpressionTokenText)token).Text;
+
+                if (type.IsEnum)
+                {
+                    return Enum.Parse(type, textVal);
+                }
+                else
+                {
+                    return Convert.ChangeType(textVal, type);
+                }
+            }
+            else if (argDesc.HasAdvancedEditor) 
+            {
+                argDesc.IsAdvancedEditor = true;
+                return expParser.CreateExpression(token);
+            }
+            else
+            {
+                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
+            }
+        }
     }
 
     public class ExpressionVariableArgumentExpressionDescriptor : ExpressionVariableArgumentDescriptor 
@@ -204,9 +238,14 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
         }
 
+        public override bool HasAdvancedEditor { get => false; set { } }
+        public override bool IsAdvancedEditor { get => false; set { } }
+
         protected override IExpressionToken CreateToken(object value, IExpressionParser expParser) => expParser.Parse(value?.ToString());
 
         protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => expParser.CreateExpression(token);
+
+        public override ExpressionVariableArgumentDescriptor Clone() => new ExpressionVariableArgumentExpressionDescriptor(Title, Description, Icon);
     }
 
     public class ExpressionVariableArgumentTextDescriptor : ExpressionVariableArgumentDescriptor
@@ -224,17 +263,12 @@ namespace Xarial.XToolkit.Wpf.Controls
         protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => this.CastTextToken<string>(token, expParser);
+
+        public override ExpressionVariableArgumentDescriptor Clone() => new ExpressionVariableArgumentTextDescriptor(Title, Description, Icon)
         {
-            if (token is IExpressionTokenText)
-            {
-                return ((IExpressionTokenText)token).Text;
-            }
-            else
-            {
-                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-            }
-        }
+            HasAdvancedEditor = HasAdvancedEditor
+        };
     }
 
     public class ExpressionVariableArgumentNumericDescriptor : ExpressionVariableArgumentDescriptor
@@ -252,17 +286,12 @@ namespace Xarial.XToolkit.Wpf.Controls
         protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => this.CastTextToken<int>(token, expParser);
+
+        public override ExpressionVariableArgumentDescriptor Clone() => new ExpressionVariableArgumentNumericDescriptor(Title, Description, Icon)
         {
-            if (token is IExpressionTokenText)
-            {
-                return int.Parse(((IExpressionTokenText)token).Text);
-            }
-            else
-            {
-                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-            }
-        }
+            HasAdvancedEditor = HasAdvancedEditor
+        };
     }
 
     public class ExpressionVariableArgumentNumericDoubleDescriptor : ExpressionVariableArgumentDescriptor
@@ -280,17 +309,12 @@ namespace Xarial.XToolkit.Wpf.Controls
         protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => this.CastTextToken<double>(token, expParser);
+
+        public override ExpressionVariableArgumentDescriptor Clone() => new ExpressionVariableArgumentNumericDoubleDescriptor(Title, Description, Icon)
         {
-            if (token is IExpressionTokenText)
-            {
-                return double.Parse(((IExpressionTokenText)token).Text);
-            }
-            else
-            {
-                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-            }
-        }
+            HasAdvancedEditor = HasAdvancedEditor
+        };
     }
 
     public class ExpressionVariableArgumentToggleDescriptor : ExpressionVariableArgumentDescriptor
@@ -308,17 +332,12 @@ namespace Xarial.XToolkit.Wpf.Controls
         protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => this.CastTextToken<bool>(token, expParser);
+
+        public override ExpressionVariableArgumentDescriptor Clone() => new ExpressionVariableArgumentToggleDescriptor(Title, Description, Icon)
         {
-            if (token is IExpressionTokenText)
-            {
-                return bool.Parse(((IExpressionTokenText)token).Text);
-            }
-            else
-            {
-                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-            }
-        }
+            HasAdvancedEditor = HasAdvancedEditor
+        };
     }
 
     public class ExpressionVariableArgumentOptionsDescriptor : ExpressionVariableArgumentDescriptor
@@ -347,17 +366,12 @@ namespace Xarial.XToolkit.Wpf.Controls
         protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => this.CastTextToken<string>(token, expParser);
+
+        public override ExpressionVariableArgumentDescriptor Clone() => new ExpressionVariableArgumentOptionsDescriptor(Title, Description, Icon)
         {
-            if (token is IExpressionTokenText)
-            {
-                return ((IExpressionTokenText)token).Text;
-            }
-            else
-            {
-                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-            }
-        }
+            HasAdvancedEditor = HasAdvancedEditor
+        };
     }
 
     public class ExpressionVariableArgumentEnumOptionsDescriptor : ExpressionVariableArgumentDescriptor
@@ -405,17 +419,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         protected override IExpressionToken CreateToken(object value, IExpressionParser expParser)
             => new ExpressionTokenText(value?.ToString());
 
-        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser)
-        {
-            if (token is IExpressionTokenText)
-            {
-                return Enum.Parse(EnumType, ((IExpressionTokenText)token).Text);
-            }
-            else
-            {
-                throw new NotSupportedException($"Only {typeof(IExpressionTokenText)} is supported");
-            }
-        }
+        protected override object GetTokenValue(IExpressionToken token, IExpressionParser expParser) => this.CastTextToken(EnumType, token, expParser);
 
         public override object Value
         {
@@ -432,5 +436,10 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
             set => base.Value = value;
         }
+
+        public override ExpressionVariableArgumentDescriptor Clone() => new ExpressionVariableArgumentEnumOptionsDescriptor(Title, Description, Icon, EnumType)
+        {
+            HasAdvancedEditor = HasAdvancedEditor 
+        };
     }
 }

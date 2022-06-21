@@ -36,14 +36,22 @@
         </Grid>
     </DataTemplate>
 
+    <Style x:Key="NoErrorTemplateStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Validation.ErrorTemplate">
+            <Setter.Value>
+                <ControlTemplate/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
     <DataTemplate x:Key="ArgumentLabelTemplate">
-        <Grid>
+        <Grid Style="{StaticResource NoErrorTemplateStyle}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2"/>
-            <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}" Grid.Column="1" Margin="2"/>
+            <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2" Style="{StaticResource NoErrorTemplateStyle}"/>
+            <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}" Grid.Column="1" Margin="2" Style="{StaticResource NoErrorTemplateStyle}"/>
         </Grid>
     </DataTemplate>
 
@@ -121,9 +129,16 @@
                                             </Style.Triggers>
                                         </Style>
                                     </DataGrid.Resources>
+                                    <DataGrid.RowValidationErrorTemplate>
+                                        <ControlTemplate>
+                                            <Grid Margin="0,-2,0,-2">
+                                                <TextBlock Text="!" FontSize="{TemplateBinding FontSize}" FontWeight="Bold" Foreground="Red" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </DataGrid.RowValidationErrorTemplate>
                                     <DataGrid.RowHeaderTemplate>
                                         <DataTemplate>
-                                            <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}, Path=Item}" HorizontalAlignment="Stretch">
+                                            <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}, Path=Item}" HorizontalAlignment="Stretch" Style="{StaticResource NoErrorTemplateStyle}">
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="Auto"/>
                                                     <ColumnDefinition Width="Auto"/>
@@ -161,11 +176,6 @@
                                                                     </ControlTemplate>
                                                                 </Setter.Value>
                                                             </Setter>
-                                                            <!--<Style.Triggers>
-                                                                <DataTrigger Binding="{Binding Path=Item.HasAdvancedEditor, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>-->
                                                         </Style>
                                                     </ToggleButton.Style>
                                                 </ToggleButton>
@@ -183,10 +193,7 @@
                                         <DataGridTemplateColumn IsReadOnly="False" Header="Value">
                                             <DataGridTemplateColumn.CellTemplate>
                                                 <DataTemplate>
-                                                    <Grid>
-                                                        <ContentPresenter ContentTemplate="{Binding Path=Template}" Content="{Binding}"/>
-                                                        <!--<ContentPresenter ContentTemplate="{StaticResource ExpressionVariableArgumentExpressionTemplate}" Content="{Binding}" Visibility="{Binding Path=IsAdvancedEditor, Converter={StaticResource boolToVis}}"/>-->
-                                                    </Grid>
+                                                    <ContentPresenter ContentTemplate="{Binding Path=Template}" Content="{Binding}"/>
                                                 </DataTemplate>
                                             </DataGridTemplateColumn.CellTemplate>
                                         </DataGridTemplateColumn>
