@@ -34,6 +34,20 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
+    //NOTE: IValueConverter on just the HasAdvancedEditor does not work and for the NewItemPlaceholder (e.g. new row header) the advanced editor toggle would be always shown
+    public class AdvancedEditorVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return values[0] is ExpressionVariableArgumentDescriptor && values[1] is bool && (bool)values[1] == true ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class ExpressionVariableTokenControl : Control, INotifyPropertyChanged
     {
         internal event Action<ExpressionVariableTokenControl> VariableUpdated;
@@ -84,11 +98,16 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void OnClosed(PopupMenu popupMenu)
         {
+            var oldVar = m_Variable;
+
             m_Variable = new ExpressionTokenVariable(m_VariableName, Arguments?.Select(a => a.GetToken(Owner.GetExpressionParser())).ToArray());
 
-            UpdateVariableControl(m_Variable);
+            if (!m_Variable.IsSame(oldVar))
+            {
+                UpdateVariableControl(m_Variable);
 
-            VariableUpdated?.Invoke(this);
+                VariableUpdated?.Invoke(this);
+            }
         }
 
         private void OnAddingNewItem(object sender, AddingNewItemEventArgs e)
@@ -317,6 +336,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         private IExpressionVariableDescriptor m_DefaultVariableDescriptor;
         private IExpressionParser m_DefaultParser;
 
+        private string m_CachedText;
+
         public ExpressionBox() 
         {
             m_InternalChangeTracker = new InternalChangeTracker();
@@ -473,6 +494,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                 UpdateExpression();
 
+                m_CachedText = GetCachedText();
+
                 m_TextBox.CaretPosition = pos;
 
                 m_TextBox.Focus();
@@ -610,11 +633,18 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             if (e.Changes.Any())
             {
-                if (!m_InternalChangeTracker.IsInternalChange)
+                var cachedText = GetCachedText();
+
+                if (!string.Equals(m_CachedText, cachedText))
                 {
-                    using (var intChange = m_InternalChangeTracker.PerformInternalChange())
+                    m_CachedText = cachedText;
+
+                    if (!m_InternalChangeTracker.IsInternalChange)
                     {
-                        UpdateExpression();
+                        using (var intChange = m_InternalChangeTracker.PerformInternalChange())
+                        {
+                            UpdateExpression();
+                        }
                     }
                 }
             }
@@ -637,6 +667,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             Expression = parser.CreateExpression(token);
         }
+
+        private string GetCachedText() => new TextRange(m_Doc.ContentStart, m_Doc.ContentEnd).Text;
 
         private static void OnExpressionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) 
         {

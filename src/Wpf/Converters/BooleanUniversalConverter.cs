@@ -20,7 +20,7 @@ namespace Xarial.XToolkit.Wpf.Converters
 
         public bool Reverse { get; set; } = false;
 
-        public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var boolVal = ConvertValueToBool(value);
 
