@@ -1,4 +1,11 @@
-﻿namespace Xarial.XToolkit.Services.Expressions
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2022 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+namespace Xarial.XToolkit.Services.Expressions
 {
     /// <summary>
     /// Represents a group of <see cref="IExpressionToken"/>

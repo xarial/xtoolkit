@@ -1,4 +1,11 @@
-﻿using System.Diagnostics;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2022 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System.Diagnostics;
 
 namespace Xarial.XToolkit.Services.Expressions
 {
