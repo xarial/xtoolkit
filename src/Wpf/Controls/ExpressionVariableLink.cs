@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Xarial.XToolkit.Services.Expressions;
@@ -7,6 +8,10 @@ using Xarial.XToolkit.Wpf.Dialogs;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
+    public class ExpressionVariableLinkCollection : Collection<IExpressionVariableLink> 
+    {
+    }
+
     public interface IExpressionVariableLink 
     {
         string Title { get; }
@@ -34,11 +39,11 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
-    public class GenericExpressionVariableLink : IExpressionVariableLink
+    public class ExpressionVariableLinkGeneric : IExpressionVariableLink
     {
         public ExpressionVariableFactoryDelegate Factory { get; }
 
-        public GenericExpressionVariableLink(string title, string description, bool enterArgs, string inputTitle, string inputPrompt)
+        public ExpressionVariableLinkGeneric(string title, string description, bool enterArgs, string inputTitle, string inputPrompt)
         {
             Title = title;
             Description = description;
@@ -50,7 +55,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             Factory = NewVariable;
         }
 
-        public GenericExpressionVariableLink() : this("Insert New Variable...", "Insert a new variable with the specified name", true, "ExpressionBox", "Variable Name")
+        public ExpressionVariableLinkGeneric() : this("Insert New Variable...", "Insert a new variable with the specified name", true, "ExpressionBox", "Variable Name")
         {
         }
 

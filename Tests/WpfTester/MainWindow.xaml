@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf"
         xmlns:local="clr-namespace:WpfTester"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
@@ -252,17 +253,29 @@
                     <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
                     <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3">
                         <ctrls:ExpressionBox.VariableLinks>
-                            <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Insert 'prp' variable" EnterArguments="True"/>
-                            <ctrls:NamedExpressionVariableLink VariableName="b" Title="Insert 'b' variable" Icon="/WpfTester;component/Resources/icon.png"/>
+                            <ctrls:ExpressionVariableLinkCollection>
+                                <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Insert 'prp' variable" EnterArguments="True"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="b" Title="Insert 'b' variable" Icon="/WpfTester;component/Resources/icon.png"/>
+                            </ctrls:ExpressionVariableLinkCollection>
                         </ctrls:ExpressionBox.VariableLinks>
                         <ctrls:ExpressionBox.VariableDescriptor>
                             <ctrls:ExpressionVariableDescriptor>
                                 <ctrls:ExpressionVariableArgumentsInfo VariableName="prp" TitleFormat="{}Property '{0}'" DescriptionFormat="Property Variable" Dynamic="False">
                                     <ctrls:ExpressionVariableArgumentsInfo.Arguments>
-                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the property"/>
+                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the property" HasAdvancedEditor="True"/>
                                     </ctrls:ExpressionVariableArgumentsInfo.Arguments>
                                 </ctrls:ExpressionVariableArgumentsInfo>
-                                <ctrls:ExpressionVariableArgumentsInfo VariableName="b" TitleFormat="Variable 'b'" Background="LightBlue" Icon="/WpfTester;component/Resources/icon.png" DescriptionFormat="Variable 'b'" Dynamic="True"/>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="b" TitleFormat="Variable 'b'" Background="LightBlue" Icon="/WpfTester;component/Resources/icon.png" DescriptionFormat="Variable 'b'" Dynamic="True">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentOptionsDescriptor Title="Options" Icon="/WpfTester;component/Resources/icon.png">
+                                            <ctrls:ExpressionVariableArgumentOptionsDescriptor.Items>
+                                                <sys:String>Item 1</sys:String>
+                                                <sys:String>Item 2</sys:String>
+                                                <sys:String>Item 3</sys:String>
+                                            </ctrls:ExpressionVariableArgumentOptionsDescriptor.Items>
+                                        </ctrls:ExpressionVariableArgumentOptionsDescriptor>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
                             </ctrls:ExpressionVariableDescriptor>
                         </ctrls:ExpressionBox.VariableDescriptor>
                     </ctrls:ExpressionBox>

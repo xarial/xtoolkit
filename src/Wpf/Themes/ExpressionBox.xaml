@@ -1,20 +1,15 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls"
+                    xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
                     xmlns:conv="clr-namespace:Xarial.XToolkit.Wpf.Converters">
-    
+
     <conv:ObjectIsNotNullVisibilityConverter x:Key="notNullVisConv"/>
     <conv:EnumerableIsNotEmptyVisibilityConverter x:Key="enumIsNotEmptyToVisConv"/>
     
     <local:DataGridCellIsNewItemPlaceholderConverter x:Key="isNewItemPlcConv"/>
-    
-    <DataTemplate x:Key="ExpressionVariableArgumentExpressionTemplate">
-        <local:ExpressionBox Expression="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="{Binding Path=Description}" BorderThickness="0"
-                             ExpressionParser="{Binding Path=Parser}"
-                             VariableDescriptor="{Binding Path=VariableDescriptor}"
-                             VariableLinks="{Binding Path=VariableLinks}"/>
-    </DataTemplate>
+
+    <local:AdvancedEditorVisibilityConverter x:Key="advEditorVisConv"/>
 
     <ControlTemplate x:Key="NewArgumentItemTemplate">
         <TextBlock Text="Add New Argument" Foreground="Gray" FontStyle="Italic"/>
@@ -39,6 +34,33 @@
                 </Hyperlink>
             </TextBlock>
         </Grid>
+    </DataTemplate>
+
+    <Style x:Key="NoErrorTemplateStyle" TargetType="{x:Type FrameworkElement}">
+        <Setter Property="Validation.ErrorTemplate">
+            <Setter.Value>
+                <ControlTemplate/>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    
+    <DataTemplate x:Key="ArgumentLabelTemplate">
+        <Grid Style="{StaticResource NoErrorTemplateStyle}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Image Source="{Binding Path=Icon}" RenderOptions.BitmapScalingMode="Fant" MaxHeight="15" Grid.Column="0" Margin="2" Style="{StaticResource NoErrorTemplateStyle}"/>
+            <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}" Grid.Column="1" Margin="2" Style="{StaticResource NoErrorTemplateStyle}"/>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ExpressionVariableArgumentExpressionTemplate">
+        <local:ExpressionBox Expression="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="{Binding Path=Description}" BorderThickness="0"
+                             ExpressionParser="{Binding Path=Owner.ExpressionParser, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
+                             VariableDescriptor="{Binding Path=Owner.VariableDescriptor, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
+                             VariableLinks="{Binding Path=Owner.VariableLinks, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"/>
     </DataTemplate>
 
     <DataTemplate x:Key="ExpressionVariableArgumentTextTemplate">
@@ -73,7 +95,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:ExpressionVariableTokenControl}">
-                    <Border BorderBrush="#FF707070" BorderThickness="1" CornerRadius="5" Margin="2,1,2,-5" Background="{TemplateBinding Background}">
+                    <Border BorderBrush="#FF707070" BorderThickness="1" CornerRadius="5" Margin="2" Background="{TemplateBinding Background}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
@@ -107,10 +129,57 @@
                                             </Style.Triggers>
                                         </Style>
                                     </DataGrid.Resources>
+                                    <DataGrid.RowValidationErrorTemplate>
+                                        <ControlTemplate>
+                                            <Grid Margin="0,-2,0,-2">
+                                                <TextBlock Text="!" FontSize="{TemplateBinding FontSize}" FontWeight="Bold" Foreground="Red" HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </DataGrid.RowValidationErrorTemplate>
                                     <DataGrid.RowHeaderTemplate>
                                         <DataTemplate>
-                                            <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}, Path=Item}">
-                                                <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}"/>
+                                            <Grid DataContext="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}, Path=Item}" HorizontalAlignment="Stretch" Style="{StaticResource NoErrorTemplateStyle}">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <!--NOTE: if binding for the IsChecked is propagated (e.g. used the current context of the grid, then when check box is checked - bound property is not updated-->
+                                                <ToggleButton Grid.Column="0" ToolTip="Advanced editor mode" Cursor="Hand"
+                                                              IsChecked="{Binding Path=Item.IsAdvancedEditor, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType={x:Type DataGridRow}}}"
+                                                              VerticalAlignment="Top">
+                                                    <ToggleButton.Visibility>
+                                                        <MultiBinding Converter="{StaticResource advEditorVisConv}">
+                                                            <Binding Path="Item" RelativeSource="{RelativeSource AncestorType={x:Type DataGridRow}}"/>
+                                                            <Binding Path="HasAdvancedEditor"/>
+                                                        </MultiBinding>
+                                                    </ToggleButton.Visibility>
+                                                    <ToggleButton.Style>
+                                                        <Style TargetType="{x:Type ToggleButton}">
+                                                            <Setter Property="Background" Value="LightGray"/>
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                                                                        <Grid MaxHeight="10" Background="Transparent">
+                                                                            <Viewbox Stretch="Fill" VerticalAlignment="Center">
+                                                                                <Path Fill="{TemplateBinding Background}" 
+                                                                                      Data="M 3.4724 8.5186 6.5029 1.4475 h 6.9448 L 8.4285 6.5298 h 4.1353 L 4.451 15.6212 6.5344 8.487 Z"/>
+                                                                            </Viewbox>
+                                                                        </Grid>
+                                                                        <ControlTemplate.Triggers>
+                                                                            <Trigger Property="IsChecked" Value="True">
+                                                                                <Setter Property="Background" Value="#FFDEDE03" />
+                                                                            </Trigger>
+                                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                                <Setter Property="Background" Value="Gray" />
+                                                                            </Trigger>
+                                                                        </ControlTemplate.Triggers>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </ToggleButton.Style>
+                                                </ToggleButton>
+                                                <ContentPresenter Content="{Binding}" ContentTemplate="{Binding Path=ArgumentLabelTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}" Grid.Column="1"/>
                                             </Grid>
                                         </DataTemplate>
                                     </DataGrid.RowHeaderTemplate>
@@ -180,7 +249,7 @@
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Margin="2" FontWeight="Bold"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
                                 <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1" Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
-                                    <ContentPresenter ContentTemplate="{TemplateBinding VariableLinksMenuTemplate}"/>
+                                    <ContentControl ContentTemplate="{TemplateBinding VariableLinksMenuTemplate}"/>
                                 </local:PopupMenu>
                             </Grid>
                         </Border>

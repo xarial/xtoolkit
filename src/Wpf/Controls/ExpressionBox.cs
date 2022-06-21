@@ -34,18 +34,36 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
-    public class ExpressionVariableTokenControl : Control
+    //NOTE: IValueConverter on just the HasAdvancedEditor does not work and for the NewItemPlaceholder (e.g. new row header) the advanced editor toggle would be always shown
+    public class AdvancedEditorVisibilityConverter : IMultiValueConverter
     {
-        private DataGrid m_DataGrid;
-        private PopupMenu m_PopupEditor;
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return values[0] is ExpressionVariableArgumentDescriptor && values[1] is bool && (bool)values[1] == true ? Visibility.Visible : Visibility.Collapsed;
+        }
 
-        private bool m_Edit;
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class ExpressionVariableTokenControl : Control, INotifyPropertyChanged
+    {
+        internal event Action<ExpressionVariableTokenControl> VariableUpdated;
 
         static ExpressionVariableTokenControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionVariableTokenControl),
                 new FrameworkPropertyMetadata(typeof(ExpressionVariableTokenControl)));
         }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private DataGrid m_DataGrid;
+        private PopupMenu m_PopupEditor;
+
+        private bool m_Edit;
 
         public override void OnApplyTemplate()
         {
@@ -54,7 +72,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             m_PopupEditor.Closed += OnClosed;
 
-            m_DataGrid.InitializingNewItem += OnInitializingNewItem;
+            m_DataGrid.AddingNewItem += OnAddingNewItem;
 
             if (m_Edit) 
             {
@@ -80,57 +98,97 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void OnClosed(PopupMenu popupMenu)
         {
-            m_Variable = new ExpressionTokenVariable(m_VariableName, Arguments?.Select(a => a.Token).ToArray());
+            var oldVar = m_Variable;
 
-            UpdateVariableControl(m_Variable);
+            m_Variable = new ExpressionTokenVariable(m_VariableName, Arguments?.Select(a => a.GetToken(Owner.GetExpressionParser())).ToArray());
+
+            if (!m_Variable.IsSame(oldVar))
+            {
+                UpdateVariableControl(m_Variable);
+
+                VariableUpdated?.Invoke(this);
+            }
         }
 
-        private void OnInitializingNewItem(object sender, InitializingNewItemEventArgs e)
+        private void OnAddingNewItem(object sender, AddingNewItemEventArgs e)
         {
-            var argDesc = (ExpressionVariableArgumentDescriptor)e.NewItem;
-            InitArgumentDescriptor(argDesc);
+            var argDesc = NewDynamicArgument();
+            e.NewItem = argDesc;
         }
 
         internal IExpressionTokenVariable Variable => m_Variable;
 
-        private readonly IExpressionParser m_Parser;
-        private readonly IExpressionVariableDescriptor m_Descriptor;
-        private readonly IEnumerable<IExpressionVariableLink> m_VariableLinks;
+        public ObservableCollection<ExpressionVariableArgumentDescriptor> Arguments
+        {
+            get => m_Arguments;
+            private set
+            {
+                m_Arguments = value;
+                this.NotifyChanged();
+            }
+        }
 
-        public ObservableCollection<ExpressionVariableArgumentDescriptor> Arguments { get; }
+        public ExpressionBox Owner { get; }
 
         private readonly string m_VariableName;
 
-        public bool DynamicArguments { get; }
+        public bool DynamicArguments
+        {
+            get => m_DynamicArguments;
+            private set
+            {
+                m_DynamicArguments = value;
+                this.NotifyChanged();
+            }
+        }
 
         private IExpressionTokenVariable m_Variable;
+        private bool m_DynamicArguments;
+        private ObservableCollection<ExpressionVariableArgumentDescriptor> m_Arguments;
 
-        internal ExpressionVariableTokenControl(IExpressionTokenVariable variable,
-            IExpressionVariableDescriptor descriptor, IExpressionParser parser, IEnumerable<IExpressionVariableLink> variableLinks)
+        internal ExpressionVariableTokenControl(ExpressionBox owner, IExpressionTokenVariable variable)
         {
             if (variable == null)
             {
                 throw new ArgumentNullException(nameof(variable));
             }
 
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+            Owner = owner;
 
-            m_Parser = parser;
+            Owner.VariableDescriptorChanged += OnVariableDescriptorChanged;
 
             m_Variable = variable;
 
             m_VariableName = variable.Name;
 
-            m_Descriptor = descriptor;
-
-            m_VariableLinks = variableLinks;
-
             UpdateVariableControl(variable);
+            UpdateVariableArguments(variable);
+        }
 
-            var args = m_Descriptor.GetArguments(variable, out bool dynamic);
+        private void OnVariableDescriptorChanged(ExpressionBox sender, IExpressionVariableDescriptor varsDesc)
+        {
+            UpdateVariableArguments(Variable);
+            UpdateVariableControl(Variable);
+        }
+
+        private ExpressionVariableArgumentExpressionDescriptor NewDynamicArgument()
+            => new ExpressionVariableArgumentExpressionDescriptor("", "", null);
+
+        private void UpdateVariableControl(IExpressionTokenVariable variable)
+        {
+            var descriptor = Owner.GetVariableDescriptor();
+
+            Title = descriptor.GetTitle(variable);
+            Icon = descriptor.GetIcon(variable);
+            ToolTip = descriptor.GetDescription(variable);
+            Background = descriptor.GetBackground(variable);
+        }
+
+        private void UpdateVariableArguments(IExpressionTokenVariable variable)
+        {
+            Arguments = null;
+
+            var args = Owner.GetVariableDescriptor().GetArguments(variable, out bool dynamic);
 
             DynamicArguments = dynamic;
 
@@ -138,15 +196,21 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 Arguments = new ObservableCollection<ExpressionVariableArgumentDescriptor>(args ?? new ExpressionVariableArgumentDescriptor[0]);
 
+                if (variable.Arguments?.Length > Arguments.Count && dynamic)
+                {
+                    for (int i = Arguments.Count; i < variable.Arguments.Length; i++)
+                    {
+                        Arguments.Add(NewDynamicArgument());
+                    }
+                }
+
                 for (int i = 0; i < Arguments.Count; i++)
                 {
                     var arg = Arguments[i];
 
-                    InitArgumentDescriptor(arg);
-
                     if (variable.Arguments != null && variable.Arguments.Length > i)
                     {
-                        arg.Token = variable.Arguments[i];
+                        arg.SetToken(variable.Arguments[i], Owner.GetExpressionParser());
                     }
                 }
 
@@ -156,14 +220,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                     Arguments.CollectionChanged += OnDynamicArgumentsChanged;
                 }
             }
-        }
-
-        private void UpdateVariableControl(IExpressionTokenVariable variable)
-        {
-            Title = m_Descriptor.GetTitle(variable);
-            Icon = m_Descriptor.GetIcon(variable);
-            ToolTip = m_Descriptor.GetDescription(variable);
-            Background = m_Descriptor.GetBackground(variable);
         }
 
         private void OnDynamicArgumentsChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -202,17 +258,12 @@ namespace Xarial.XToolkit.Wpf.Controls
             get { return (ImageSource)GetValue(IconProperty); }
             set { SetValue(IconProperty, value); }
         }
-
-        private void InitArgumentDescriptor(ExpressionVariableArgumentDescriptor argDesc)
-        {
-            argDesc.Parser = m_Parser;
-            argDesc.VariableDescriptor = m_Descriptor;
-            argDesc.VariableLinks = m_VariableLinks;
-        }
     }
 
     public class ExpressionBox : Control
     {
+        internal event Action<ExpressionBox, IExpressionVariableDescriptor> VariableDescriptorChanged;
+
         private class InternalChangeTracker 
         {
             private class InternalChange : IDisposable
@@ -247,7 +298,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             {   
                 dynamic = true;
 
-                return variable.Arguments?.Select(a => new ExpressionVariableArgumentDescriptor()).ToArray();
+                return variable.Arguments?.Select(a => new ExpressionVariableArgumentExpressionDescriptor()).ToArray();
             }
 
             public Brush GetBackground(IExpressionTokenVariable variable) => new SolidColorBrush(Color.FromRgb(221, 221, 221));
@@ -267,6 +318,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private bool m_IsInit;
 
+        public ICommand InsertVariableCommand { get; }
+
         static ExpressionBox()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionBox),
@@ -280,15 +333,32 @@ namespace Xarial.XToolkit.Wpf.Controls
                 new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromRgb(171, 173, 179))));
         }
 
-        public ICommand InsertVariableCommand { get; }
+        private IExpressionVariableDescriptor m_DefaultVariableDescriptor;
+        private IExpressionParser m_DefaultParser;
+
+        private string m_CachedText;
 
         public ExpressionBox() 
         {
             m_InternalChangeTracker = new InternalChangeTracker();
 
             InsertVariableCommand = new RelayCommand<IExpressionVariableLink>(InsertVariable);
+        }
 
-            VariableLinks = new Collection<IExpressionVariableLink>();
+        public override void OnApplyTemplate()
+        {
+            m_TextBox = (RichTextBox)this.Template.FindName("PART_RichTextBox", this);
+            m_VariableLinksMenu = (PopupMenu)this.Template.FindName("PART_VariableLinksMenu", this);
+
+            m_Doc = m_TextBox.Document;
+            m_TextBox.TextChanged += OnTextChanged;
+
+            m_IsInit = true;
+
+            DataObject.AddCopyingHandler(m_TextBox, OnCopy);
+            DataObject.AddPastingHandler(m_TextBox, OnPaste);
+
+            RenderExpression(Expression);
         }
 
         private void InsertVariable(IExpressionVariableLink link)
@@ -345,7 +415,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             var expression = new StringBuilder();
 
-            var parser = GetParser();
+            var parser = GetExpressionParser();
 
             foreach (var inline in GetSelectedInlines()) 
             {
@@ -374,7 +444,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             e.Handled = true;
             e.CancelCommand();
 
-            var parser = GetParser();
+            var parser = GetExpressionParser();
 
             var expression = Clipboard.GetText();
 
@@ -388,31 +458,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 SetExpressionError(ex);
             }
-        }
-
-        public override void OnApplyTemplate()
-        {
-            m_TextBox = (RichTextBox)this.Template.FindName("PART_RichTextBox", this);
-            m_VariableLinksMenu = (PopupMenu)this.Template.FindName("PART_VariableLinksMenu", this);
-
-            m_Doc = m_TextBox.Document;
-            m_TextBox.TextChanged += OnTextChanged;
-            
-            m_IsInit = true;
-
-            DataObject.AddCopyingHandler(m_TextBox, OnCopy);
-            DataObject.AddPastingHandler(m_TextBox, OnPaste);
-
-            RenderExpression(Expression);
-        }
-
-        protected override Size MeasureOverride(Size constraint)
-        {
-            //adding extra space for the height so the varibale controls are fit inside otherwise they can be cropped
-            const int OFFSET = 4;
-
-            var size = base.MeasureOverride(constraint);
-            return new Size(size.Width, size.Height + OFFSET);
         }
 
         public void Insert(IExpressionToken expressionToken, bool enterArgs) 
@@ -447,9 +492,11 @@ namespace Xarial.XToolkit.Wpf.Controls
                     }
                 }
 
-                m_TextBox.CaretPosition = pos;
-
                 UpdateExpression();
+
+                m_CachedText = GetCachedText();
+
+                m_TextBox.CaretPosition = pos;
 
                 m_TextBox.Focus();
             }
@@ -458,7 +505,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         public static readonly DependencyProperty ExpressionParserProperty =
             DependencyProperty.Register(
             nameof(ExpressionParser), typeof(IExpressionParser),
-            typeof(ExpressionBox), new PropertyMetadata(new ExpressionParser()));
+            typeof(ExpressionBox));
 
         public IExpressionParser ExpressionParser
         {
@@ -481,7 +528,17 @@ namespace Xarial.XToolkit.Wpf.Controls
         public static readonly DependencyProperty VariableDescriptorProperty =
             DependencyProperty.Register(
             nameof(VariableDescriptor), typeof(IExpressionVariableDescriptor),
-            typeof(ExpressionBox), new PropertyMetadata(new DefaultExpressionVariableDescriptor()));
+            typeof(ExpressionBox), new PropertyMetadata(OnVariableDescriptorChanged));
+
+        private static void OnVariableDescriptorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            ((ExpressionBox)d).RaiseVariableDescriptorChanged((IExpressionVariableDescriptor)e.NewValue);
+        }
+
+        private void RaiseVariableDescriptorChanged(IExpressionVariableDescriptor descriptor) 
+        {
+            VariableDescriptorChanged?.Invoke(this, descriptor);
+        }
 
         public IExpressionVariableDescriptor VariableDescriptor
         {
@@ -536,6 +593,18 @@ namespace Xarial.XToolkit.Wpf.Controls
             set { SetValue(NewArgumentItemTemplateProperty, value); }
         }
 
+        public static readonly DependencyProperty ArgumentLabelTemplateProperty =
+            DependencyProperty.Register(
+            nameof(ArgumentLabelTemplate), typeof(DataTemplate),
+            typeof(ExpressionBox),
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ArgumentLabelTemplate")));
+
+        public DataTemplate ArgumentLabelTemplate
+        {
+            get { return (DataTemplate)GetValue(ArgumentLabelTemplateProperty); }
+            set { SetValue(ArgumentLabelTemplateProperty, value); }
+        }
+
         private InlineCollection Inlines 
         {
             get 
@@ -562,18 +631,28 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void OnTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (!m_InternalChangeTracker.IsInternalChange)
+            if (e.Changes.Any())
             {
-                using (var intChange = m_InternalChangeTracker.PerformInternalChange())
+                var cachedText = GetCachedText();
+
+                if (!string.Equals(m_CachedText, cachedText))
                 {
-                    UpdateExpression();
+                    m_CachedText = cachedText;
+
+                    if (!m_InternalChangeTracker.IsInternalChange)
+                    {
+                        using (var intChange = m_InternalChangeTracker.PerformInternalChange())
+                        {
+                            UpdateExpression();
+                        }
+                    }
                 }
             }
         }
 
         private void UpdateExpression()
         {
-            var parser = GetParser();
+            var parser = GetExpressionParser();
             
             IExpressionToken token;
 
@@ -588,6 +667,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             Expression = parser.CreateExpression(token);
         }
+
+        private string GetCachedText() => new TextRange(m_Doc.ContentStart, m_Doc.ContentEnd).Text;
 
         private static void OnExpressionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) 
         {
@@ -604,7 +685,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     m_Doc.Blocks.Clear();
 
-                    var parser = GetParser();
+                    var parser = GetExpressionParser();
 
                     try
                     {
@@ -630,7 +711,12 @@ namespace Xarial.XToolkit.Wpf.Controls
             switch (expressionToken)
             {
                 case IExpressionTokenVariable variable:
-                    var uiCont = new InlineUIContainer(new ExpressionVariableTokenControl(variable, VariableDescriptor, GetParser(), VariableLinks), pos);
+                    var varCtrl = new ExpressionVariableTokenControl(this, variable);
+                    varCtrl.VariableUpdated += OnVariableUpdated;
+                    var uiCont = new InlineUIContainer(varCtrl, pos) 
+                    {
+                        BaselineAlignment = BaselineAlignment.Center 
+                    };
                     pos = uiCont.ContentEnd.GetInsertionPosition(LogicalDirection.Forward);
                     res.Add(uiCont);
                     break;
@@ -656,6 +742,11 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
 
             return res;
+        }
+
+        private void OnVariableUpdated(ExpressionVariableTokenControl sender)
+        {
+            UpdateExpression();
         }
 
         private IExpressionToken GetExpressionToken(IEnumerable<Inline> inlines) 
@@ -704,13 +795,25 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        private IExpressionParser GetParser()
+        internal IExpressionVariableDescriptor GetVariableDescriptor() 
+        {
+            var desc = VariableDescriptor;
+
+            if (desc == null) 
+            {
+                desc = m_DefaultVariableDescriptor ?? (m_DefaultVariableDescriptor = new DefaultExpressionVariableDescriptor());
+            }
+
+            return desc;
+        }
+
+        internal IExpressionParser GetExpressionParser()
         {
             var parser = ExpressionParser;
 
             if (parser == null)
             {
-                throw new NullReferenceException("Expression parser is not set");
+                parser = m_DefaultParser ?? (m_DefaultParser = new ExpressionParser());
             }
 
             return parser;

@@ -52,14 +52,14 @@ namespace WpfTester
 
                 return new ExpressionVariableArgumentDescriptor[]
                 {
-                    ExpressionVariableArgumentDescriptor.CreateText("Text Argument", "Sample Text Argument"),
-                    ExpressionVariableArgumentDescriptor.CreateNumeric("Numeric Argument", "Numeric Text Argument"),
-                    ExpressionVariableArgumentDescriptor.CreateNumericDouble("Numeric Double Argument", "Sample Numeric Double Argument"),
-                    ExpressionVariableArgumentDescriptor.CreateToggle("Toggle Argument", "Sample Toggle Argument"),
-                    ExpressionVariableArgumentDescriptor.CreateOptions("Options Argument", "Sample Options Argument", "A", "B", "C", "D"),
-                    ExpressionVariableArgumentDescriptor.CreateOptions<Options_e>("Enum Options Argument", "Sample Enum Options Argument"),
-                    ExpressionVariableArgumentDescriptor.CreateOptions<MultiOptions_e>("Enum Multi Options Argument", "Sample Enum Multi Argument"),
-                    new ExpressionVariableArgumentDescriptor("Default Argument", "Sample Default Argument")
+                    ExpressionVariableArgumentDescriptor.CreateText("Text Argument", "Sample Text Argument", null),
+                    ExpressionVariableArgumentDescriptor.CreateNumeric("Numeric Argument", "Numeric Text Argument", m_Var1Icon),
+                    ExpressionVariableArgumentDescriptor.CreateNumericDouble("Numeric Double Argument", "Sample Numeric Double Argument", null),
+                    ExpressionVariableArgumentDescriptor.CreateToggle("Toggle Argument", "Sample Toggle Argument", null),
+                    ExpressionVariableArgumentDescriptor.CreateOptions("Options Argument", "Sample Options Argument", null, "A", "B", "C", "D"),
+                    ExpressionVariableArgumentDescriptor.CreateOptions<Options_e>("Enum Options Argument", "Sample Enum Options Argument", null),
+                    ExpressionVariableArgumentDescriptor.CreateOptions<MultiOptions_e>("Enum Multi Options Argument", "Sample Enum Multi Argument", null),
+                    ExpressionVariableArgumentDescriptor.CreateExpression("Default Argument", "Sample Default Argument", null)
                 };
             }
             else if (string.Equals(variable.Name, "var2", StringComparison.CurrentCultureIgnoreCase))
@@ -68,14 +68,22 @@ namespace WpfTester
 
                 return new ExpressionVariableArgumentDescriptor[]
                 {
-                    ExpressionVariableArgumentDescriptor.CreateText("Argument1", "First Argument"),
-                    ExpressionVariableArgumentDescriptor.CreateText("Argument2", "Second Argument")
+                    ExpressionVariableArgumentDescriptor.CreateText("Argument1", "First Argument", null),
+                    ExpressionVariableArgumentDescriptor.CreateText("Argument2", "Second Argument", null)
                 };
             }
-            else if (string.Equals(variable.Name, "var3", StringComparison.CurrentCultureIgnoreCase)) 
+            else if (string.Equals(variable.Name, "var3", StringComparison.CurrentCultureIgnoreCase))
             {
                 dynamic = false;
                 return null;
+            }
+            else if (string.Equals(variable.Name, "var4", StringComparison.CurrentCultureIgnoreCase))
+            {
+                dynamic = false;
+                return new ExpressionVariableArgumentDescriptor[]
+                {
+                    ExpressionVariableArgumentDescriptor.CreateExpression("Default Argument", "Sample Default Argument", null)
+                };
             }
             else 
             {
@@ -125,7 +133,7 @@ namespace WpfTester
 
             VariableLinks = new ObservableCollection<IExpressionVariableLink>(new IExpressionVariableLink[]
             {
-                new GenericExpressionVariableLink(),
+                new ExpressionVariableLinkGeneric(),
                 new ExpressionVariableLink("Insert 'var1'...", "Inserting 'var1'", m_Var1Icon, s => new ExpressionTokenVariable("var1", null), true),
                 new ExpressionVariableLink("Insert 'var2'", "Inserting 'var2'", null, s => new ExpressionTokenVariable("var2", new IExpressionToken[] { new ExpressionTokenText("X"), new ExpressionTokenText("Y") }), false)
             });
