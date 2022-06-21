@@ -23,7 +23,7 @@ namespace Xarial.XToolkit
         /// <param name="srcPath">Start path</param>
         /// <param name="additionalPaths">Additional path parts</param>
         /// <returns>Combined path</returns>
-        /// <remarks>This method works with relative path, including moving the upper fodlers via ..</remarks>
+        /// <remarks>This method works with relative path, including moving the upper folders via ..</remarks>
         public static string CombinePaths(string srcPath, params string[] additionalPaths) 
         {
             var pathParts = new List<string>();

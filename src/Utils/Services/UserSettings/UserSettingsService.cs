@@ -51,6 +51,8 @@ namespace Xarial.XToolkit.Services.UserSettings
             jsonSer.Serialize(settsWriter, setts, typeof(T));
         }
 
+        protected virtual JsonSerializer CreateJsonSerializer() => new JsonSerializer();
+
         private bool TryGetVersionInfo<T>(out Version vers, out IEnumerable<VersionTransform> transforms)
         {
             if (typeof(T).TryGetAttribute(out UserSettingVersionAttribute att, true))
@@ -66,9 +68,6 @@ namespace Xarial.XToolkit.Services.UserSettings
                 return false;
             }
         }
-
-        protected virtual JsonSerializer CreateJsonSerializer()
-            => new JsonSerializer();
     }
 
     public static class UserSettingsServiceExtension

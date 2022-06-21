@@ -26,19 +26,13 @@ namespace Xarial.XToolkit.Services.UserSettings
             }
         }
 
+        public IEnumerator<VersionTransform> GetEnumerator() => m_Transformers.GetEnumerator();
+
         protected void Add(Version from, Version to, Func<JToken, JToken> transform)
         {
             m_Transformers.Add(new VersionTransform(from, to, transform));
         }
 
-        public IEnumerator<VersionTransform> GetEnumerator()
-        {
-            return m_Transformers.GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return m_Transformers.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

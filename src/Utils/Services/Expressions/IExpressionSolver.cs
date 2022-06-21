@@ -96,7 +96,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
         private readonly StringComparison m_Comparison;
 
-        public ExpressionSolver(VariableValueProviderDelegate solver, StringComparison comparison = StringComparison.CurrentCultureIgnoreCase) 
+        public ExpressionSolver(VariableValueProviderDelegate solver, StringComparison comparison = StringComparison.CurrentCulture) 
         {
             if (solver == null) 
             {

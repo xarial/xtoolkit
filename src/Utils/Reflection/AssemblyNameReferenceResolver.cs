@@ -18,8 +18,8 @@ namespace Xarial.XToolkit.Reflection
     {
         public class AssemblyInfo
         {
-            public AssemblyName Name { get; }
             public string FilePath { get; }
+            public AssemblyName Name { get; }
             internal bool IsLoaded { get; }
 
             internal AssemblyInfo(AssemblyName name, string filePath, bool isLoaded)
@@ -94,8 +94,45 @@ namespace Xarial.XToolkit.Reflection
             return null;
         }
 
+        protected string GetCulture(AssemblyName assmName)
+        {
+            if (string.IsNullOrEmpty(assmName.CultureName))
+            {
+                return "neutral";
+            }
+            else
+            {
+                return assmName.CultureName;
+            }
+        }
+
+        protected string GetPublicKeyToken(AssemblyName assmName)
+        {
+            var bytes = assmName.GetPublicKeyToken();
+
+            if (bytes == null || bytes.Length == 0)
+            {
+                return "null";
+            }
+
+            var publicKeyToken = "";
+
+            for (int i = 0; i < bytes.GetLength(0); i++)
+            {
+                publicKeyToken += string.Format("{0:x2}", bytes[i]);
+            }
+
+            return publicKeyToken;
+        }
+
+        protected abstract AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly,
+            out string searchDir, out bool recursiveSearch);
+
+        protected virtual bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName)
+            => CompareAssemblyNames(probeAssmName, searchAssmName);
+
         protected virtual AssemblyInfo ResolveAmbiguity(
-            IReadOnlyList<AssemblyInfo> assmNames, AssemblyName searchAssmName)
+                                            IReadOnlyList<AssemblyInfo> assmNames, AssemblyName searchAssmName)
         {
             var assmInfo = assmNames.FirstOrDefault(a => CompareAssemblyNames(a.Name, searchAssmName));
 
@@ -111,6 +148,9 @@ namespace Xarial.XToolkit.Reflection
 
             return assmInfo;
         }
+
+        private bool CompareAssemblyNames(AssemblyName firstAssmName, AssemblyName secondAssmName)
+            => string.Equals(firstAssmName.FullName, secondAssmName.FullName);
 
         private IEnumerable<AssemblyInfo> EnumerateAssemblyByName(string dir, bool recurse, AssemblyName searchAssmName)
         {
@@ -137,45 +177,5 @@ namespace Xarial.XToolkit.Reflection
                 }
             }
         }
-
-        protected string GetPublicKeyToken(AssemblyName assmName)
-        {
-            var bytes = assmName.GetPublicKeyToken();
-
-            if (bytes == null || bytes.Length == 0)
-            {
-                return "null";
-            }
-
-            var publicKeyToken = "";
-
-            for (int i = 0; i < bytes.GetLength(0); i++)
-            {
-                publicKeyToken += string.Format("{0:x2}", bytes[i]);
-            }
-
-            return publicKeyToken;
-        }
-
-        protected string GetCulture(AssemblyName assmName)
-        {
-            if (string.IsNullOrEmpty(assmName.CultureName))
-            {
-                return "neutral";
-            }
-            else
-            {
-                return assmName.CultureName;
-            }
-        }
-
-        protected abstract AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly, 
-            out string searchDir, out bool recursiveSearch);
-
-        protected virtual bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName)
-            => CompareAssemblyNames(probeAssmName, searchAssmName);
-
-        private bool CompareAssemblyNames(AssemblyName firstAssmName, AssemblyName secondAssmName)
-            => string.Equals(firstAssmName.FullName, secondAssmName.FullName);
     }
 }

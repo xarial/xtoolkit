@@ -57,8 +57,6 @@ namespace Xarial.XToolkit.Wpf.Controls
 
     public class ExpressionVariableTokenControl : Control, INotifyPropertyChanged
     {
-        internal event Action<ExpressionVariableTokenControl> VariableUpdated;
-
         static ExpressionVariableTokenControl()
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionVariableTokenControl),
@@ -66,11 +64,36 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+        internal event Action<ExpressionVariableTokenControl> VariableUpdated;
 
         private DataGrid m_DataGrid;
         private PopupMenu m_PopupEditor;
 
+        private readonly string m_VariableName;
+        private IExpressionTokenVariable m_Variable;
+        private bool m_DynamicArguments;
+        private ObservableCollection<ExpressionVariableArgumentDescriptor> m_Arguments;
+
         private bool m_Edit;
+
+        internal ExpressionVariableTokenControl(ExpressionBox owner, IExpressionTokenVariable variable)
+        {
+            if (variable == null)
+            {
+                throw new ArgumentNullException(nameof(variable));
+            }
+
+            Owner = owner;
+
+            Owner.VariableDescriptorChanged += OnVariableDescriptorChanged;
+
+            m_Variable = variable;
+
+            m_VariableName = variable.Name;
+
+            UpdateVariableControl(variable);
+            UpdateVariableArguments(variable);
+        }
 
         public override void OnApplyTemplate()
         {
@@ -137,8 +160,6 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionBox Owner { get; }
 
-        private readonly string m_VariableName;
-
         public bool DynamicArguments
         {
             get => m_DynamicArguments;
@@ -149,27 +170,26 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        private IExpressionTokenVariable m_Variable;
-        private bool m_DynamicArguments;
-        private ObservableCollection<ExpressionVariableArgumentDescriptor> m_Arguments;
+        public static readonly DependencyProperty TitleProperty =
+            DependencyProperty.Register(
+            nameof(Title), typeof(string),
+            typeof(ExpressionVariableTokenControl));
 
-        internal ExpressionVariableTokenControl(ExpressionBox owner, IExpressionTokenVariable variable)
+        public string Title
         {
-            if (variable == null)
-            {
-                throw new ArgumentNullException(nameof(variable));
-            }
+            get { return (string)GetValue(TitleProperty); }
+            set { SetValue(TitleProperty, value); }
+        }
 
-            Owner = owner;
+        public static readonly DependencyProperty IconProperty =
+            DependencyProperty.Register(
+            nameof(Icon), typeof(ImageSource),
+            typeof(ExpressionVariableTokenControl));
 
-            Owner.VariableDescriptorChanged += OnVariableDescriptorChanged;
-
-            m_Variable = variable;
-
-            m_VariableName = variable.Name;
-
-            UpdateVariableControl(variable);
-            UpdateVariableArguments(variable);
+        public ImageSource Icon
+        {
+            get { return (ImageSource)GetValue(IconProperty); }
+            set { SetValue(IconProperty, value); }
         }
 
         private void OnVariableDescriptorChanged(ExpressionBox sender, IExpressionVariableDescriptor varsDesc)
@@ -234,43 +254,19 @@ namespace Xarial.XToolkit.Wpf.Controls
             ResolveDynamicArgumentNames();
         }
 
-        private void ResolveDynamicArgumentNames() 
+        private void ResolveDynamicArgumentNames()
         {
-            for (int i = 0; i < Arguments.Count; i++) 
+            for (int i = 0; i < Arguments.Count; i++)
             {
                 var arg = Arguments[i];
                 arg.Title = $"#{i + 1}";
                 arg.Description = $"Argument #{i + 1}";
             }
         }
-
-        public static readonly DependencyProperty TitleProperty =
-            DependencyProperty.Register(
-            nameof(Title), typeof(string),
-            typeof(ExpressionVariableTokenControl));
-
-        public string Title
-        {
-            get { return (string)GetValue(TitleProperty); }
-            set { SetValue(TitleProperty, value); }
-        }
-
-        public static readonly DependencyProperty IconProperty =
-            DependencyProperty.Register(
-            nameof(Icon), typeof(ImageSource),
-            typeof(ExpressionVariableTokenControl));
-
-        public ImageSource Icon
-        {
-            get { return (ImageSource)GetValue(IconProperty); }
-            set { SetValue(IconProperty, value); }
-        }
     }
 
     public class ExpressionBox : Control
     {
-        internal event Action<ExpressionBox, IExpressionVariableDescriptor> VariableDescriptorChanged;
-
         private class InternalChangeTracker 
         {
             private class InternalChange : IDisposable
@@ -317,6 +313,8 @@ namespace Xarial.XToolkit.Wpf.Controls
             public string GetDescription(IExpressionTokenVariable variable) => variable.Name;
         }
 
+        internal event Action<ExpressionBox, IExpressionVariableDescriptor> VariableDescriptorChanged;
+
         private RichTextBox m_TextBox;
         private FlowDocument m_Doc;
         private PopupMenu m_VariableLinksMenu;
@@ -324,6 +322,11 @@ namespace Xarial.XToolkit.Wpf.Controls
         private readonly InternalChangeTracker m_InternalChangeTracker;
 
         private bool m_IsInit;
+
+        private IExpressionVariableDescriptor m_DefaultVariableDescriptor;
+        private IExpressionParser m_DefaultParser;
+
+        private string m_CachedText;
 
         public ICommand InsertVariableCommand { get; }
 
@@ -340,10 +343,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                 new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromRgb(171, 173, 179))));
         }
 
-        private IExpressionVariableDescriptor m_DefaultVariableDescriptor;
-        private IExpressionParser m_DefaultParser;
-
-        private string m_CachedText;
 
         public ExpressionBox() 
         {
@@ -366,105 +365,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             DataObject.AddPastingHandler(m_TextBox, OnPaste);
 
             RenderExpression(Expression);
-        }
-
-        private void InsertVariable(IExpressionVariableLink link)
-        {
-            var var = link.Factory.Invoke(this);
-
-            if (var != null) 
-            {
-                Insert(var, link.EnterArguments);
-                m_VariableLinksMenu.IsOpen = false;
-            }
-        }
-
-        private void OnCopy(object sender, DataObjectCopyingEventArgs e)
-        {
-            e.Handled = true;
-            e.CancelCommand();
-
-            IEnumerable<Tuple<Inline, int?, int?>> GetSelectedInlines() 
-            {
-                var sel = m_TextBox.Selection;
-
-                if (!sel.IsEmpty)
-                {
-                    foreach (var inline in Inlines)
-                    {
-                        if (sel.Start.CompareTo(inline.ContentEnd) <= 0 && sel.End.CompareTo(inline.ContentStart) >= 0)
-                        {
-                            var hasStart = sel.Contains(inline.ContentStart);
-                            var hasEnd = sel.Contains(inline.ContentEnd);
-
-                            int? start = null;
-                            int? end = null;
-
-                            if (!hasStart)
-                            {
-                                start = inline.ContentStart.GetOffsetToPosition(sel.Start);
-                            }
-
-                            if (!hasEnd)
-                            {
-                                end = sel.End.GetOffsetToPosition(inline.ContentEnd);
-                            }
-
-                            yield return new Tuple<Inline, int?, int?>(inline, start, end);
-                        }
-                    }
-                }
-                else
-                {
-                    yield break;
-                }
-            }
-
-            var expression = new StringBuilder();
-
-            var parser = GetExpressionParser();
-
-            foreach (var inline in GetSelectedInlines()) 
-            {
-                var token = GetExpressionToken(inline.Item1);
-
-                var tokenExpression = parser.CreateExpression(token);
-
-                if (inline.Item3.HasValue)
-                {
-                    tokenExpression = tokenExpression.Substring(0, tokenExpression.Length - inline.Item3.Value);
-                }
-
-                if (inline.Item2.HasValue) 
-                {
-                    tokenExpression = tokenExpression.Substring(inline.Item2.Value);
-                }
-
-                expression.Append(tokenExpression);
-            }
-
-            Clipboard.SetText(expression.ToString());
-        }
-
-        private void OnPaste(object sender, DataObjectPastingEventArgs e)
-        {
-            e.Handled = true;
-            e.CancelCommand();
-
-            var parser = GetExpressionParser();
-
-            var expression = Clipboard.GetText();
-
-            try
-            {
-                var token = parser.Parse(expression);
-
-                Insert(token, false);
-            }
-            catch (Exception ex)
-            {
-                SetExpressionError(ex);
-            }
         }
 
         public void Insert(IExpressionToken expressionToken, bool enterArgs) 
@@ -610,6 +510,30 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (DataTemplate)GetValue(ArgumentLabelTemplateProperty); }
             set { SetValue(ArgumentLabelTemplateProperty, value); }
+        }
+
+        internal IExpressionVariableDescriptor GetVariableDescriptor()
+        {
+            var desc = VariableDescriptor;
+
+            if (desc == null)
+            {
+                desc = m_DefaultVariableDescriptor ?? (m_DefaultVariableDescriptor = new DefaultExpressionVariableDescriptor());
+            }
+
+            return desc;
+        }
+
+        internal IExpressionParser GetExpressionParser()
+        {
+            var parser = ExpressionParser;
+
+            if (parser == null)
+            {
+                parser = m_DefaultParser ?? (m_DefaultParser = new ExpressionParser());
+            }
+
+            return parser;
         }
 
         private InlineCollection Inlines 
@@ -802,28 +726,103 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        internal IExpressionVariableDescriptor GetVariableDescriptor() 
+        private void InsertVariable(IExpressionVariableLink link)
         {
-            var desc = VariableDescriptor;
+            var var = link.Factory.Invoke(this);
 
-            if (desc == null) 
+            if (var != null)
             {
-                desc = m_DefaultVariableDescriptor ?? (m_DefaultVariableDescriptor = new DefaultExpressionVariableDescriptor());
+                Insert(var, link.EnterArguments);
+                m_VariableLinksMenu.IsOpen = false;
             }
-
-            return desc;
         }
 
-        internal IExpressionParser GetExpressionParser()
+        private void OnCopy(object sender, DataObjectCopyingEventArgs e)
         {
-            var parser = ExpressionParser;
+            e.Handled = true;
+            e.CancelCommand();
 
-            if (parser == null)
+            IEnumerable<Tuple<Inline, int?, int?>> GetSelectedInlines()
             {
-                parser = m_DefaultParser ?? (m_DefaultParser = new ExpressionParser());
+                var sel = m_TextBox.Selection;
+
+                if (!sel.IsEmpty)
+                {
+                    foreach (var inline in Inlines)
+                    {
+                        if (sel.Start.CompareTo(inline.ContentEnd) <= 0 && sel.End.CompareTo(inline.ContentStart) >= 0)
+                        {
+                            var hasStart = sel.Contains(inline.ContentStart);
+                            var hasEnd = sel.Contains(inline.ContentEnd);
+
+                            int? start = null;
+                            int? end = null;
+
+                            if (!hasStart)
+                            {
+                                start = inline.ContentStart.GetOffsetToPosition(sel.Start);
+                            }
+
+                            if (!hasEnd)
+                            {
+                                end = sel.End.GetOffsetToPosition(inline.ContentEnd);
+                            }
+
+                            yield return new Tuple<Inline, int?, int?>(inline, start, end);
+                        }
+                    }
+                }
+                else
+                {
+                    yield break;
+                }
             }
 
-            return parser;
+            var expression = new StringBuilder();
+
+            var parser = GetExpressionParser();
+
+            foreach (var inline in GetSelectedInlines())
+            {
+                var token = GetExpressionToken(inline.Item1);
+
+                var tokenExpression = parser.CreateExpression(token);
+
+                if (inline.Item3.HasValue)
+                {
+                    tokenExpression = tokenExpression.Substring(0, tokenExpression.Length - inline.Item3.Value);
+                }
+
+                if (inline.Item2.HasValue)
+                {
+                    tokenExpression = tokenExpression.Substring(inline.Item2.Value);
+                }
+
+                expression.Append(tokenExpression);
+            }
+
+            Clipboard.SetText(expression.ToString());
+        }
+
+        private void OnPaste(object sender, DataObjectPastingEventArgs e)
+        {
+            e.Handled = true;
+            e.CancelCommand();
+
+            var parser = GetExpressionParser();
+
+            var expression = Clipboard.GetText();
+
+            try
+            {
+                var token = parser.Parse(expression);
+
+                Insert(token, false);
+            }
+            catch (Exception ex)
+            {
+                SetExpressionError(ex);
+            }
         }
 
         private void SetExpressionError(Exception ex)
