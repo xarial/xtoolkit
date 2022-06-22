@@ -200,19 +200,22 @@
             <TabItem Header="LabeledControl">
                 <Grid Grid.IsSharedSizeScope="True">
                     <StackPanel DataContext="{Binding Path=LabeledControl}" Orientation="Vertical">
-                        <ctrls:LabeledControl Label="Test Label:" Margin="2" GridSharedSizeGroup="LabelGridGroup">
+                        <ctrls:LabeledControl Label="Test Label:" Margin="2" LabelMargin="10" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="Some Text 1"/>
                         </ctrls:LabeledControl>
-                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" GridSharedSizeGroup="LabelGridGroup">
+                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" Icon="/WpfTester;component/Resources/icon.png" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="{Binding Path=Text1}"/>
                         </ctrls:LabeledControl>
                         <ctrls:LabeledControl Label="Another Test Label Number 3:" Margin="2">
                             <TextBox Text="Some Text 3"/>
-                            <ctrls:LabeledControl.TextBlockStyle>
+                            <ctrls:LabeledControl.LabelStyle>
                                 <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="Foreground" Value="Green"/>
                                 </Style>
-                            </ctrls:LabeledControl.TextBlockStyle>
+                            </ctrls:LabeledControl.LabelStyle>
+                        </ctrls:LabeledControl>
+                        <ctrls:LabeledControl Margin="2" Icon="/WpfTester;component/Resources/icon.png">
+                            <ComboBox/>
                         </ctrls:LabeledControl>
                     </StackPanel>
                 </Grid>
