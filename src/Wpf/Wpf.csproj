@@ -3,6 +3,7 @@
   <PropertyGroup>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net461;netstandard2.1</TargetFrameworks>
     <RootNamespace>Xarial.XToolkit.Wpf</RootNamespace>
     <AssemblyName>Xarial.XToolkit.Wpf</AssemblyName>
 	  <SignAssembly>false</SignAssembly>
@@ -26,19 +27,6 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageIconUrl>https://xarial.com/xtoolkit-icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <TargetFrameworks>net461;netstandard2.1</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetRuntimeVersion)' == ''">
-    <TargetFrameworks>netcoreapp3.1;net461;net6.0-windows</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetRuntimeVersion)' == '4'">
-    <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(TargetRuntimeVersion)' == '6'">
-    <TargetFrameworks>net6.0-windows</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
