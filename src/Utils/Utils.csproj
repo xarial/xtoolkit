@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
     <RootNamespace>Xarial.XToolkit</RootNamespace>
     <AssemblyName>Xarial.XToolkit</AssemblyName>
 	  <SignAssembly>false</SignAssembly>
@@ -25,6 +24,18 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageIconUrl>https://xarial.com/xtoolkit-icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetRuntimeVersion)' == ''">
+    <TargetFrameworks>netstandard2.1;net461;net6.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetRuntimeVersion)' == '4'">
+    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetRuntimeVersion)' == '6'">
+    <TargetFrameworks>net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">

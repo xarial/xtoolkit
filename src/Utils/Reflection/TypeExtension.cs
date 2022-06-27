@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 
 namespace Xarial.XToolkit.Reflection
 {
@@ -59,10 +60,14 @@ namespace Xarial.XToolkit.Reflection
             }
         }
 
+        /// <summary>
+        /// Checks if this type can be assigned to the generic type
+        /// </summary>
+        /// <param name="thisType">This type</param>
+        /// <param name="genericType">Generic type</param>
+        /// <returns>True if this type can be assigned to generic type</returns>
         public static bool IsAssignableToGenericType(this Type thisType, Type genericType)
-        {
-            return thisType.TryFindGenericType(genericType) != null;
-        }
+            => thisType.TryFindGenericType(genericType) != null;
 
         public static Type[] GetArgumentsOfGenericType(this Type thisType, Type genericType)
         {
@@ -105,6 +110,55 @@ namespace Xarial.XToolkit.Reflection
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Finds the method from the type if 
+        /// </summary>
+        /// <param name="type">Type to get method from</param>
+        /// <param name="name">Name of the method</param>
+        /// <param name="paramTypes">Parameter types of the method</param>
+        /// <param name="bindingFlags">Binding flags</param>
+        /// <returns>Method or null if not found</returns>
+        /// <remarks>This method is similar to <see cref="Type.GetMethod(string)"/>, but allowing to specify the generic types definitions</remarks>
+        public static MethodInfo GetMethodWithGenericParameters(this Type type, string name, Type[] paramTypes, BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public)
+        {
+            if (paramTypes == null)
+            {
+                paramTypes = new Type[0];
+            }
+
+            var method = type.GetMethods(bindingFlags).Where(m => m.Name == name)
+                .FirstOrDefault(m =>
+                {
+                    var parameters = m.GetParameters() ?? new ParameterInfo[0];
+
+                    if (parameters.Length == paramTypes.Length)
+                    {
+                        for (int i = 0; i < parameters.Length; i++)
+                        {
+                            var paramType = parameters[i].ParameterType;
+
+                            if (paramType.IsGenericType)
+                            {
+                                paramType = paramType.GetGenericTypeDefinition();
+                            }
+
+                            if (paramType != paramTypes[i])
+                            {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                });
+
+            return method;
         }
 
         public static Enum[] GetEnumFlags(this Type enumType)

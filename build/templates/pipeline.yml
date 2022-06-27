@@ -33,10 +33,26 @@ stages:
           secureFile: xarial.snk
 
       - task: VSBuild@1
-        displayName: 'Build and pack preview version'
+        displayName: 'Build preview version (Runtime 4)'
         inputs:
           solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber)'
+          msbuildArgs: '/p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber);TargetRuntimeVersion=4'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+
+      - task: VSBuild@1
+        displayName: 'Build preview version (Runtime 6)'
+        inputs:
+          solution: 'src\${{ parameters.projectName }}\*.csproj'
+          msbuildArgs: '/p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber);TargetRuntimeVersion=6'
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
+
+      - task: VSBuild@1
+        displayName: 'Pack preview version'
+        inputs:
+          solution: 'src\${{ parameters.projectName }}\*.csproj'
+          msbuildArgs: '/t:pack'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
       
