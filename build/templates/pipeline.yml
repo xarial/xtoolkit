@@ -45,16 +45,15 @@ stages:
         inputs:
           solution: 'src\${{ parameters.projectName }}\*.csproj'
           msbuildArgs: '/p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber);TargetRuntimeVersion=6'
+          clean: false
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
-      - task: DotNetCoreCLI@2
+      - task: NuGetCommand@2
         displayName: 'Pack preview version'
         inputs:
-          command: pack
-          packagesToPack: 'src\${{ parameters.projectName }}\*.csproj'
-          nobuild: true
-          arguments: '--version-suffix $(Build.BuildNumber)'
+          command: custom
+          arguments: 'pack "src\${{ parameters.projectName }}\*.csproj" -Suffix $(Build.BuildNumber)'
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: VSBuild@1
