@@ -33,27 +33,12 @@ stages:
           secureFile: xarial.snk
 
       - task: VSBuild@1
-        displayName: 'Build preview version (Runtime 4)'
+        displayName: 'Build and pack preview version'
         inputs:
           solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber);TargetRuntimeVersion=4'
+          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
-
-      - task: VSBuild@1
-        displayName: 'Build preview version (Runtime 6)'
-        inputs:
-          solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber);TargetRuntimeVersion=6'
-          clean: false
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
-
-      - task: NuGetCommand@2
-        displayName: 'Pack preview version'
-        inputs:
-          command: custom
-          arguments: 'pack "src\${{ parameters.projectName }}\${{ parameters.projectName }}.csproj" -Suffix $(Build.BuildNumber)'
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: VSBuild@1
