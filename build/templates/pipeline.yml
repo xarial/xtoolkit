@@ -53,7 +53,7 @@ stages:
         displayName: 'Pack preview version'
         inputs:
           command: custom
-          arguments: 'pack "src\${{ parameters.projectName }}\*.csproj" -Suffix $(Build.BuildNumber)'
+          arguments: 'pack "src\${{ parameters.projectName }}\${{ parameters.projectName }}.csproj" -Suffix $(Build.BuildNumber)'
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: VSBuild@1
