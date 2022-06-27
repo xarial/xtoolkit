@@ -3,7 +3,7 @@
   <PropertyGroup>
     <RootNamespace>Xarial.XToolkit</RootNamespace>
     <AssemblyName>Xarial.XToolkit</AssemblyName>
-    <TargetFrameworks>net461;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.1;net461</TargetFrameworks>
 	  <SignAssembly>false</SignAssembly>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
