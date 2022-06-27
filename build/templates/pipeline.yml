@@ -48,13 +48,13 @@ stages:
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
-      - task: VSBuild@1
+      - task: DotNetCoreCLI@2
         displayName: 'Pack preview version'
         inputs:
-          solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/t:pack'
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
+          command: pack
+          packagesToPack: 'src\${{ parameters.projectName }}\*.csproj'
+          nobuild: true
+          arguments: '--version-suffix $(Build.BuildNumber)'
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: VSBuild@1
