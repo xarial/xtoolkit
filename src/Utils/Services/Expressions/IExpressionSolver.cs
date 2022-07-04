@@ -13,28 +13,37 @@ using System.Text;
 namespace Xarial.XToolkit.Services.Expressions
 {
     /// <summary>
-    /// Solves the expression token
+    /// Solves the expression token with context
     /// </summary>
-    public interface IExpressionSolver
+    public interface IExpressionSolver<TContext>
     {
         /// <summary>
         /// Replaces the expression token with values
         /// </summary>
         /// <param name="token">Expression token to solve</param>
+        /// <param name="context">Context</param>
         /// <returns>Expression with replaced variables</returns>
+        string Solve(IExpressionToken token, TContext context);
+    }
+
+    //Solver without the context
+    public interface IExpressionSolver : IExpressionSolver<object>
+    {
+        /// <inheritdoc/>
         string Solve(IExpressionToken token);
     }
 
+    public delegate string VariableValueProviderDelegate<TContext>(string name, string[] args, TContext context);
     public delegate string VariableValueProviderDelegate(string name, string[] args);
 
-    public class ExpressionSolver : IExpressionSolver
+    public class ExpressionSolver<TContext> : IExpressionSolver<TContext>
     {
         private class VariableCacheKey
         {
             internal string VariableName { get; }
             internal string[] Arguments { get; }
-            
-            internal VariableCacheKey(string varName, string[] args) 
+
+            internal VariableCacheKey(string varName, string[] args)
             {
                 VariableName = varName;
                 Arguments = args;
@@ -45,19 +54,19 @@ namespace Xarial.XToolkit.Services.Expressions
         {
             private readonly StringComparison m_Comparison;
 
-            internal VariableCacheKeyEqualityComparer(StringComparison comparison) 
+            internal VariableCacheKeyEqualityComparer(StringComparison comparison)
             {
                 m_Comparison = comparison;
             }
 
             public bool Equals(VariableCacheKey x, VariableCacheKey y)
             {
-                if (object.ReferenceEquals(x, y)) 
+                if (object.ReferenceEquals(x, y))
                 {
                     return true;
                 }
 
-                if (x == null || y == null) 
+                if (x == null || y == null)
                 {
                     return false;
                 }
@@ -92,35 +101,34 @@ namespace Xarial.XToolkit.Services.Expressions
             public int GetHashCode(VariableCacheKey obj) => 0;
         }
 
-        private readonly VariableValueProviderDelegate m_Solver;
-
         private readonly StringComparison m_Comparison;
+        private readonly VariableValueProviderDelegate<TContext> m_Solver;
 
-        public ExpressionSolver(VariableValueProviderDelegate solver, StringComparison comparison = StringComparison.CurrentCulture) 
+        public ExpressionSolver(VariableValueProviderDelegate<TContext> solver, StringComparison comparison = StringComparison.CurrentCulture)
         {
-            if (solver == null) 
+            if (solver == null)
             {
                 throw new ArgumentNullException(nameof(solver));
             }
 
-            m_Comparison = comparison;
-
             m_Solver = solver;
+
+            m_Comparison = comparison;
         }
 
-        public string Solve(IExpressionToken token)
+        public string Solve(IExpressionToken token, TContext context)
         {
             if (token == null)
             {
                 throw new ArgumentNullException(nameof(token));
             }
 
-            return Resolve(token, new Dictionary<VariableCacheKey, string>(new VariableCacheKeyEqualityComparer(m_Comparison)));
+            return Resolve(token, context, new Dictionary<VariableCacheKey, string>(new VariableCacheKeyEqualityComparer(m_Comparison)));
         }
 
-        private string Resolve(IExpressionToken token, Dictionary<VariableCacheKey, string> variableCache)
+        private string Resolve(IExpressionToken token, TContext context, Dictionary<VariableCacheKey, string> variableCache)
         {
-            if (token == null) 
+            if (token == null)
             {
                 throw new ArgumentNullException(nameof(token));
             }
@@ -132,7 +140,7 @@ namespace Xarial.XToolkit.Services.Expressions
                 case IExpressionTokenGroup group:
                     foreach (var child in group.Children)
                     {
-                        value.Append(Resolve(child, variableCache));
+                        value.Append(Resolve(child, context, variableCache));
                     }
                     break;
 
@@ -150,7 +158,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
                         for (int i = 0; i < variable.Arguments.Length; i++)
                         {
-                            arguments[i] = Resolve(variable.Arguments[i], variableCache);
+                            arguments[i] = Resolve(variable.Arguments[i], context, variableCache);
                         }
                     }
                     else
@@ -160,9 +168,9 @@ namespace Xarial.XToolkit.Services.Expressions
 
                     var cacheKey = new VariableCacheKey(variable.Name, arguments);
 
-                    if (!variableCache.TryGetValue(cacheKey, out string varVal)) 
+                    if (!variableCache.TryGetValue(cacheKey, out string varVal))
                     {
-                        varVal = m_Solver.Invoke(variable.Name, arguments);
+                        varVal = m_Solver.Invoke(variable.Name, arguments, context);
 
                         variableCache.Add(cacheKey, varVal);
                     }
@@ -177,5 +185,15 @@ namespace Xarial.XToolkit.Services.Expressions
 
             return value.ToString();
         }
+    }
+
+    public class ExpressionSolver : ExpressionSolver<object>, IExpressionSolver
+    {
+        public ExpressionSolver(VariableValueProviderDelegate solver, StringComparison comparison = StringComparison.CurrentCulture)
+            : base((n, a, c) => solver.Invoke(n, a), comparison)
+        {
+        }
+
+        public string Solve(IExpressionToken token) => base.Solve(token, null);
     }
 }

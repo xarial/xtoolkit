@@ -227,6 +227,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -279,6 +280,31 @@
                                         </ctrls:ExpressionVariableArgumentOptionsDescriptor>
                                     </ctrls:ExpressionVariableArgumentsInfo.Arguments>
                                 </ctrls:ExpressionVariableArgumentsInfo>
+                            </ctrls:ExpressionVariableDescriptor>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression}" BorderThickness="0" Grid.Row="4">
+                        <ctrls:ExpressionBox.VariableLinks>
+                            <ctrls:ExpressionVariableLinkCollection>
+                                <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Custom property variable" EnterArguments="True"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="cutlistprp" Title="Cut-list custom property variable" EnterArguments="True"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="qty" Title="Quantity variable" EnterArguments="True"/>
+                            </ctrls:ExpressionVariableLinkCollection>
+                        </ctrls:ExpressionBox.VariableLinks>
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <ctrls:ExpressionVariableDescriptor>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="prp" TitleFormat="{}{0}" DescriptionFormat="Property Variable" Background="LightBlue"  Dynamic="False">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the custom property"/>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="cutlistprp" TitleFormat="{}Cut-List {0}" DescriptionFormat="Cut-list Property Variable" Background="LightYellow"  Dynamic="False">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the cut-list custom property"/>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="qty" TitleFormat="Quantity" DescriptionFormat="Quantity Variable" Background="LightGreen"  Dynamic="False"/>
                             </ctrls:ExpressionVariableDescriptor>
                         </ctrls:ExpressionBox.VariableDescriptor>
                     </ctrls:ExpressionBox>
