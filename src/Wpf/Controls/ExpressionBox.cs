@@ -64,7 +64,10 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
+
         internal event Action<ExpressionVariableTokenControl> VariableUpdated;
+        internal event Action<ExpressionVariableTokenControl> EditingStarted;
+        internal event Action<ExpressionVariableTokenControl> EditingCompleted;
 
         private DataGrid m_DataGrid;
         private PopupMenu m_PopupEditor;
@@ -99,7 +102,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             m_DataGrid = (DataGrid)this.Template.FindName("PART_DataGrid", this);
             m_PopupEditor = (PopupMenu)this.Template.FindName("PART_PopupEditor", this);
-
+            m_PopupEditor.Opened += OnPopupEditorOpened;
             m_PopupEditor.Closed += OnClosed;
 
             m_DataGrid.AddingNewItem += OnAddingNewItem;
@@ -126,7 +129,33 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        internal bool IsEditing
+        {
+            get => m_PopupEditor.IsOpen;
+            set => m_PopupEditor.IsOpen = value;
+        }
+
+        internal void Commit()
+        {
+            CommitChanges();
+
+            IsEditing = false;
+        }
+
+        private void OnPopupEditorOpened(PopupMenu sender)
+        {
+            m_DataGrid.Focus();
+            EditingStarted?.Invoke(this);
+        }
+
         private void OnClosed(PopupMenu popupMenu)
+        {
+            CommitChanges();
+
+            EditingCompleted?.Invoke(this);
+        }
+
+        private void CommitChanges()
         {
             var oldVar = m_Variable;
 
@@ -329,6 +358,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         private string m_CachedText;
         private int m_CachedVariablesCount;
 
+        private ExpressionVariableTokenControl m_EditingVariable;
+
         public ICommand InsertVariableCommand { get; }
 
         static ExpressionBox()
@@ -408,6 +439,14 @@ namespace Xarial.XToolkit.Wpf.Controls
                 m_TextBox.CaretPosition = pos;
 
                 m_TextBox.Focus();
+            }
+        }
+
+        public void CommitEditingVariable() 
+        {
+            if (m_EditingVariable != null) 
+            {
+                m_EditingVariable.Commit();
             }
         }
 
@@ -650,7 +689,11 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 case IExpressionTokenVariable variable:
                     var varCtrl = new ExpressionVariableTokenControl(this, variable);
+                    
                     varCtrl.VariableUpdated += OnVariableUpdated;
+                    varCtrl.EditingStarted += OnVariableEditingStarted;
+                    varCtrl.EditingCompleted += OnVariableEditingCompleted;
+
                     var uiCont = new InlineUIContainer(varCtrl, pos) 
                     {
                         BaselineAlignment = BaselineAlignment.Center 
@@ -685,6 +728,16 @@ namespace Xarial.XToolkit.Wpf.Controls
         private void OnVariableUpdated(ExpressionVariableTokenControl sender)
         {
             UpdateExpression();
+        }
+
+        private void OnVariableEditingStarted(ExpressionVariableTokenControl sender)
+        {
+            m_EditingVariable = sender;
+        }
+
+        private void OnVariableEditingCompleted(ExpressionVariableTokenControl sender)
+        {
+            m_EditingVariable = null;
         }
 
         private IExpressionToken GetExpressionToken(IEnumerable<Inline> inlines) 
