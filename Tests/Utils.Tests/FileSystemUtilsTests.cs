@@ -110,5 +110,15 @@ namespace Utils.Tests
             Assert.AreEqual(p17, @"abc\xyz.txt");
             Assert.AreEqual(p18, @"abc\xyz.txt");
         }
+
+        [Test]
+        public void ReplaceIllegalRelativePathCharactersTest() 
+        {
+            var path = @"\dir?\subdir<>\file*.txt";
+
+            var res = FileSystemUtils.ReplaceIllegalRelativePathCharacters(path, c => c == '*' ? '+' : '_');
+
+            Assert.AreEqual(@"\dir_\subdir__\file+.txt", res);
+        }
     }
 }

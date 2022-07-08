@@ -17,6 +17,8 @@ namespace Xarial.XToolkit
 {
     public static class FileSystemUtils
     {
+        private static readonly Lazy<char[]> m_IllegalChars = new Lazy<char[]>(() => Path.GetInvalidFileNameChars().Union(Path.GetInvalidPathChars()).ToArray());
+
         /// <summary>
         /// Combines the directory paths
         /// </summary>
@@ -115,6 +117,36 @@ namespace Xarial.XToolkit
                 UseShellExecute = true,
                 Arguments = $"/select, \"{path}\""
             });
+        }
+
+        /// <summary>
+        /// Replaces illegal characters in the relative file path (rooted path is not supported)
+        /// </summary>
+        /// <param name="path">Input path</param>
+        /// <param name="replacer">Illegal characters replacer</param>
+        /// <returns>Legal file path</returns>
+        public static string ReplaceIllegalRelativePathCharacters(string path, Func<char, char> replacer) 
+        {
+            if (string.IsNullOrEmpty(path)) 
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            var res = new StringBuilder();
+
+            foreach (var pathChar in path) 
+            {
+                if (pathChar != Path.DirectorySeparatorChar && m_IllegalChars.Value.Contains(pathChar))
+                {
+                    res.Append(replacer.Invoke(pathChar));
+                }
+                else
+                {
+                    res.Append(pathChar);
+                }
+            }
+
+            return res.ToString();
         }
     }
 }
