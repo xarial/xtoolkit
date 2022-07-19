@@ -9,8 +9,8 @@ namespace Xarial.XToolkit.Services
 {
     public class CsvWriter : IDisposable
     {
-        public static CsvWriter ToFile(string filePath, char separator = ',')
-            => new CsvWriter(File.CreateText(filePath), separator);
+        public static CsvWriter ToFile(string filePath, char delimeter = ',')
+            => new CsvWriter(File.CreateText(filePath), delimeter);
 
         private const char PROTECT_SYMBOL = '\"';
         private const char ROW_SEPARATION_SYMBOL = '\n';
@@ -18,22 +18,22 @@ namespace Xarial.XToolkit.Services
         private readonly TextWriter m_Writer;
 
         private readonly char[] m_SpecSymbols;
-        private readonly char m_Separator;
+        private readonly char m_Delimeter;
 
         private bool m_IsFirstLine;
 
-        public CsvWriter(TextWriter writer, char separator = ',') 
+        public CsvWriter(TextWriter writer, char delimeter = ',') 
         {
             if (writer == null) 
             {
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            m_Separator = separator;
+            m_Delimeter = delimeter;
 
             m_SpecSymbols = new char[]
             {
-                separator,
+                delimeter,
                 PROTECT_SYMBOL,
                 ROW_SEPARATION_SYMBOL
             };
@@ -65,7 +65,7 @@ namespace Xarial.XToolkit.Services
             {
                 if (!isFirstCell) 
                 {
-                    m_Writer.Write(m_Separator);
+                    m_Writer.Write(m_Delimeter);
                 }
 
                 m_Writer.Write(EscapeCellValue(cell));

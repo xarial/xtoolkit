@@ -9,21 +9,21 @@ namespace Xarial.XToolkit.Services
 {
     public class CsvReader : IDisposable
     {
-        public static CsvReader FromFile(string filePath, char separator = ',')
-            => new CsvReader(File.OpenText(filePath), separator);
+        public static CsvReader FromFile(string filePath, char delimeter = ',')
+            => new CsvReader(File.OpenText(filePath), delimeter);
 
         private readonly TextReader m_Reader;
 
-        private readonly char m_Separator;
+        private readonly char m_Delimeter;
 
-        public CsvReader(TextReader reader, char separator = ',')
+        public CsvReader(TextReader reader, char delimeter = ',')
         {
             if (reader == null) 
             {
                 throw new ArgumentNullException(nameof(reader));
             }
 
-            m_Separator = separator;
+            m_Delimeter = delimeter;
 
             m_Reader = reader;
 
@@ -57,7 +57,7 @@ namespace Xarial.XToolkit.Services
 
                 var symbChar = (char)symb;
 
-                if (symbChar == m_Separator && (!isProtectedCell || isPrevQuote))
+                if (symbChar == m_Delimeter && (!isProtectedCell || isPrevQuote))
                 {
                     yield return curCell.ToString();
                     curCell.Clear();

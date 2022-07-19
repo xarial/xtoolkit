@@ -271,6 +271,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             var cmbBox = (CheckableComboBox)d;
 
+            cmbBox.SetItems(cmbBox.ItemsSource ?? Enumerable.Empty<object>());
+
             cmbBox.SetItemsChecked((IList)e.NewValue ?? new List<object>());
         }
 
@@ -280,7 +282,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 m_Items.Clear();
                 m_ComboBox.Items.Clear();
-                SelectedItems?.Clear();
+                //SelectedItems?.Clear();
 
                 LoadItems(items);
             }
@@ -288,12 +290,15 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void LoadItems(IEnumerable items)
         {
-            foreach (var item in items)
+            if (items != null)
             {
-                var cmbItem = new CheckableComboBoxItem(item);
-                cmbItem.SelectedChanged += OnItemSelectedChanged;
-                m_Items.Add(cmbItem);
-                m_ComboBox.Items.Add(cmbItem);
+                foreach (var item in items)
+                {
+                    var cmbItem = new CheckableComboBoxItem(item);
+                    cmbItem.SelectedChanged += OnItemSelectedChanged;
+                    m_Items.Add(cmbItem);
+                    m_ComboBox.Items.Add(cmbItem);
+                }
             }
         }
 
