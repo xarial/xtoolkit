@@ -20,6 +20,9 @@ namespace Xarial.XToolkit.Helpers
         Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly);
     }
 
+    /// <summary>
+    /// This is a helper class allowing to specify strategies for resolving the missing dlls
+    /// </summary>
     public class AssemblyResolver
     {
         private readonly List<IReferenceResolver> m_AssemblyResolvers;
