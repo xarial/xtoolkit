@@ -799,89 +799,95 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void OnCopy(object sender, DataObjectCopyingEventArgs e)
         {
-            e.Handled = true;
-            e.CancelCommand();
-
-            IEnumerable<Tuple<Inline, int?, int?>> GetSelectedInlines()
+            if (m_EditingVariable == null)//if variable is editing no need to handle the copying as it will be hijacked
             {
-                var sel = m_TextBox.Selection;
+                e.Handled = true;
+                e.CancelCommand();
 
-                if (!sel.IsEmpty)
+                IEnumerable<Tuple<Inline, int?, int?>> GetSelectedInlines()
                 {
-                    foreach (var inline in Inlines)
+                    var sel = m_TextBox.Selection;
+
+                    if (!sel.IsEmpty)
                     {
-                        if (sel.Start.CompareTo(inline.ContentEnd) <= 0 && sel.End.CompareTo(inline.ContentStart) >= 0)
+                        foreach (var inline in Inlines)
                         {
-                            var hasStart = sel.Contains(inline.ContentStart);
-                            var hasEnd = sel.Contains(inline.ContentEnd);
-
-                            int? start = null;
-                            int? end = null;
-
-                            if (!hasStart)
+                            if (sel.Start.CompareTo(inline.ContentEnd) < 0 && sel.End.CompareTo(inline.ContentStart) > 0)
                             {
-                                start = inline.ContentStart.GetOffsetToPosition(sel.Start);
-                            }
+                                var hasStart = sel.Contains(inline.ContentStart);
+                                var hasEnd = sel.Contains(inline.ContentEnd);
 
-                            if (!hasEnd)
-                            {
-                                end = sel.End.GetOffsetToPosition(inline.ContentEnd);
-                            }
+                                int? start = null;
+                                int? end = null;
 
-                            yield return new Tuple<Inline, int?, int?>(inline, start, end);
+                                if (!hasStart)
+                                {
+                                    start = inline.ContentStart.GetOffsetToPosition(sel.Start);
+                                }
+
+                                if (!hasEnd)
+                                {
+                                    end = sel.End.GetOffsetToPosition(inline.ContentEnd);
+                                }
+
+                                yield return new Tuple<Inline, int?, int?>(inline, start, end);
+                            }
                         }
                     }
+                    else
+                    {
+                        yield break;
+                    }
                 }
-                else
+
+                var expression = new StringBuilder();
+
+                var parser = GetExpressionParser();
+
+                foreach (var inline in GetSelectedInlines())
                 {
-                    yield break;
+                    var token = GetExpressionToken(inline.Item1);
+
+                    var tokenExpression = parser.CreateExpression(token);
+
+                    if (inline.Item3.HasValue)
+                    {
+                        tokenExpression = tokenExpression.Substring(0, tokenExpression.Length - inline.Item3.Value);
+                    }
+
+                    if (inline.Item2.HasValue)
+                    {
+                        tokenExpression = tokenExpression.Substring(inline.Item2.Value);
+                    }
+
+                    expression.Append(tokenExpression);
                 }
+
+                Clipboard.SetText(expression.ToString());
             }
-
-            var expression = new StringBuilder();
-
-            var parser = GetExpressionParser();
-
-            foreach (var inline in GetSelectedInlines())
-            {
-                var token = GetExpressionToken(inline.Item1);
-
-                var tokenExpression = parser.CreateExpression(token);
-
-                if (inline.Item3.HasValue)
-                {
-                    tokenExpression = tokenExpression.Substring(0, tokenExpression.Length - inline.Item3.Value);
-                }
-
-                if (inline.Item2.HasValue)
-                {
-                    tokenExpression = tokenExpression.Substring(inline.Item2.Value);
-                }
-
-                expression.Append(tokenExpression);
-            }
-
-            Clipboard.SetText(expression.ToString());
         }
 
         private void OnPaste(object sender, DataObjectPastingEventArgs e)
         {
-            e.Handled = true;
-            e.CancelCommand();
-
-            var parser = GetExpressionParser();
-
-            var expression = Clipboard.GetText();
-
-            try
+            if (m_EditingVariable == null)//if variable is editing no need to handle the pasting as it will be hijacked
             {
-                var token = parser.Parse(expression);
+                e.Handled = true;
+                e.CancelCommand();
 
-                Insert(token, false);
-            }
-            catch (Exception ex)
-            {
-                SetExpressionError(ex);
+                var parser = GetExpressionParser();
+
+                var expression = Clipboard.GetText();
+
+                try
+                {
+                    var token = parser.Parse(expression);
+
+                    Insert(token, false);
+                }
+                catch (Exception ex)
+                {
+                    SetExpressionError(ex);
+                }
             }
         }
 
