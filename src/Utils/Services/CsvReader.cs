@@ -27,7 +27,7 @@ namespace Xarial.XToolkit.Services
 
             m_Reader = reader;
 
-            HasContent = m_Reader.Peek() != 1;
+            HasContent = m_Reader.Peek() != -1;
         }
 
         public bool HasContent { get; private set; }
@@ -67,6 +67,7 @@ namespace Xarial.XToolkit.Services
                 else if (symbChar == '\n' && !isProtectedCell)
                 {
                     yield return curCell.ToString();
+                    HasContent = m_Reader.Peek() != -1;
                     yield break;
                 }
                 else 

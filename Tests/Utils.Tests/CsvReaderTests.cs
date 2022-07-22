@@ -64,5 +64,31 @@ namespace Utils.Tests
             CollectionAssert.AreEqual(new string[] { "1", "2,3", "4", "5" }, lines[1]);
             CollectionAssert.AreEqual(new string[] { "6", "7", "8", "" }, lines[2]);
         }
+
+        [Test]
+        public void ReadNewLine()
+        {
+            var csv = "a,b,c\r\n1,2,3\r\n";
+
+            var lines = new List<string[]>();
+
+            using (var memStr = new MemoryStream(Encoding.UTF8.GetBytes(csv)))
+            {
+                using (var streamReader = new StreamReader(memStr))
+                {
+                    using (var csvReader = new CsvReader(streamReader))
+                    {
+                        while (csvReader.HasContent)
+                        {
+                            lines.Add(csvReader.ReadLine().ToArray());
+                        }
+                    }
+                }
+            }
+
+            Assert.AreEqual(2, lines.Count);
+            CollectionAssert.AreEqual(new string[] { "a", "b", "c" }, lines[0]);
+            CollectionAssert.AreEqual(new string[] { "1", "2", "3" }, lines[1]);
+        }
     }
 }
