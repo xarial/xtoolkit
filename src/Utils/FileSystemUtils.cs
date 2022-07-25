@@ -64,11 +64,15 @@ namespace Xarial.XToolkit
         /// <returns>Top level folders paths</returns>
         public static string[] GetTopFolders(IEnumerable<string> paths)
         {
+            bool IsSameOrInDirectory(string thisDir, string parentDir)
+                => NormalizeDirectoryPath(thisDir).StartsWith(NormalizeDirectoryPath(parentDir),
+                    StringComparison.CurrentCultureIgnoreCase);
+
             var result = new List<string>();
 
             foreach (var path in paths.OrderBy(p => p))
             {
-                if (!result.Any(r => IsInDirectory(path, r)))
+                if (!result.Any(r => IsSameOrInDirectory(path, r)))
                 {
                     result.Add(path);
                 }

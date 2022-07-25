@@ -75,6 +75,7 @@ namespace Utils.Tests
                 @"D:\a\b\c",
                 @"D:\a\b\d\",
                 @"D:\z\ab",
+                @"D:\a\b"
             };
 
             var r1 = FileSystemUtils.GetTopFolders(i1);
