@@ -12,12 +12,21 @@ using System.Text;
 
 namespace Xarial.XToolkit
 {
+    /// <summary>
+    /// Provides utility functions for working with command line
+    /// </summary>
     public static class CommandLineUtils
     {
         [DllImport("shell32.dll", SetLastError = true)]
         private static extern IntPtr CommandLineToArgvW(
             [MarshalAs(UnmanagedType.LPWStr)] string lpCmdLine, out int pNumArgs);
 
+        /// <summary>
+        /// Extracts arguments from the command line string
+        /// </summary>
+        /// <param name="cmdLineArgs">Command line arguments</param>
+        /// <returns>Separated arguments</returns>
+        /// <exception cref="Exception"></exception>
         public static string[] ParseCommandLine(string cmdLineArgs)
         {
             int count;

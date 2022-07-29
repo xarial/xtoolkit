@@ -114,18 +114,6 @@ namespace Xarial.XToolkit
             }
         }
 
-        private static string NormalizeDirectoryPath(string path)
-        {
-            if (!path.EndsWith("\\"))
-            {
-                return path + "\\";
-            }
-            else 
-            {
-                return path;
-            }
-        }
-
         /// <summary>
         /// Opens file explorer at the specified folder
         /// </summary>
@@ -182,6 +170,18 @@ namespace Xarial.XToolkit
             }
 
             return res.ToString();
+        }
+
+        private static string NormalizeDirectoryPath(string path)
+        {
+            if (!path.EndsWith("\\"))
+            {
+                return path + "\\";
+            }
+            else
+            {
+                return path;
+            }
         }
     }
 }

@@ -1,5 +1,13 @@
-parameters:
-  projectName : ''
+trigger:
+  branches:
+    include:
+    - master
+    - dev
+  paths:
+    include:
+    - src/*
+
+name: '$(Date:yyyyMMdd).$(Rev:r)[$(BuildID)]'
   
 stages:
 
@@ -19,12 +27,28 @@ stages:
 
     steps:
       - task: NuGetToolInstaller@1
-        displayName: 'Use NuGet'
+        displayName: 'Install NuGet'
 
       - task: NuGetCommand@2
-        displayName: 'NuGet restore'
+        displayName: 'Restore NuGet References'
         inputs:
           restoreSolution: '**\*.sln'
+
+      - task: VSBuild@1
+        displayName: 'Build test projects'
+        inputs:
+            solution: 'tests\*.Tests\*.csproj'
+            platform: '$(BuildPlatform)'
+            configuration: '$(BuildConfiguration)'
+
+      - task: VSTest@2
+        displayName: 'Run unit tests'
+        inputs:
+          testAssemblyVer2: |
+            **\$(BuildConfiguration)\**\*tests*.dll
+            !**\obj\**
+          platform: '$(BuildPlatform)'
+          configuration: '$(BuildConfiguration)'
 
       - task: DownloadSecureFile@1
         name: Certificate
@@ -33,41 +57,37 @@ stages:
           secureFile: xarial.snk
 
       - task: VSBuild@1
-        displayName: 'Build and pack preview version'
+        displayName: 'Build projects'
         inputs:
-          solution: 'src\${{ parameters.projectName }}\*.csproj'
-          msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\preview;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;VersionSuffix=$(Build.BuildNumber)'
+          solution: 'src/**/*.csproj'
+          msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
-      
-      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-        - task: VSBuild@1
-          displayName: 'Build and pack release version'
+
+      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: DotNetCoreCLI@2
+          displayName: 'Pack preview versions'
           inputs:
-            solution: 'src\${{ parameters.projectName }}\*.csproj'
-            msbuildArgs: '/t:pack /p:OutputPath=$(System.DefaultWorkingDirectory)\build\release;SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false'
-            platform: '$(BuildPlatform)'
-            configuration: '$(BuildConfiguration)'
-            
-      - task: VSBuild@1
-        displayName: 'Build test projects'
-        inputs:
-            solution: 'tests\${{ parameters.projectName }}.Tests\*.csproj'
-            platform: '$(BuildPlatform)'
-            configuration: '$(BuildConfiguration)'
-            
-      - task: VSTest@2
-        displayName: 'Unit test'
-        inputs:
-          testAssemblyVer2: |
-            **\$(BuildConfiguration)\**\*tests*.dll
-            !**\obj\**
-          platform: '$(BuildPlatform)'
-          configuration: '$(BuildConfiguration)'
+            command: pack
+            packagesToPack: 'src/**/*.csproj'
+            configurationToPack: $(BuildConfiguration)
+            outputDir: $(Build.ArtifactStagingDirectory)/packages/preview
+            nobuild: true
+            buildProperties: 'VersionSuffix=preview.$(Build.BuildId)'
+
+      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+        - task: DotNetCoreCLI@2
+          displayName: 'Pack production versions'
+          inputs:
+            command: pack
+            packagesToPack: 'src/**/*.csproj'
+            configurationToPack: $(BuildConfiguration)
+            outputDir: $(Build.ArtifactStagingDirectory)/packages/release
+            nobuild: true
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - task: CopyFiles@2
-          displayName: 'Copy Nuget Package'
+          displayName: 'Copy NuGet packages to artifacts folder'
           inputs:
             SourceFolder: '$(system.defaultworkingdirectory)/build'
             Contents: |
@@ -77,6 +97,7 @@ stages:
       
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - publish: '$(Build.ArtifactStagingDirectory)/packages'
+          displayName: 'Publish packages artifact'
           artifact: 'packages'
 
 - stage: 'PublishPreviewNuGetPackage'

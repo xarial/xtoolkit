@@ -34,10 +34,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
 
         public override bool CanWrite => m_CanWrite;
 
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == m_SettsType;
-        }
+        public override bool CanConvert(Type objectType) => objectType == m_SettsType;
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
