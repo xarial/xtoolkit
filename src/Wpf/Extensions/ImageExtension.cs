@@ -26,7 +26,7 @@ namespace Xarial.XToolkit.Wpf.Extensions
         /// <param name="img">Image to convert</param>
         /// <param name="freeze">True to freeze the image</param>
         /// <returns>Converted image</returns>
-        public static BitmapImage ToBitmapImage(this Image img, bool freeze = true)
+        public static BitmapImage ToBitmapImage(this Image img, bool freeze = false)
         {
             using (var stream = new MemoryStream())
             {
