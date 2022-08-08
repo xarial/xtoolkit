@@ -66,14 +66,14 @@ stages:
 
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
-          displayName: 'Pack preview versions'
+          displayName: 'Pack dev versions'
           inputs:
             command: pack
             packagesToPack: 'src/**/*.csproj'
             configurationToPack: $(BuildConfiguration)
-            outputDir: $(Build.ArtifactStagingDirectory)/packages/preview
+            outputDir: $(Build.ArtifactStagingDirectory)/packages/dev
             nobuild: true
-            buildProperties: 'VersionSuffix=preview.$(Build.BuildId)'
+            buildProperties: 'VersionSuffix=dev.$(Build.BuildId)'
 
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
@@ -100,8 +100,8 @@ stages:
           displayName: 'Publish packages artifact'
           artifact: 'packages'
 
-- stage: 'PublishPreviewNuGetPackage'
-  displayName: 'Publish Preview NuGet Package to xarial nuget feed'
+- stage: 'PublishDevNuGetPackage'
+  displayName: 'Publish Dev NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
@@ -119,9 +119,9 @@ stages:
       displayName: 'Push NuGet Package'
       inputs:
         command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/packages/preview/*.nupkg'
+        packagesToPush: '$(Pipeline.Workspace)/packages/dev/*.nupkg'
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xtoolkit/xtoolkit-preview'
+        publishVstsFeed: 'xtoolkit/xtoolkit-dev'
         
 - stage: 'PublishPreReleaseNuGetPackage'
   displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
