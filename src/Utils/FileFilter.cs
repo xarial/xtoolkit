@@ -16,7 +16,7 @@ namespace Xarial.XToolkit
         /// </summary>
         /// <param name="filters">Filters</param>
         /// <returns>Combines string</returns>
-        public static string Combine(params FileFilter[] filters)
+        public static string BuildFilterString(params FileFilter[] filters)
         {
             return string.Join("|", filters.Select(f =>
             {
