@@ -13,23 +13,17 @@ using System.Windows.Forms;
 
 namespace Xarial.XToolkit.Wpf.Utils
 {
-    public class FileFilter
-    {
-        public static FileFilter AllFiles { get; } = new FileFilter("All Files", "*.*");
-        public static FileFilter ImageFiles { get; } = new FileFilter("Image Files", "*.bmp", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.tif", "*.tiff");
-
-        public string Name { get; }
-        public string[] Extensions { get; }
-
-        public FileFilter(string name, params string[] exts)
-        {
-            Name = name;
-            Extensions = exts;
-        }
-    }
-
+    /// <summary>
+    /// Utilities for browsing fils in the system
+    /// </summary>
     public static class FileSystemBrowser
     {
+        /// <summary>
+        /// Browse folder
+        /// </summary>
+        /// <param name="path">Path to the folder</param>
+        /// <param name="desc">Title of the browse dialog</param>
+        /// <returns>True if folder is browsed</returns>
         public static bool BrowseFolder(out string path, string desc = "")
         {
             var dlg = new FolderBrowserDialog();
@@ -45,15 +39,6 @@ namespace Xarial.XToolkit.Wpf.Utils
                 path = "";
                 return false;
             }
-        }
-
-        public static string BuildFilterString(params FileFilter[] filters)
-        {
-            return string.Join("|", filters.Select(f =>
-            {
-                var exts = string.Join(";", f.Extensions);
-                return $"{f.Name} ({exts})|{exts}";
-            }));
         }
 
         public static bool BrowseFileOpen(out string path, string title = "", string filter = "")
