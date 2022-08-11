@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xarial.XToolkit;
 using Xarial.XToolkit.Wpf.Controls;
 using Xarial.XToolkit.Wpf.Dialogs;
 using Xarial.XToolkit.Wpf.Utils;
@@ -56,7 +57,7 @@ namespace WpfTester
         private void OnBrowseFileOpen(object sender, RoutedEventArgs e)
         {
             if (FileSystemBrowser.BrowseFileOpen(out string path, out int filterIndex, "Test",
-                FileSystemBrowser.BuildFilterString(new FileFilter("Txt1", "*.txt"),
+                FileFilter.BuildFilterString(new FileFilter("Txt1", "*.txt"),
                 new FileFilter("Txt2", "*.txt")))) 
             {
             }

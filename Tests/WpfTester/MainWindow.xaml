@@ -310,6 +310,9 @@
                     </ctrls:ExpressionBox>
                 </Grid>
             </TabItem>
+            <TabItem Header="LoadingWheel">
+                <ctrls:LoadingWheel />
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>

@@ -1,4 +1,5 @@
 ﻿Imports System
+Imports Xarial.XToolkit
 Imports Xarial.XToolkit.Wpf.Utils
 
 Namespace Wpf.Docs
@@ -22,7 +23,7 @@ Namespace Wpf.Docs
         Sub BrowseFile()
 
             '--- browse-file-filter
-            Dim filters = FileSystemBrowser.BuildFilterString(
+            Dim filters = FileFilter.BuildFilterString(
                 New FileFilter("Text Files", "*.txt", "*.doc", "*.md"),
                 FileFilter.ImageFiles,
                 FileFilter.AllFiles)

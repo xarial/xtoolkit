@@ -36,6 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="Themes\LoadingWheel.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Themes\LabeledControl.xaml">
       <SubType>Designer</SubType>
     </Page>

@@ -1,4 +1,5 @@
 ﻿using System;
+using Xarial.XToolkit;
 using Xarial.XToolkit.Wpf.Utils;
 
 namespace Wpf.Docs
@@ -22,7 +23,7 @@ namespace Wpf.Docs
         public static void BrowseFile() 
         {
             //--- browse-file-filter
-            var filters = FileSystemBrowser.BuildFilterString(
+            var filters = FileFilter.BuildFilterString(
                 new FileFilter("Text Files", "*.txt", "*.doc", "*.md"), 
                 FileFilter.ImageFiles, 
                 FileFilter.AllFiles);
