@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
+using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Controls;
 using Xarial.XToolkit.Wpf.Extensions;
 
@@ -119,10 +122,15 @@ namespace WpfTester
         public event PropertyChangedEventHandler PropertyChanged;
 
         public RowVM[] Rows { get; set; }
+        public ObservableCollection<RowVM> DynamicRows { get; set; }
 
         public ColumnVM[] ColumnsSource { get; set; }
 
+        public ObservableCollection<ColumnVM> DynamicColumnsSource { get; set; }
+
         private bool m_ShowColumns;
+
+        public ICommand AddColumnCommand { get; }
 
         public bool ShowColumns 
         {
@@ -171,6 +179,26 @@ namespace WpfTester
                 }
             };
 
+            DynamicRows = new ObservableCollection<RowVM>();
+
+            DynamicRows.Add(new RowVM()
+            {
+                Cells = new Dictionary<string, CellVM>()
+                {
+                    { "A", new CellVM() { Value = "Val1-1" } },
+                    { "B", new CellVM() { Value = "Val1-2" } }
+                }
+            });
+
+            DynamicRows.Add(new RowVM()
+            {
+                Cells = new Dictionary<string, CellVM>()
+                {
+                    { "A", new CellVM() { Value = "Val2-1" } },
+                    { "B", new CellVM() { Value = "Val2-2" } }
+                }
+            });
+
             ColumnsSource = new ColumnVM[] 
             {
                 new ColumnVM("A"),
@@ -178,7 +206,29 @@ namespace WpfTester
                 new ColumnVM("C")
             };
 
+            DynamicColumnsSource = new ObservableCollection<ColumnVM>(new ColumnVM[]
+            {
+                new ColumnVM("A"),
+                new ColumnVM("B")
+            });
+
             m_ShowColumns = true;
+
+            AddColumnCommand = new RelayCommand(AddColumn);
+        }
+
+        private void AddColumn()
+        {
+            var colName = $"C{DynamicColumnsSource.Count - 1}";
+
+            for (int i = 0; i < DynamicRows.Count; i++)
+            {
+                var row = DynamicRows[i];
+
+                row.Cells.Add(colName, new CellVM() { Value = $"Val{i + 1}-{DynamicColumnsSource.Count + 1}" });
+            }
+
+            DynamicColumnsSource.Add(new ColumnVM(colName));
         }
     }
 }

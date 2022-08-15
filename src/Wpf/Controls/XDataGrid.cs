@@ -8,6 +8,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -131,17 +132,30 @@ namespace Xarial.XToolkit.Wpf.Controls
 		private static void OnColumnsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			var dataGrid = (XDataGrid)d;
-			dataGrid.LoadColumns(dataGrid.StaticColumns, e.NewValue as IEnumerable);
+			dataGrid.LoadColumns(dataGrid.StaticColumns, e.OldValue as IEnumerable, e.NewValue as IEnumerable);
 		}
 
 		private static void OnStaticColumnsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			var dataGrid = (XDataGrid)d;
-			dataGrid.LoadColumns(e.NewValue as IEnumerable<DataGridColumn>, dataGrid.ColumnsSource);
+			dataGrid.LoadColumns(e.NewValue as IEnumerable<DataGridColumn>, dataGrid.ColumnsSource, dataGrid.ColumnsSource);
 		}
 
-		private void LoadColumns(IEnumerable<DataGridColumn> staticColumns, IEnumerable columnSrcs) 
+		private void LoadColumns(IEnumerable<DataGridColumn> staticColumns, IEnumerable oldColumnsSrc, IEnumerable columnSrc) 
 		{
+			if (oldColumnsSrc != columnSrc)
+			{
+				if (oldColumnsSrc is INotifyCollectionChanged)
+				{
+					((INotifyCollectionChanged)oldColumnsSrc).CollectionChanged -= OnColumnsSourceCollectionChanged;
+				}
+
+				if (columnSrc is INotifyCollectionChanged)
+				{
+					((INotifyCollectionChanged)columnSrc).CollectionChanged += OnColumnsSourceCollectionChanged;
+				}
+			}
+
 			AutoGenerateColumns = false;
 
 			var columns = new List<DataGridColumn>();
@@ -156,9 +170,9 @@ namespace Xarial.XToolkit.Wpf.Controls
 				}
 			}
 
-			if (columnSrcs != null)
+			if (columnSrc != null)
 			{
-				foreach (var colSrc in columnSrcs)
+				foreach (var colSrc in columnSrc)
 				{
 					var col = new XDataGridColumn()
 					{
@@ -189,8 +203,13 @@ namespace Xarial.XToolkit.Wpf.Controls
 				}
 			}
 		}
-		
-		private void SetBinding(XDataGridColumn targetColumn, 
+
+        private void OnColumnsSourceCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+			LoadColumns(StaticColumns, ColumnsSource, ColumnsSource);
+		}
+
+        private void SetBinding(XDataGridColumn targetColumn, 
 			string srcPath, DependencyProperty targetPrp) 
 		{
 			var binding = new Binding
