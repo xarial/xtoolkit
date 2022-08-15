@@ -64,6 +64,9 @@
                     <Button Command="{Binding Path=AddColumnCommand}" Margin="5" HorizontalAlignment="Left">
                         <TextBlock Text="Add Column" Margin="5"/>
                     </Button>
+                    <Button Command="{Binding Path=AddColumnAsyncCommand}" Margin="5" HorizontalAlignment="Left">
+                        <TextBlock Text="Add Column Async" Margin="5"/>
+                    </Button>
                     <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
                                      ColumnsSource="{Binding Path=ColumnsSource}"
                                      ColumnsPreCreated="OnColumnsPreCreated"

@@ -131,6 +131,7 @@ namespace WpfTester
         private bool m_ShowColumns;
 
         public ICommand AddColumnCommand { get; }
+        public ICommand AddColumnAsyncCommand { get; }
 
         public bool ShowColumns 
         {
@@ -215,6 +216,12 @@ namespace WpfTester
             m_ShowColumns = true;
 
             AddColumnCommand = new RelayCommand(AddColumn);
+            AddColumnAsyncCommand = new RelayCommand(AddColumnAsync);
+        }
+
+        private async void AddColumnAsync()
+        {
+            await Task.Run(AddColumn);
         }
 
         private void AddColumn()
