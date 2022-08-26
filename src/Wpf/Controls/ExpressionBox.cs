@@ -778,7 +778,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                     }
                     else
                     {
-                        throw new Exception("Not supported UI token");
+                        return new ExpressionTokenText("");
                     }
 
                 default:
