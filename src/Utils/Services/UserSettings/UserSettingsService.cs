@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Services.UserSettings.Attributes;
 using Xarial.XToolkit.Services.UserSettings.Converters;
@@ -31,7 +32,7 @@ namespace Xarial.XToolkit.Services.UserSettings
                     transform = versTransformerHandler.Invoke(transform);
                 }
 
-                jsonSer.Converters.Add(new ReadSettingsJsonConverter(typeof(T), transform?.Transforms, vers));
+                jsonSer.Converters.Add(new ReadSettingsJsonConverter(typeof(T), transform?.Transforms ?? Enumerable.Empty<VersionTransform>(), vers));
             }
 
             foreach (var ser in serializers)

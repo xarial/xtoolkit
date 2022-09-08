@@ -43,11 +43,14 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
 
             if (m_LatestVersion > settsVers)
             {
-                foreach (var tr in m_Transformers
-                    .Where(t => t.From >= settsVers && t.To <= m_LatestVersion)
-                    .OrderBy(t => t.From))
+                if (m_Transformers != null)
                 {
-                    jToken = tr.Transform(jToken);
+                    foreach (var tr in m_Transformers
+                        .Where(t => t.From >= settsVers && t.To <= m_LatestVersion)
+                        .OrderBy(t => t.From))
+                    {
+                        jToken = tr.Transform(jToken);
+                    }
                 }
             }
 
