@@ -48,27 +48,31 @@ namespace Utils.Docs
         //---
 
         //--- transformer
-        public class UserSettingsVersionTransformer : BaseUserSettingsVersionsTransformer
+        public class UserSettingsVersionTransformer : IVersionsTransformer
         {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
             public UserSettingsVersionTransformer()
             {
-                Add(new Version("1.0.0"), new Version("2.0.0"), t =>
+                Transforms = new VersionTransform[]
                 {
-                    var field1 = t.Children<JProperty>().First(p => p.Name == "Field1");
-                    field1.Replace(new JProperty("TextField", (field1 as JProperty).Value));
-                    return t;
-                });
+                    new VersionTransform(new Version("1.0.0"), new Version("2.0.0"), t =>
+                    {
+                        var field1 = t.Children<JProperty>().First(p => p.Name == "Field1");
+                        field1.Replace(new JProperty("TextField", (field1 as JProperty).Value));
+                        return t;
+                    }),
+                    new VersionTransform(new Version("2.0.0"), new Version("3.0.0"), t =>
+                    {
+                        var field2 = t.Children<JProperty>().First(p => p.Name == "Field2");
+                        field2.Replace(new JProperty("DoubleField", (field2 as JProperty).Value));
 
-                Add(new Version("2.0.0"), new Version("3.0.0"), t =>
-                {
-                    var field2 = t.Children<JProperty>().First(p => p.Name == "Field2");
-                    field2.Replace(new JProperty("DoubleField", (field2 as JProperty).Value));
+                        var field3 = t.Children<JProperty>().First(p => p.Name == "Field3");
+                        field3.Replace(new JProperty("BoolField", (field3 as JProperty).Value));
 
-                    var field3 = t.Children<JProperty>().First(p => p.Name == "Field3");
-                    field3.Replace(new JProperty("BoolField", (field3 as JProperty).Value));
-
-                    return t;
-                });
+                        return t;
+                    })
+                };
             }
         }
         //---

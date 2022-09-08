@@ -18,12 +18,20 @@ namespace Xarial.XToolkit.Services.UserSettings
     public class UserSettingsService
     {
         public T ReadSettings<T>(TextReader settsReader, params IValueSerializer[] serializers)
+            => ReadSettings<T>(settsReader, null, serializers);
+
+        public T ReadSettings<T>(TextReader settsReader, Func<IVersionsTransformer, IVersionsTransformer> versTransformerHandler, params IValueSerializer[] serializers)
         {
             var jsonSer = CreateJsonSerializer();
 
-            if (TryGetVersionInfo<T>(out Version vers, out IEnumerable<VersionTransform> transform))
+            if (TryGetVersionInfo<T>(out Version vers, out IVersionsTransformer transform))
             {
-                jsonSer.Converters.Add(new ReadSettingsJsonConverter(typeof(T), transform, vers));
+                if (versTransformerHandler != null)
+                {
+                    transform = versTransformerHandler.Invoke(transform);
+                }
+
+                jsonSer.Converters.Add(new ReadSettingsJsonConverter(typeof(T), transform?.Transforms, vers));
             }
 
             foreach (var ser in serializers)
@@ -53,12 +61,12 @@ namespace Xarial.XToolkit.Services.UserSettings
 
         protected virtual JsonSerializer CreateJsonSerializer() => new JsonSerializer();
 
-        private bool TryGetVersionInfo<T>(out Version vers, out IEnumerable<VersionTransform> transforms)
+        private bool TryGetVersionInfo<T>(out Version vers, out IVersionsTransformer transforms)
         {
             if (typeof(T).TryGetAttribute(out UserSettingVersionAttribute att, true))
             {
                 vers = att.Version;
-                transforms = att.VersionTransformers;
+                transforms = att.VersionTransformer;
                 return true;
             }
             else

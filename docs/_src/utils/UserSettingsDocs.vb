@@ -44,26 +44,28 @@ Namespace Utils.Docs
 
         '--- transformer
         Public Class UserSettingsVersionTransformer
-            Inherits BaseUserSettingsVersionsTransformer
+            Implements IVersionsTransformer
 
             Public Sub New()
-                Add(New Version("1.0.0"),
-                    New Version("2.0.0"),
-                    Function(t)
-                        Dim field1 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field1")
-                        field1.Replace(New JProperty("TextField", (TryCast(field1, JProperty)).Value))
-                        Return t
-                    End Function)
-                Add(New Version("2.0.0"),
-                    New Version("3.0.0"),
-                    Function(t)
-                        Dim field2 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field2")
-                        field2.Replace(New JProperty("DoubleField", (TryCast(field2, JProperty)).Value))
-                        Dim field3 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field3")
-                        field3.Replace(New JProperty("BoolField", (TryCast(field3, JProperty)).Value))
-                        Return t
-                    End Function)
+                Transforms = New VersionTransform() {
+                    New VersionTransform(New Version("1.0.0"), New Version("2.0.0"),
+                                         Function(t)
+                                             Dim field1 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field1")
+                                             field1.Replace(New JProperty("TextField", (TryCast(field1, JProperty)).Value))
+                                             Return t
+                                         End Function),
+                    New VersionTransform(New Version("2.0.0"), New Version("3.0.0"),
+                                         Function(t)
+                                             Dim field2 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field2")
+                                             field2.Replace(New JProperty("DoubleField", (TryCast(field2, JProperty)).Value))
+                                             Dim field3 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field3")
+                                             field3.Replace(New JProperty("BoolField", (TryCast(field3, JProperty)).Value))
+                                             Return t
+                                         End Function)}
             End Sub
+
+            Public ReadOnly Property Transforms As IReadOnlyList(Of VersionTransform) Implements IVersionsTransformer.Transforms
+
         End Class
         '---
 
