@@ -127,13 +127,14 @@ namespace Xarial.XToolkit.Services.Expressions
         {
         }
 
-        public IExpressionToken Parse(string expression)
+        /// <exception cref="InvalidExpressionException"/>
+        public virtual IExpressionToken Parse(string expression)
         {
             var startPos = 0;
             return GroupElements(ParseTokens(expression, ref startPos, false));
         }
 
-        public string CreateExpression(IExpressionToken token)
+        public virtual string CreateExpression(IExpressionToken token)
         {
             if (token == null)
             {

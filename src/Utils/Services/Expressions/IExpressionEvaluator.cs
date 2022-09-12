@@ -36,7 +36,8 @@ namespace Xarial.XToolkit.Services.Expressions
             m_Table = new DataTable();
         }
 
-        public T Evaluate<T>(string expression)
+        /// <exception cref="ExpressionFailedException"></exception>
+        public virtual T Evaluate<T>(string expression)
         {
             try
             {

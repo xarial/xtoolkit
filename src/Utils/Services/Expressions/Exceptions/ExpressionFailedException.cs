@@ -11,6 +11,9 @@ using System.Text;
 
 namespace Xarial.XToolkit.Services.Expressions.Exceptions
 {
+    /// <summary>
+    /// Exceptions of <see cref="IExpressionEvaluator"/>
+    /// </summary>
     public class ExpressionFailedException : Exception
     {
         public ExpressionFailedException(string message, Exception innerException) : base(message, innerException)
