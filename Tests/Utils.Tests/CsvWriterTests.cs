@@ -56,5 +56,26 @@ namespace Utils.Tests
 
             Assert.AreEqual("a,\"b\r\ncd\",e,\r\n1,\"2,3\",4,5\r\n6,7,8,", csv);
         }
+
+        [Test]
+        public void WriteQuote()
+        {
+            string csv;
+
+            using (var memStr = new MemoryStream())
+            {
+                using (var writer = new StreamWriter(memStr))
+                {
+                    using (var csvWriter = new CsvWriter(writer))
+                    {
+                        csvWriter.WriteLine(new string[] { "\"a\"", "\"b,c\"", "d\"e\"f", "g\"h" });
+                    }
+                }
+
+                csv = Encoding.UTF8.GetString(memStr.ToArray());
+            }
+
+            Assert.AreEqual("\"\"\"a\"\"\",\"\"\"b,c\"\"\",\"d\"\"e\"\"f\",\"g\"\"h\"", csv);
+        }
     }
 }

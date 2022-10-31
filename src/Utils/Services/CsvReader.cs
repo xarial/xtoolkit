@@ -57,14 +57,14 @@ namespace Xarial.XToolkit.Services
 
                 var symbChar = (char)symb;
 
-                if (symbChar == m_Delimeter && (!isProtectedCell || isPrevQuote))
+                if (symbChar == m_Delimeter && (!isProtectedCell || isPrevQuote))//terminating current cell
                 {
                     yield return curCell.ToString();
                     curCell.Clear();
                     isPrevQuote = false;
                     isProtectedCell = false;
                 }
-                else if (symbChar == '\n' && !isProtectedCell)
+                else if (symbChar == '\n' && !isProtectedCell)//terminating line
                 {
                     yield return curCell.ToString();
                     HasContent = m_Reader.Peek() != -1;
@@ -81,17 +81,17 @@ namespace Xarial.XToolkit.Services
 
                     if (symbChar == '\"') 
                     {
-                        if (curCell.Length == 0)
+                        if (curCell.Length == 0 && !isProtectedCell)//starting the protected cell
                         {
                             isProtectedCell = true;
                             continue;
                         }
-                        else if (!isPrevQuote)
+                        else if (!isPrevQuote)//candidate of the protected " value
                         {
                             isPrevQuote = true;
                             continue;
                         }
-                        else if (isProtectedCell) 
+                        else if (isProtectedCell)//closing the " (this can be either the value or the end of the cell, thus not writing it directly rather saving to the buffer
                         {
                             bufferSymbol = symbChar;
                             isPrevQuote = false;

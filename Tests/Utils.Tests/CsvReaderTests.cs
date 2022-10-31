@@ -90,5 +90,30 @@ namespace Utils.Tests
             CollectionAssert.AreEqual(new string[] { "a", "b", "c" }, lines[0]);
             CollectionAssert.AreEqual(new string[] { "1", "2", "3" }, lines[1]);
         }
+
+        [Test]
+        public void ReadQuote() 
+        {
+            var csv = "\"\"\"a\"\"\",\"\"\"b,c\"\"\",\"d\"\"e\"\"f\",\"g\"\"h\"";
+
+            var lines = new List<string[]>();
+
+            using (var memStr = new MemoryStream(Encoding.UTF8.GetBytes(csv)))
+            {
+                using (var streamReader = new StreamReader(memStr))
+                {
+                    using (var csvReader = new CsvReader(streamReader))
+                    {
+                        while (csvReader.HasContent)
+                        {
+                            lines.Add(csvReader.ReadLine().ToArray());
+                        }
+                    }
+                }
+            }
+
+            Assert.AreEqual(1, lines.Count);
+            CollectionAssert.AreEqual(new string[] { "\"a\"", "\"b,c\"", "d\"e\"f", "g\"h" }, lines[0]);
+        }
     }
 }

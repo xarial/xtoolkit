@@ -17,7 +17,6 @@ namespace Xarial.XToolkit.Services
 
         private readonly TextWriter m_Writer;
 
-        private readonly char[] m_SpecSymbols;
         private readonly char m_Delimeter;
 
         private bool m_IsFirstLine;
@@ -30,13 +29,6 @@ namespace Xarial.XToolkit.Services
             }
 
             m_Delimeter = delimeter;
-
-            m_SpecSymbols = new char[]
-            {
-                delimeter,
-                PROTECT_SYMBOL,
-                ROW_SEPARATION_SYMBOL
-            };
 
             m_Writer = writer;
 
@@ -78,14 +70,35 @@ namespace Xarial.XToolkit.Services
         {
             if (val != null)
             {
-                if (m_SpecSymbols.Any(s => val.Contains(s)))
+                var escapedVal = new StringBuilder();
+
+                var needEscape = false;
+
+                foreach (var symb in val)
                 {
-                    return PROTECT_SYMBOL + val + PROTECT_SYMBOL;
+                    if (symb == PROTECT_SYMBOL)
+                    {
+                        needEscape = true;
+                        escapedVal.Append(PROTECT_SYMBOL);
+                    }
+                    else if (!needEscape) 
+                    {   
+                        if (symb == m_Delimeter || symb == ROW_SEPARATION_SYMBOL) 
+                        {
+                            needEscape = true;
+                        }
+                    }
+
+                    escapedVal.Append(symb);
                 }
-                else
+
+                if (needEscape) 
                 {
-                    return val;
+                    escapedVal.Insert(0, PROTECT_SYMBOL);
+                    escapedVal.Append(PROTECT_SYMBOL);
                 }
+
+                return escapedVal.ToString();
             }
             else
             {
