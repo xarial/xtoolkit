@@ -33,8 +33,8 @@ namespace Xarial.XToolkit.Services.Expressions
         string Solve(IExpressionToken token);
     }
 
-    public delegate string VariableValueProviderDelegate<TContext>(string name, string[] args, TContext context);
-    public delegate string VariableValueProviderDelegate(string name, string[] args);
+    public delegate object VariableValueProviderDelegate<TContext>(string name, string[] args, TContext context);
+    public delegate object VariableValueProviderDelegate(string name, string[] args);
 
     public class ExpressionSolver<TContext> : IExpressionSolver<TContext>
     {
@@ -123,10 +123,10 @@ namespace Xarial.XToolkit.Services.Expressions
                 throw new ArgumentNullException(nameof(token));
             }
 
-            return Resolve(token, context, new Dictionary<VariableCacheKey, string>(new VariableCacheKeyEqualityComparer(m_Comparison)));
+            return Resolve(token, context, new Dictionary<VariableCacheKey, object>(new VariableCacheKeyEqualityComparer(m_Comparison)));
         }
 
-        private string Resolve(IExpressionToken token, TContext context, Dictionary<VariableCacheKey, string> variableCache)
+        private string Resolve(IExpressionToken token, TContext context, Dictionary<VariableCacheKey, object> variableCache)
         {
             if (token == null)
             {
@@ -168,7 +168,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
                     var cacheKey = new VariableCacheKey(variable.Name, arguments);
 
-                    if (!variableCache.TryGetValue(cacheKey, out string varVal))
+                    if (!variableCache.TryGetValue(cacheKey, out object varVal))
                     {
                         varVal = m_Solver.Invoke(variable.Name, arguments, context);
 
