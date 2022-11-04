@@ -553,6 +553,17 @@ namespace Xarial.XToolkit.Wpf.Controls
             set { SetValue(ArgumentLabelTemplateProperty, value); }
         }
 
+        public static readonly DependencyProperty VariableLinksBoxVisibilityProperty =
+            DependencyProperty.Register(
+            nameof(VariableLinksBoxVisibility), typeof(Visibility),
+            typeof(ExpressionBox), new PropertyMetadata(Visibility.Visible));
+
+        public Visibility VariableLinksBoxVisibility
+        {
+            get { return (Visibility)GetValue(VariableLinksBoxVisibilityProperty); }
+            set { SetValue(VariableLinksBoxVisibilityProperty, value); }
+        }
+
         internal IExpressionVariableDescriptor GetVariableDescriptor()
         {
             var desc = VariableDescriptor;
