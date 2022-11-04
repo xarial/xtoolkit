@@ -309,7 +309,8 @@
                         </ctrls:ExpressionBox.Style>
                     </ctrls:ExpressionBox>
                     <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
-                    <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3">
+                    <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" 
+                                         Foreground="Green" Background="LightYellow">
                         <ctrls:ExpressionBox.VariableLinks>
                             <ctrls:ExpressionVariableLinkCollection>
                                 <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Insert 'prp' variable" EnterArguments="True"/>

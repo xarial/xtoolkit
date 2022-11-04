@@ -11,7 +11,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:PopupMenu}">
                     <Grid>
-                        <ToggleButton x:Name="PART_Toggle" ToolTip="{TemplateBinding ToolTip}" Cursor="{TemplateBinding Cursor}" Style="{TemplateBinding ToggleButtonStyle}"/>
+                        <ToggleButton Background="{TemplateBinding Foreground}" x:Name="PART_Toggle" ToolTip="{TemplateBinding ToolTip}" Cursor="{TemplateBinding Cursor}" Style="{TemplateBinding ToggleButtonStyle}"/>
                         <Popup x:Name="PART_Popup" StaysOpen="False" AllowsTransparency="True" PlacementTarget="{Binding ElementName=PART_Toggle}"
                                DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Mode=Self}}"
                                IsOpen="{Binding Path=IsChecked, ElementName=tglPopup, Mode=TwoWay}"

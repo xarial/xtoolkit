@@ -250,12 +250,14 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Margin="2" FontWeight="Bold"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
-                                <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1" Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
+                                <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1"
+                                                 Foreground="{TemplateBinding Foreground}"
+                                                 Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
                                     <ContentControl ContentTemplate="{TemplateBinding VariableLinksMenuTemplate}"/>
                                 </local:PopupMenu>
                             </Grid>
                         </Border>
-                        <RichTextBox x:Name="PART_RichTextBox" Grid.Column="1" IsDocumentEnabled="True" 
+                        <RichTextBox x:Name="PART_RichTextBox" Grid.Column="1" IsDocumentEnabled="True" Foreground="{TemplateBinding Foreground}"
                                  AcceptsReturn="False" AcceptsTab="False" BorderBrush="{TemplateBinding BorderBrush}"
                                  BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
                             <FlowDocument PageWidth="2000"/>
