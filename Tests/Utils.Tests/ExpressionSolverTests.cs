@@ -32,11 +32,11 @@ namespace Utils.Tests
         [Test]
         public void SolveVariableTest()
         {
-            var calls = new List<Tuple<string, string[]>>();
+            var calls = new List<Tuple<string, object[]>>();
 
             var solver = new ExpressionSolver((v, a) =>
             {
-                calls.Add(new Tuple<string, string[]>(v, a));
+                calls.Add(new Tuple<string, object[]>(v, a));
 
                 if (v == "v")
                 {
@@ -61,11 +61,11 @@ namespace Utils.Tests
         [Test]
         public void SolveGroupTest()
         {
-            var calls = new List<Tuple<string, string[]>>();
+            var calls = new List<Tuple<string, object[]>>();
 
             var solver = new ExpressionSolver((v, a) =>
             {
-                calls.Add(new Tuple<string, string[]>(v, a));
+                calls.Add(new Tuple<string, object[]>(v, a));
 
                 if (v == "v")
                 {
@@ -95,11 +95,11 @@ namespace Utils.Tests
         [Test]
         public void SolveVariablesCachedTest()
         {
-            var calls = new List<Tuple<string, string[]>>();
+            var calls = new List<Tuple<string, object[]>>();
 
             var solver = new ExpressionSolver((v, a) =>
             {
-                calls.Add(new Tuple<string, string[]>(v, a));
+                calls.Add(new Tuple<string, object[]>(v, a));
 
                 if (v == "v")
                 {
@@ -109,7 +109,7 @@ namespace Utils.Tests
                 {
                     return "ABC";
                 }
-                else if (v == "x" && a.Length == 1 && a[0] == "y")
+                else if (v == "x" && a.Length == 1 && object.Equals(a[0], "y"))
                 {
                     return "XYZ";
                 }
@@ -153,11 +153,11 @@ namespace Utils.Tests
         [Test]
         public void SolveVariablesNestedTest()
         {
-            var calls = new List<Tuple<string, string[]>>();
+            var calls = new List<Tuple<string, object[]>>();
 
             var solver = new ExpressionSolver((v, a) =>
             {
-                calls.Add(new Tuple<string, string[]>(v, a));
+                calls.Add(new Tuple<string, object[]>(v, a));
 
                 if (v == "f1" && a.Length == 0)
                 {
@@ -167,11 +167,11 @@ namespace Utils.Tests
                 {
                     return "f2_" + String.Join("+", a);
                 }
-                else if (v == "f1" && a.Length == 1 && a[0] == "bf3_0")
+                else if (v == "f1" && a.Length == 1 && object.Equals(a[0], "bf3_0"))
                 {
                     return "f1_bf3_0";
                 }
-                else if (v == "f1" && a.Length == 1 && a[0] == "a")
+                else if (v == "f1" && a.Length == 1 && object.Equals(a[0], "a"))
                 {
                     return "f1_1_a";
                 }

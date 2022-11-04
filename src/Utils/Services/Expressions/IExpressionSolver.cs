@@ -33,17 +33,17 @@ namespace Xarial.XToolkit.Services.Expressions
         string Solve(IExpressionToken token);
     }
 
-    public delegate object VariableValueProviderDelegate<TContext>(string name, string[] args, TContext context);
-    public delegate object VariableValueProviderDelegate(string name, string[] args);
+    public delegate object VariableValueProviderDelegate<TContext>(string name, object[] args, TContext context);
+    public delegate object VariableValueProviderDelegate(string name, object[] args);
 
     public class ExpressionSolver<TContext> : IExpressionSolver<TContext>
     {
         private class VariableCacheKey
         {
             internal string VariableName { get; }
-            internal string[] Arguments { get; }
+            internal object[] Arguments { get; }
 
-            internal VariableCacheKey(string varName, string[] args)
+            internal VariableCacheKey(string varName, object[] args)
             {
                 VariableName = varName;
                 Arguments = args;
@@ -84,9 +84,19 @@ namespace Xarial.XToolkit.Services.Expressions
                         {
                             for (int i = 0; i < x.Arguments.Length; i++)
                             {
-                                if (!string.Equals(x.Arguments[i], y.Arguments[i], m_Comparison))
+                                if (!object.Equals(x.Arguments[i], y.Arguments[i]))
                                 {
-                                    return false;
+                                    if (x.Arguments[i] is string && y.Arguments[i] is string)
+                                    {
+                                        if (!string.Equals((string)x.Arguments[i], (string)y.Arguments[i], m_Comparison)) 
+                                        {
+                                            return false;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return false;
+                                    }
                                 }
                             }
 
@@ -123,10 +133,10 @@ namespace Xarial.XToolkit.Services.Expressions
                 throw new ArgumentNullException(nameof(token));
             }
 
-            return Resolve(token, context, new Dictionary<VariableCacheKey, object>(new VariableCacheKeyEqualityComparer(m_Comparison)));
+            return Resolve(token, context, new Dictionary<VariableCacheKey, object>(new VariableCacheKeyEqualityComparer(m_Comparison)))?.ToString();
         }
 
-        private string Resolve(IExpressionToken token, TContext context, Dictionary<VariableCacheKey, object> variableCache)
+        private object Resolve(IExpressionToken token, TContext context, Dictionary<VariableCacheKey, object> variableCache)
         {
             if (token == null)
             {
@@ -150,11 +160,11 @@ namespace Xarial.XToolkit.Services.Expressions
 
                 case IExpressionTokenVariable variable:
 
-                    string[] arguments;
+                    object[] arguments;
 
                     if (variable.Arguments?.Any() == true)
                     {
-                        arguments = new string[variable.Arguments.Length];
+                        arguments = new object[variable.Arguments.Length];
 
                         for (int i = 0; i < variable.Arguments.Length; i++)
                         {
@@ -163,7 +173,7 @@ namespace Xarial.XToolkit.Services.Expressions
                     }
                     else
                     {
-                        arguments = new string[0];
+                        arguments = new object[0];
                     }
 
                     var cacheKey = new VariableCacheKey(variable.Name, arguments);
