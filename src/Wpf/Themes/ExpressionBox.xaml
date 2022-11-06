@@ -117,7 +117,7 @@
                             <local:PopupMenu x:Name="PART_PopupEditor" Grid.Column="2" Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
                                 <DataGrid x:Name="PART_DataGrid" ItemsSource="{Binding Path=Arguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                           CanUserAddRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
-                                          CanUserDeleteRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
+                                          HeadersVisibility="All" CanUserDeleteRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                           ColumnWidth="*" RowHeaderWidth="NaN" AutoGenerateColumns="False"
                                           MinWidth="100" MinHeight="100" MaxWidth="300" MaxHeight="500">
                                     <DataGrid.Resources>
