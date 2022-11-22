@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 
@@ -14,6 +15,83 @@ namespace Xarial.XToolkit.Reflection
 {
     public static class TypeExtension
     {
+        public class MissingMethodInfo : MethodInfo
+        {
+            public override string Name { get; }
+
+            internal MissingMethodInfo(string name)
+            {
+                Name = name;
+            }
+
+            public override ICustomAttributeProvider ReturnTypeCustomAttributes => throw new NotImplementedException();
+            public override MethodAttributes Attributes => throw new NotImplementedException();
+            public override RuntimeMethodHandle MethodHandle => throw new NotImplementedException();
+            public override Type DeclaringType => throw new NotImplementedException();
+            public override Type ReflectedType => throw new NotImplementedException();
+            public override MethodInfo GetBaseDefinition() => throw new NotImplementedException();
+            public override object[] GetCustomAttributes(bool inherit) => throw new NotImplementedException();
+            public override object[] GetCustomAttributes(Type attributeType, bool inherit) => throw new NotImplementedException();
+            public override MethodImplAttributes GetMethodImplementationFlags() => throw new NotImplementedException();
+            public override ParameterInfo[] GetParameters() => throw new NotImplementedException();
+            public override object Invoke(object obj, BindingFlags invokeAttr, Binder binder, object[] parameters, CultureInfo culture) => throw new NotImplementedException();
+            public override bool IsDefined(Type attributeType, bool inherit) => throw new NotImplementedException();
+        }
+
+        public static void InvokeMethod(object obj, MethodInfo method, params object[] args)
+            => InvokeMethod<object>(obj, method, args);
+
+        public static TRes InvokeMethod<TRes>(object obj, MethodInfo method, params object[] args)
+        {
+            if (method is MissingMethodInfo)
+            {
+                throw new NullReferenceException($"Method '{method.Name}' is not found");
+            }
+
+            var res = method.Invoke(obj, args);
+
+            if (res != null)
+            {
+                if (res is TRes)
+                {
+                    return (TRes)res;
+                }
+                else if (res is IConvertible)
+                {
+                    return (TRes)Convert.ChangeType(res, typeof(TRes));
+                }
+                else
+                {
+                    throw new InvalidCastException();
+                }
+            }
+            else
+            {
+                return default(TRes);
+            }
+        }
+
+        public static MethodInfo FindMethod(this Type type, string methodName,
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+        {
+            var method = type.GetMethod(methodName, flags);
+
+            if (method == null)
+            {
+                if (type.BaseType != null)
+                {
+                    method = FindMethod(type.BaseType, methodName, flags);
+                }
+            }
+
+            if (method == null)
+            {
+                method = new MissingMethodInfo(methodName);
+            }
+
+            return method;
+        }
+
         public static bool TryGetAttribute<TAtt>(this Type type, out TAtt att, bool searchInParentTypes = false)
             where TAtt : Attribute
         {

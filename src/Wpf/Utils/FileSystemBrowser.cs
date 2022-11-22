@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using Xarial.XToolkit.Wpf.Dialogs;
 
 namespace Xarial.XToolkit.Wpf.Utils
 {
@@ -26,20 +27,20 @@ namespace Xarial.XToolkit.Wpf.Utils
         /// <returns>True if folder is browsed</returns>
         public static bool BrowseFolder(out string path, string desc = "")
         {
-            var dlg = new FolderBrowserDialog();
-            dlg.Description = desc;
-            
-            if (dlg.ShowDialog() == DialogResult.OK)
+            if (BrowseFolder(out var paths, desc, false))
             {
-                path = dlg.SelectedPath;
+                path = paths.First();
                 return true;
             }
-            else
+            else 
             {
-                path = "";
+                path = null;
                 return false;
             }
         }
+
+        public static bool BrowseFolders(out string[] paths, string desc = "")
+            => BrowseFolder(out paths, desc, true);
 
         public static bool BrowseFileOpen(out string path, string title = "", string filter = "")
             => BrowseFileOpen(out path, out _, title, filter);
@@ -55,12 +56,7 @@ namespace Xarial.XToolkit.Wpf.Utils
             => BrowseFilesOpen(out paths, out _, title, filter);
 
         public static bool BrowseFilesOpen(out string[] paths, out int filterIndex, string title = "", string filter = "")
-        {
-            var dlg = new OpenFileDialog();
-            dlg.Multiselect = true;
-            
-            return BrowseForFile(out paths, dlg, title, filter, out filterIndex);
-        }
+            => BrowseForFile(out paths, new OpenFileDialog() { Multiselect = true }, title, filter, out filterIndex);
 
         public static bool BrowseFileSave(out string path, string title = "", string filter = "")
             => BrowseFileSave(out path, out _, title, filter);
@@ -74,20 +70,43 @@ namespace Xarial.XToolkit.Wpf.Utils
 
         private static bool BrowseForFile(out string[] paths, FileDialog dlg, string title, string filter, out int filterIndex)
         {
-            dlg.Filter = filter;
-            dlg.Title = title;
-            
-            if (dlg.ShowDialog() == DialogResult.OK)
+            using (dlg)
             {
-                filterIndex = dlg.FilterIndex - 1;
-                paths = dlg.FileNames;
-                return true;
+                dlg.Filter = filter;
+                dlg.Title = title;
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    filterIndex = dlg.FilterIndex - 1;
+                    paths = dlg.FileNames;
+                    return true;
+                }
+                else
+                {
+                    filterIndex = -1;
+                    paths = null;
+                    return false;
+                }
             }
-            else
+        }
+
+        private static bool BrowseFolder(out string[] paths, string desc, bool multiselect)
+        {
+            using (var dlg = new AdvancedFolderBrowseDialog())
             {
-                filterIndex = -1;
-                paths = null;
-                return false;
+                dlg.Title = desc;
+                dlg.Multiselect = multiselect;
+
+                if (dlg.ShowDialog() == DialogResult.OK)
+                {
+                    paths = dlg.FolderNames;
+                    return true;
+                }
+                else
+                {
+                    paths = null;
+                    return false;
+                }
             }
         }
     }

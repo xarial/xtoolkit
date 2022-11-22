@@ -79,7 +79,14 @@ namespace WpfTester
 
         private void OnBrowseFolder(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFolder(out string path))
+            if (FileSystemBrowser.BrowseFolder(out string path, "Test Folder Browser"))
+            {
+            }
+        }
+
+        private void OnBrowseFolders(object sender, RoutedEventArgs e)
+        {
+            if (FileSystemBrowser.BrowseFolders(out string[] paths, "Test Folder Browser"))
             {
             }
         }

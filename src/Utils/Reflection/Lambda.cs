@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2022 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;

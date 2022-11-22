@@ -212,6 +212,7 @@
                     <Button Click="OnBrowseFileSave">Browse File Save</Button>
                     <Button Click="OnBrowseFilesOpen">Browse Files Open</Button>
                     <Button Click="OnBrowseFolder">Browse folder</Button>
+                    <Button Click="OnBrowseFolders">Browse folders</Button>
                 </StackPanel>
             </TabItem>
             <TabItem Header="ProgressPane">
