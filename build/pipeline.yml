@@ -163,7 +163,7 @@ stages:
         packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
         allowPackageConflicts: true
         nuGetFeedType: 'internal'
-        publishVstsFeed: 'xarial'
+        publishVstsFeed: 'xtoolkit/xtoolkit-dev'
 
 
 - stage: 'PublishPublicPackage'
