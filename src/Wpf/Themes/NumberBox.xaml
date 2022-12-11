@@ -8,6 +8,7 @@
         <Setter Property="Template" Value="{StaticResource NumberBox}"/>
         <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
         <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"/>
+        <Setter Property="Focusable" Value="False"/>
         <Setter Property="BorderBrush">
             <Setter.Value>
                 <LinearGradientBrush EndPoint="0,20" MappingMode="Absolute" StartPoint="0,0">
@@ -21,12 +22,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:NumberBox}">
-                    <Grid>
+                    <Grid Focusable="False">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <TextBox x:Name="PART_TextBox" Background="{TemplateBinding Background}"
+                        <TextBox x:Name="PART_TextBox" Background="{TemplateBinding Background}" Focusable="True"
                              BorderBrush="{TemplateBinding BorderBrush}"
                              BorderThickness="{TemplateBinding BorderThickness}"/>
                         <Grid Grid.Column="1" Visibility="{TemplateBinding ShowIncrementBox, Converter={StaticResource boolToVisConv}}">
@@ -34,10 +35,10 @@
                                 <RowDefinition Height="*"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
-                            <Button x:Name="PART_IncrementButton" Grid.Row="0">
+                            <Button x:Name="PART_IncrementButton" Grid.Row="0" Focusable="False">
                                 <Path Fill="Black" Data="M 0 6 L 12 6 L 6 0 Z"/>
                             </Button>
-                            <Button x:Name="PART_DecrementButton" Grid.Row="1">
+                            <Button x:Name="PART_DecrementButton" Grid.Row="1" Focusable="False">
                                 <Path Fill="Black" Data="M 0 0 L 6 6 L 12 0 Z"/>
                             </Button>
                         </Grid>

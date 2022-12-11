@@ -5,6 +5,7 @@
     <Style x:Key="DefaultLabeledControlTextBlockStyle" TargetType="{x:Type TextBlock}">
         <Setter Property="Margin" Value="2"/>
         <Setter Property="VerticalAlignment" Value="Center"/>
+        <Setter Property="Focusable" Value="False"/>
     </Style>
     
     <Style TargetType="{x:Type local:LabeledControl}">
@@ -22,7 +23,7 @@
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
-                            <Image Source="{TemplateBinding Icon}" Margin="2" RenderOptions.BitmapScalingMode="Fant" Grid.Column="0" VerticalAlignment="Center" MaxHeight="15"/>
+                            <Image Source="{TemplateBinding Icon}" Margin="2" RenderOptions.BitmapScalingMode="Fant" Grid.Column="0" VerticalAlignment="Center" MaxHeight="15" Focusable="False"/>
                             <TextBlock Text="{TemplateBinding Label}" Grid.Column="1" Style="{TemplateBinding LabelStyle}" Margin="{TemplateBinding LabelMargin}"/>
                         </Grid>
                         <ContentPresenter Content="{TemplateBinding Content}" Grid.Column="1"/>

@@ -1,8 +1,20 @@
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
+    versionSuffix: release
+  ${{ if eq(variables['Build.SourceBranchName'], 'dev') }}:
+    versionSuffix: dev
+  ${{ if eq(variables['Build.SourceBranchName'], '!alpha') }}:
+    versionSuffix: alpha
+  ${{ if eq(variables['Build.SourceBranchName'], '!beta') }}:
+    versionSuffix: beta
+
 trigger:
   branches:
     include:
     - master
     - dev
+    - '!alpha'
+    - '!beta'
   paths:
     include:
     - src/*
@@ -70,16 +82,16 @@ stages:
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
-      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
-          displayName: 'Pack dev versions'
+          displayName: 'Pack $(versionSuffix) versions'
           inputs:
             command: pack
             packagesToPack: 'src/**/*.csproj'
             configurationToPack: $(BuildConfiguration)
-            outputDir: $(Build.ArtifactStagingDirectory)/packages/dev
+            outputDir: $(Build.ArtifactStagingDirectory)/packages/$(versionSuffix)
             nobuild: true
-            buildProperties: 'VersionSuffix=dev.$(Build.BuildId)'
+            buildProperties: 'VersionSuffix=$(versionSuffix).$(Build.BuildId)'
 
       - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
         - task: DotNetCoreCLI@2
@@ -128,15 +140,15 @@ stages:
         packagesToPush: '$(Pipeline.Workspace)/packages/dev/*.nupkg'
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xtoolkit/xtoolkit-dev'
-        
-- stage: 'PublishPreReleaseNuGetPackage'
+
+- stage: 'PublishProvisionalNuGetPackage'
   displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - job:
     pool:
-      vmImage: 'ubuntu-latest'
+      vmImage: 'windows-latest'
 
     steps:
     - checkout: none
@@ -145,22 +157,23 @@ stages:
       artifact: 'packages'
 
     - task: NuGetCommand@2
-      displayName: 'Push NuGet Package'
+      displayName: 'Push NuGet Packages'
       inputs:
         command: 'push'
-        packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+        packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
         allowPackageConflicts: true
         nuGetFeedType: 'internal'
         publishVstsFeed: 'xarial'
 
-- stage: 'PublishProductionPackage'
+
+- stage: 'PublishPublicPackage'
   variables:
-      - group: build-vars
-      - name: packagePath
-        value:
-  displayName: 'Publish Release NuGet Package to Nuget.org production'
-  dependsOn: 'PublishPreReleaseNuGetPackage'
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest'))
+    - group: build-vars
+    - name: packagePath
+      value:
+  displayName: 'Publish public NuGet packages to nuget.org'
+  dependsOn: 'PublishProvisionalNuGetPackage'
+  condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:
   - deployment:
     pool:
@@ -182,23 +195,22 @@ stages:
               secureFile: xarial-code-signing.pfx
 
           - task: PowerShell@2
+            displayName: 'Write the paths to nuget package into variable'
             inputs:
               targetType: 'inline'
               script: |
-                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/release" -Filter "*.nupkg").FullName
+                $packagePath = (Get-ChildItem -Path "$(Pipeline.Workspace)/packages/$(versionSuffix)" -Filter "*.nupkg" | Select-Object  @{Name='QuotedFullPath';Expression={"""$($_.FullName)"""}} | Select-Object -ExpandProperty QuotedFullPath )
                 Write-Host $packagePath
                 Write-Host "##vso[task.setvariable variable=packagePath;]$packagePath"
 
-          - task: NuGetCommand@2
-            displayName: 'Sign NuGet Package'
-            inputs:
-              command: 'custom'
-              arguments: sign "$(PackagePath)" -CertificatePath "$(Certificate.secureFilePath)" -CertificatePassword "$(CODE_SIGN_CERT_PWD)" -Timestamper http://timestamp.comodoca.com
+          - script: |
+              dotnet nuget sign $(PackagePath) --certificate-path "$(Certificate.secureFilePath)" --certificate-password "$(CODE_SIGN_CERT_PWD)" --timestamper http://timestamp.comodoca.com
+            displayName: Sign NuGet Packages
 
           - task: NuGetCommand@2
-            displayName: 'Push NuGet Package'
+            displayName: 'Push NuGet Packages'
             inputs:
               command: 'push'
-              packagesToPush: '$(Pipeline.Workspace)/packages/release/*.nupkg'
+              packagesToPush: '$(Pipeline.Workspace)/packages/$(versionSuffix)/*.nupkg'
               nuGetFeedType: 'external'
               publishFeedCredentials: 'Nuget.org'
