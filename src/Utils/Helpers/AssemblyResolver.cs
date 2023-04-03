@@ -9,14 +9,26 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
-using System.Text;
-using Xarial.XToolkit.Reflection;
 
 namespace Xarial.XToolkit.Helpers
 {
+    /// <summary>
+    /// Service to resolve the missing assembly references use in the <see cref="AssemblyResolver"/>
+    /// </summary>
     public interface IReferenceResolver
     {
+        /// <summary>
+        /// Name of the resolver
+        /// </summary>
         string Name { get; }
+
+        /// <summary>
+        /// Resolves the missing assembly reference
+        /// </summary>
+        /// <param name="appDomain">Application domain</param>
+        /// <param name="assmName">Assembly name to resolve</param>
+        /// <param name="requestingAssembly">Assembly which requests the missing reference</param>
+        /// <returns>Replacement assembly</returns>
         Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly);
     }
 
@@ -29,10 +41,19 @@ namespace Xarial.XToolkit.Helpers
         private readonly AppDomain m_AppDomain;
         private readonly string m_LogName;
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="appDomain">Application domain</param>
         public AssemblyResolver(AppDomain appDomain) : this(appDomain, "Xarial.xToolkit")
         {
         }
 
+        /// <summary>
+        /// Constructor with app domain and log name
+        /// </summary>
+        /// <param name="appDomain">Application domain</param>
+        /// <param name="logName">Log name</param>
         public AssemblyResolver(AppDomain appDomain, string logName)
         {
             m_LogName = logName;
@@ -42,10 +63,12 @@ namespace Xarial.XToolkit.Helpers
             m_AppDomain.AssemblyResolve += OnResolveMissingAssembly;
         }
 
+        /// <summary>
+        /// Addes the resolver service
+        /// </summary>
+        /// <param name="resolver">Resolver service</param>
         public void RegisterAssemblyReferenceResolver(IReferenceResolver resolver)
-        {
-            m_AssemblyResolvers.Add(resolver);
-        }
+            => m_AssemblyResolvers.Add(resolver);
 
         private Assembly OnResolveMissingAssembly(object sender, ResolveEventArgs args)
         {

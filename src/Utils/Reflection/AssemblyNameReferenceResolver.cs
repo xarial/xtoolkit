@@ -14,12 +14,26 @@ using Xarial.XToolkit.Helpers;
 
 namespace Xarial.XToolkit.Reflection
 {
+    /// <summary>
+    /// Default assembly name resolver
+    /// </summary>
     public abstract class AssemblyNameReferenceResolver : IReferenceResolver
     {
+        /// <summary>
+        /// Assembly information
+        /// </summary>
         public class AssemblyInfo
         {
+            /// <summary>
+            /// File path to the assembly
+            /// </summary>
             public string FilePath { get; }
+
+            /// <summary>
+            /// Assembly name
+            /// </summary>
             public AssemblyName Name { get; }
+            
             internal bool IsLoaded { get; }
 
             internal AssemblyInfo(AssemblyName name, string filePath, bool isLoaded)
@@ -30,8 +44,16 @@ namespace Xarial.XToolkit.Reflection
             }
         }
 
+        /// <summary>
+        /// Name of the resolver
+        /// </summary>
+        /// <remarks>Used in the logs</remarks>
         public string Name { get; }
 
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        /// <param name="name">Name of the resolver</param>
         public AssemblyNameReferenceResolver(string name) 
         {
             if (string.IsNullOrEmpty(name))
@@ -42,6 +64,7 @@ namespace Xarial.XToolkit.Reflection
             Name = name;
         }
         
+        /// <inheritdoc/>>
         public virtual Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly)
         {
             var searchAssmName = GetReplacementAssemblyName(assmName, requestingAssembly, out string searchDir, out bool recursiveSearch);
@@ -94,6 +117,11 @@ namespace Xarial.XToolkit.Reflection
             return null;
         }
 
+        /// <summary>
+        /// Gets the culture of the assembly name
+        /// </summary>
+        /// <param name="assmName">Assembly name</param>
+        /// <returns>Text of the culture</returns>
         protected string GetCulture(AssemblyName assmName)
         {
             if (string.IsNullOrEmpty(assmName.CultureName))
@@ -106,6 +134,11 @@ namespace Xarial.XToolkit.Reflection
             }
         }
 
+        /// <summary>
+        /// Gets the public key token from the assembly name
+        /// </summary>
+        /// <param name="assmName">Assembly name</param>
+        /// <returns>Text version of public key token</returns>
         protected string GetPublicKeyToken(AssemblyName assmName)
         {
             var bytes = assmName.GetPublicKeyToken();
@@ -125,14 +158,35 @@ namespace Xarial.XToolkit.Reflection
             return publicKeyToken;
         }
 
+        /// <summary>
+        /// Provides the name of the assembly to replace for this missing reference
+        /// </summary>
+        /// <param name="assmName">Missing assembly name</param>
+        /// <param name="requestingAssembly">Assembly that requests this missing reference</param>
+        /// <param name="searchDir">Search directory</param>
+        /// <param name="recursiveSearch">True to search in sub-directories recursievely</param>
+        /// <returns>Assemly to replace</returns>
         protected abstract AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly,
             out string searchDir, out bool recursiveSearch);
 
+        /// <summary>
+        /// Compares two assemblies to see if those match
+        /// </summary>
+        /// <param name="probeAssmName">Assembly candidate</param>
+        /// <param name="searchAssmName">Target assembly</param>
+        /// <returns>True if assembly names are matching</returns>
+        /// <remarks>Use this method to override logic for matching (e.g. full match or only match by file name, version, public key token etc.)</remarks>
         protected virtual bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName)
             => CompareAssemblyNames(probeAssmName, searchAssmName);
 
+        /// <summary>
+        /// Provides the assembly to use if multiple options available
+        /// </summary>
+        /// <param name="assmNames">Assembly candidates</param>
+        /// <param name="searchAssmName">Target assembly name</param>
+        /// <returns>Assembly to use</returns>
         protected virtual AssemblyInfo ResolveAmbiguity(
-                                            IReadOnlyList<AssemblyInfo> assmNames, AssemblyName searchAssmName)
+            IReadOnlyList<AssemblyInfo> assmNames, AssemblyName searchAssmName)
         {
             var assmInfo = assmNames.FirstOrDefault(a => CompareAssemblyNames(a.Name, searchAssmName));
 
@@ -154,15 +208,16 @@ namespace Xarial.XToolkit.Reflection
 
         private IEnumerable<AssemblyInfo> EnumerateAssemblyByName(string dir, bool recurse, AssemblyName searchAssmName)
         {
-            var probeAssmFilePath = Path.Combine(dir, searchAssmName.Name + ".dll");
-
-            if (File.Exists(probeAssmFilePath))
+            foreach (var probeAssmFilePath in ProvideProbeAssemblyFilePaths(dir, searchAssmName))
             {
-                var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
-
-                if (Match(probeAssmName, searchAssmName))
+                if (File.Exists(probeAssmFilePath))
                 {
-                    yield return new AssemblyInfo(probeAssmName, probeAssmFilePath, false);
+                    var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
+
+                    if (Match(probeAssmName, searchAssmName))
+                    {
+                        yield return new AssemblyInfo(probeAssmName, probeAssmFilePath, false);
+                    }
                 }
             }
 
@@ -176,6 +231,17 @@ namespace Xarial.XToolkit.Reflection
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Returnes probe assemly file paths
+        /// </summary>
+        /// <param name="dir">Directory to search in</param>
+        /// <param name="searchAssmName">Target assembly name</param>
+        /// <returns>Possible file paths of the assembly file</returns>
+        protected virtual IEnumerable<string> ProvideProbeAssemblyFilePaths(string dir, AssemblyName searchAssmName) 
+        {
+            yield return Path.Combine(dir, searchAssmName.Name + ".dll");
         }
     }
 }
