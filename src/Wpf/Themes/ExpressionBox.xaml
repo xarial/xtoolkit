@@ -20,6 +20,10 @@
                       ItemTemplate="{Binding Path=VariableLinksMenuItemTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}" Margin="5"/>
     </DataTemplate>
 
+    <DataTemplate x:Key="VariableLinksBoxDecorationTemplate">
+        <TextBlock Margin="2" FontWeight="Bold"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
+    </DataTemplate>
+
     <DataTemplate x:Key="VariableLinksMenuItemTemplate">
         <Grid>
             <Grid.ColumnDefinitions>
@@ -249,7 +253,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <TextBlock Margin="2" FontWeight="Bold"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
+                                <ContentPresenter Content="{Binding}" ContentTemplate="{Binding Path=VariableLinksBoxDecorationTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"/>
                                 <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1"
                                                  Foreground="{TemplateBinding Foreground}"
                                                  Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
@@ -260,7 +264,7 @@
                         <RichTextBox x:Name="PART_RichTextBox" Grid.Column="1" IsDocumentEnabled="True" Foreground="{TemplateBinding Foreground}"
                                  AcceptsReturn="False" AcceptsTab="False" BorderBrush="{TemplateBinding BorderBrush}"
                                  BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
-                            <FlowDocument PageWidth="2000"/>
+                            <FlowDocument/>
                         </RichTextBox>
                     </Grid>
                 </ControlTemplate>

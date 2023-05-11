@@ -58,28 +58,28 @@ namespace WpfTester
         {
             if (FileSystemBrowser.BrowseFileOpen(out string path, out int filterIndex, "Test",
                 FileFilter.BuildFilterString(new FileFilter("Txt1", "*.txt"),
-                new FileFilter("Txt2", "*.txt")))) 
+                new FileFilter("Txt2", "*.txt")), "", "test1.txt")) 
             {
             }
         }
 
         private void OnBrowseFilesOpen(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFilesOpen(out string[] path))
+            if (FileSystemBrowser.BrowseFilesOpen(out string[] path, "", "", "", "abc.txt"))
             {
             }
         }
 
         private void OnBrowseFileSave(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFileSave(out string path))
+            if (FileSystemBrowser.BrowseFileSave(out string path, "", FileFilter.BuildFilterString(FileFilter.AllFiles), @"D:\Demo", "mytestfile.txt"))
             {
             }
         }
 
         private void OnBrowseFolder(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFolder(out string path, "Test Folder Browser"))
+            if (FileSystemBrowser.BrowseFolder(out string path, "Test Folder Browser", @"D:\Demo"))
             {
             }
         }

@@ -296,7 +296,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
     public class ExpressionBox : Control
     {
-        private class InternalChangeTracker 
+        private class InternalChangeTracker
         {
             private class InternalChange : IDisposable
             {
@@ -316,7 +316,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             internal bool IsInternalChange { get; private set; }
 
-            internal InternalChangeTracker() 
+            internal InternalChangeTracker()
             {
                 IsInternalChange = false;
             }
@@ -326,8 +326,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private class DefaultExpressionVariableDescriptor : IExpressionVariableDescriptor
         {
-            public ExpressionVariableArgumentDescriptor[] GetArguments(IExpressionTokenVariable variable, out bool dynamic) 
-            {   
+            public ExpressionVariableArgumentDescriptor[] GetArguments(IExpressionTokenVariable variable, out bool dynamic)
+            {
                 dynamic = true;
 
                 return variable.Arguments?.Select(a => new ExpressionVariableArgumentExpressionDescriptor()).ToArray();
@@ -376,7 +376,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
 
-        public ExpressionBox() 
+        public ExpressionBox()
         {
             m_InternalChangeTracker = new InternalChangeTracker();
 
@@ -391,15 +391,42 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_Doc = m_TextBox.Document;
             m_TextBox.TextChanged += OnTextChanged;
 
+            SetSingleLineOptions(SingleLine);
+
             m_IsInit = true;
 
-            DataObject.AddCopyingHandler(m_TextBox, OnCopy);
-            DataObject.AddPastingHandler(m_TextBox, OnPaste);
+            CommandManager.AddPreviewExecutedHandler(m_TextBox, OnPreviewCommandExecuted);
 
             RenderExpression(Expression);
         }
 
-        public void Insert(IExpressionToken expressionToken, bool enterArgs) 
+        private void OnPreviewCommandExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Command == ApplicationCommands.Cut)
+            {
+                if (CopySelectionToClipboard())
+                {
+                    m_TextBox.Selection.Text = "";
+                    e.Handled = true;
+                }
+            }
+            else if (e.Command == ApplicationCommands.Copy) 
+            {
+                if (CopySelectionToClipboard())
+                {
+                    e.Handled = true;
+                }
+            }
+            else if (e.Command == ApplicationCommands.Paste)
+            {
+                if (PasteFromClipboard())
+                {
+                    e.Handled = true;
+                }
+            }
+        }
+
+        public void Insert(IExpressionToken expressionToken, bool enterArgs)
         {
             using (var intChange = m_InternalChangeTracker.PerformInternalChange())
             {
@@ -442,9 +469,9 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        public void CommitEditingVariable() 
+        public void CommitEditingVariable()
         {
-            if (m_EditingVariable != null) 
+            if (m_EditingVariable != null)
             {
                 m_EditingVariable.Commit();
             }
@@ -483,7 +510,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             ((ExpressionBox)d).RaiseVariableDescriptorChanged((IExpressionVariableDescriptor)e.NewValue);
         }
 
-        private void RaiseVariableDescriptorChanged(IExpressionVariableDescriptor descriptor) 
+        private void RaiseVariableDescriptorChanged(IExpressionVariableDescriptor descriptor)
         {
             VariableDescriptorChanged?.Invoke(this, descriptor);
         }
@@ -503,6 +530,18 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (Collection<IExpressionVariableLink>)GetValue(VariableLinksProperty); }
             set { SetValue(VariableLinksProperty, value); }
+        }
+
+        public static readonly DependencyProperty VariableLinksBoxDecorationTemplateProperty =
+            DependencyProperty.Register(
+            nameof(VariableLinksBoxDecorationTemplate), typeof(DataTemplate),
+            typeof(ExpressionBox),
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "VariableLinksBoxDecorationTemplate")));
+
+        public DataTemplate VariableLinksBoxDecorationTemplate
+        {
+            get { return (DataTemplate)GetValue(VariableLinksBoxDecorationTemplateProperty); }
+            set { SetValue(VariableLinksBoxDecorationTemplateProperty, value); }
         }
 
         public static readonly DependencyProperty VariableLinksMenuTemplateProperty =
@@ -564,6 +603,17 @@ namespace Xarial.XToolkit.Wpf.Controls
             set { SetValue(VariableLinksBoxVisibilityProperty, value); }
         }
 
+        public static readonly DependencyProperty SingleLineProperty =
+            DependencyProperty.Register(
+            nameof(SingleLine), typeof(bool),
+            typeof(ExpressionBox), new PropertyMetadata(true, new PropertyChangedCallback(OnSingleLinePropertyChanged)));
+
+        public bool SingleLine
+        {
+            get { return (bool)GetValue(SingleLineProperty); }
+            set { SetValue(SingleLineProperty, value); }
+        }
+
         internal IExpressionVariableDescriptor GetVariableDescriptor()
         {
             var desc = VariableDescriptor;
@@ -588,9 +638,9 @@ namespace Xarial.XToolkit.Wpf.Controls
             return parser;
         }
 
-        private InlineCollection Inlines 
+        private InlineCollection Inlines
         {
-            get 
+            get
             {
                 if (m_Doc.Blocks.Count == 1)
                 {
@@ -605,7 +655,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                     m_Doc.Blocks.Add(par);
                     return par.Inlines;
                 }
-                else 
+                else
                 {
                     throw new NotSupportedException("Only one paragraph is supported");
                 }
@@ -639,7 +689,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         private void UpdateExpression()
         {
             var parser = GetExpressionParser();
-            
+
             IExpressionToken token;
 
             if (m_Doc.Blocks.Count == 1)
@@ -658,18 +708,18 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private int GetCachedVariablesCount() => Inlines.OfType<InlineUIContainer>().Count();
 
-        private static void OnExpressionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) 
+        private static void OnExpressionChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var expBox = (ExpressionBox)d;
 
             expBox.RenderExpression((string)e.NewValue);
         }
 
-        private void RenderExpression(string expression) 
+        private void RenderExpression(string expression)
         {
             if (m_IsInit && !m_InternalChangeTracker.IsInternalChange)
             {
-                using (var intChnage = m_InternalChangeTracker.PerformInternalChange()) 
+                using (var intChnage = m_InternalChangeTracker.PerformInternalChange())
                 {
                     m_Doc.Blocks.Clear();
 
@@ -692,7 +742,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
         /// <remarks><paramref name="inlines"/> parameter is not used directly, but keeping it to enforce updating the inline and creating new ones if needed</remarks>
-        private IReadOnlyList<Inline> AddExpressionToken(InlineCollection inlines, IExpressionToken expressionToken, ref TextPointer pos) 
+        private IReadOnlyList<Inline> AddExpressionToken(InlineCollection inlines, IExpressionToken expressionToken, ref TextPointer pos)
         {
             var res = new List<Inline>();
 
@@ -700,14 +750,14 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 case IExpressionTokenVariable variable:
                     var varCtrl = new ExpressionVariableTokenControl(this, variable);
-                    
+
                     varCtrl.VariableUpdated += OnVariableUpdated;
                     varCtrl.EditingStarted += OnVariableEditingStarted;
                     varCtrl.EditingCompleted += OnVariableEditingCompleted;
 
-                    var uiCont = new InlineUIContainer(varCtrl, pos) 
+                    var uiCont = new InlineUIContainer(varCtrl, pos)
                     {
-                        BaselineAlignment = BaselineAlignment.Center 
+                        BaselineAlignment = BaselineAlignment.Center
                     };
                     pos = uiCont.ContentEnd.GetInsertionPosition(LogicalDirection.Forward);
                     res.Add(uiCont);
@@ -751,7 +801,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_EditingVariable = null;
         }
 
-        private IExpressionToken GetExpressionToken(IEnumerable<Inline> inlines) 
+        private IExpressionToken GetExpressionToken(IEnumerable<Inline> inlines)
         {
             var tokens = new List<IExpressionToken>();
 
@@ -768,7 +818,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 return tokens.First();
             }
-            else 
+            else
             {
                 return new ExpressionTokenGroup(tokens.ToArray());
             }
@@ -808,13 +858,10 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        private void OnCopy(object sender, DataObjectCopyingEventArgs e)
+        private bool CopySelectionToClipboard() 
         {
             if (m_EditingVariable == null)//if variable is editing no need to handle the copying as it will be hijacked
             {
-                e.Handled = true;
-                e.CancelCommand();
-
                 IEnumerable<Tuple<Inline, int?, int?>> GetSelectedInlines()
                 {
                     var sel = m_TextBox.Selection;
@@ -875,16 +922,19 @@ namespace Xarial.XToolkit.Wpf.Controls
                 }
 
                 Clipboard.SetText(expression.ToString());
+
+                return true;
+            }
+            else 
+            {
+                return false;
             }
         }
 
-        private void OnPaste(object sender, DataObjectPastingEventArgs e)
+        private bool PasteFromClipboard() 
         {
             if (m_EditingVariable == null)//if variable is editing no need to handle the pasting as it will be hijacked
             {
-                e.Handled = true;
-                e.CancelCommand();
-
                 var parser = GetExpressionParser();
 
                 var expression = Clipboard.GetText();
@@ -899,19 +949,48 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     SetExpressionError(ex);
                 }
+
+                return true;
+            }
+            else 
+            {
+                return false;
             }
         }
 
         private void SetExpressionError(Exception ex)
         {
             var bindingExpression = this.GetBindingExpression(ExpressionProperty);
-            
+
             if (bindingExpression != null)
             {
                 var validationError = new ValidationError(new DataErrorValidationRule(), bindingExpression);
                 validationError.ErrorContent = ex;
 
                 Validation.MarkInvalid(bindingExpression, validationError);
+            }
+        }
+
+        private void SetSingleLineOptions(bool singleLine)
+        {
+            var width = double.NaN;
+
+            if (singleLine)
+            {
+                width = 2000;
+            }
+
+            m_TextBox.Document.PageWidth = width;
+
+        }
+
+        private static void OnSingleLinePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var exprBox = (ExpressionBox)d;
+
+            if (exprBox.m_IsInit)
+            {
+                exprBox.SetSingleLineOptions((bool)e.NewValue);
             }
         }
     }
