@@ -142,7 +142,7 @@ stages:
         publishVstsFeed: 'xtoolkit/xtoolkit-dev'
 
 - stage: 'PublishProvisionalNuGetPackage'
-  displayName: 'Publish Prerelease NuGet Package to xarial nuget feed'
+  displayName: 'Publish Provisional NuGet Package to xarial nuget feed'
   dependsOn: 'Build'
   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))
   jobs:

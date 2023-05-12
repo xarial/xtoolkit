@@ -309,8 +309,13 @@
                             </Style>
                         </ctrls:ExpressionBox.Style>
                     </ctrls:ExpressionBox>
-                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2" SingleLine="False"/>
-                    <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" 
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" SingleLine="False" Height="100" VariableLinks="{Binding Path=VariableLinks}">
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <local:MyExpressionVariableDescriptor/>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+                    <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="4" 
                                          Foreground="Green" Background="LightYellow">
                         <ctrls:ExpressionBox.VariableLinks>
                             <ctrls:ExpressionVariableLinkCollection>
@@ -340,7 +345,7 @@
                         </ctrls:ExpressionBox.VariableDescriptor>
                     </ctrls:ExpressionBox>
 
-                    <ctrls:ExpressionBox Expression="{Binding Path=Expression}" BorderThickness="0" Grid.Row="4">
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression}" BorderThickness="0" Grid.Row="5">
                         <ctrls:ExpressionBox.VariableLinksBoxDecorationTemplate>
                             <DataTemplate/>
                         </ctrls:ExpressionBox.VariableLinksBoxDecorationTemplate>
