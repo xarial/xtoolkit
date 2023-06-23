@@ -99,8 +99,9 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:ExpressionVariableTokenControl}">
-                    <Border BorderBrush="#FF707070" BorderThickness="1" CornerRadius="5" Margin="2" Background="{TemplateBinding Background}">
-                        <Grid>
+                    <Grid>
+                        <Border x:Name="PART_Main" BorderBrush="#FF707070" BorderThickness="1" CornerRadius="5" Margin="2" Background="{TemplateBinding Background}">
+                            <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/>
                                 <ColumnDefinition Width="*"/>
@@ -230,7 +231,9 @@
                                 </local:PopupMenu.ToggleButtonStyle>
                             </local:PopupMenu>
                         </Grid>
-                    </Border>
+                        </Border>
+                        <TextBlock x:Name="PART_Error" Visibility="Collapsed" Text="&#9888;" Foreground="Red"/>
+                    </Grid>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

@@ -69,6 +69,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         internal event Action<ExpressionVariableTokenControl> EditingStarted;
         internal event Action<ExpressionVariableTokenControl> EditingCompleted;
 
+        private FrameworkElement m_Main;
+        private FrameworkElement m_Error;
         private DataGrid m_DataGrid;
         private PopupMenu m_PopupEditor;
 
@@ -78,6 +80,8 @@ namespace Xarial.XToolkit.Wpf.Controls
         private ObservableCollection<ExpressionVariableArgumentDescriptor> m_Arguments;
 
         private bool m_Edit;
+
+        private Exception m_Exception;
 
         internal ExpressionVariableTokenControl(ExpressionBox owner, IExpressionTokenVariable variable)
         {
@@ -102,15 +106,23 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             m_DataGrid = (DataGrid)this.Template.FindName("PART_DataGrid", this);
             m_PopupEditor = (PopupMenu)this.Template.FindName("PART_PopupEditor", this);
+            m_Main = (FrameworkElement)this.Template.FindName("PART_Main", this);
+            m_Error = (FrameworkElement)this.Template.FindName("PART_Error", this);
+
             m_PopupEditor.Opened += OnPopupEditorOpened;
             m_PopupEditor.Closed += OnClosed;
 
             m_DataGrid.AddingNewItem += OnAddingNewItem;
 
-            if (m_Edit) 
+            SetError(m_Exception);
+
+            if (m_Exception == null)
             {
-                Edit();
-                m_Edit = false;
+                if (m_Edit)
+                {
+                    Edit();
+                    m_Edit = false;
+                }
             }
         }
 
@@ -232,48 +244,86 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void UpdateVariableControl(IExpressionTokenVariable variable)
         {
-            var descriptor = Owner.GetVariableDescriptor();
+            try
+            {
+                var descriptor = Owner.GetVariableDescriptor();
 
-            Title = descriptor.GetTitle(variable);
-            Icon = descriptor.GetIcon(variable);
-            ToolTip = descriptor.GetDescription(variable);
-            Background = descriptor.GetBackground(variable);
+                Title = descriptor.GetTitle(variable);
+                Icon = descriptor.GetIcon(variable);
+                ToolTip = descriptor.GetDescription(variable);
+                Background = descriptor.GetBackground(variable);
+
+                SetError(null);
+            }
+            catch (Exception ex)
+            {
+                SetError(ex);
+            }
         }
 
         private void UpdateVariableArguments(IExpressionTokenVariable variable)
         {
-            Arguments = null;
-
-            var args = Owner.GetVariableDescriptor().GetArguments(variable, out bool dynamic);
-
-            DynamicArguments = dynamic;
-
-            if (args?.Any() == true || dynamic)
+            try
             {
-                Arguments = new ObservableCollection<ExpressionVariableArgumentDescriptor>(args ?? new ExpressionVariableArgumentDescriptor[0]);
+                Arguments = null;
 
-                if (variable.Arguments?.Length > Arguments.Count && dynamic)
+                var args = Owner.GetVariableDescriptor().GetArguments(variable, out bool dynamic);
+
+                DynamicArguments = dynamic;
+
+                if (args?.Any() == true || dynamic)
                 {
-                    for (int i = Arguments.Count; i < variable.Arguments.Length; i++)
+                    Arguments = new ObservableCollection<ExpressionVariableArgumentDescriptor>(args ?? new ExpressionVariableArgumentDescriptor[0]);
+
+                    if (variable.Arguments?.Length > Arguments.Count && dynamic)
                     {
-                        Arguments.Add(NewDynamicArgument());
+                        for (int i = Arguments.Count; i < variable.Arguments.Length; i++)
+                        {
+                            Arguments.Add(NewDynamicArgument());
+                        }
+                    }
+
+                    for (int i = 0; i < Arguments.Count; i++)
+                    {
+                        var arg = Arguments[i];
+
+                        if (variable.Arguments != null && variable.Arguments.Length > i)
+                        {
+                            arg.SetToken(variable.Arguments[i], Owner.GetExpressionParser());
+                        }
+                    }
+
+                    if (DynamicArguments)
+                    {
+                        ResolveDynamicArgumentNames();
+                        Arguments.CollectionChanged += OnDynamicArgumentsChanged;
                     }
                 }
 
-                for (int i = 0; i < Arguments.Count; i++)
-                {
-                    var arg = Arguments[i];
+                SetError(null);
+            }
+            catch (Exception ex)
+            {
+                SetError(ex);
+            }
+        }
 
-                    if (variable.Arguments != null && variable.Arguments.Length > i)
-                    {
-                        arg.SetToken(variable.Arguments[i], Owner.GetExpressionParser());
-                    }
+        private void SetError(Exception ex)
+        {
+            m_Exception = ex;
+
+            if (m_Main != null && m_Error != null)
+            {
+                if (ex != null)
+                {
+                    m_Main.Visibility = Visibility.Collapsed;
+                    m_Error.Visibility = Visibility.Visible;
+                    m_Error.ToolTip = ex.ParseUserError(out _, "Variable error");
                 }
-
-                if (DynamicArguments)
+                else
                 {
-                    ResolveDynamicArgumentNames();
-                    Arguments.CollectionChanged += OnDynamicArgumentsChanged;
+                    m_Main.Visibility = Visibility.Visible;
+                    m_Error.Visibility = Visibility.Collapsed;
                 }
             }
         }
@@ -965,7 +1015,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             if (bindingExpression != null)
             {
                 var validationError = new ValidationError(new DataErrorValidationRule(), bindingExpression);
-                validationError.ErrorContent = ex;
+                validationError.ErrorContent = ex.ParseUserError(out _, "Expression parsing error");
 
                 Validation.MarkInvalid(bindingExpression, validationError);
             }
