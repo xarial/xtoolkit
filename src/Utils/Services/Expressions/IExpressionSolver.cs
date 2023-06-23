@@ -114,7 +114,13 @@ namespace Xarial.XToolkit.Services.Expressions
         private readonly StringComparison m_Comparison;
         private readonly VariableValueProviderDelegate<TContext> m_Solver;
 
+        public ExpressionSolver(StringComparison comparison = StringComparison.CurrentCulture)
+        {
+            m_Comparison = comparison;
+        }
+
         public ExpressionSolver(VariableValueProviderDelegate<TContext> solver, StringComparison comparison = StringComparison.CurrentCulture)
+            : this(comparison)
         {
             if (solver == null)
             {
@@ -122,8 +128,6 @@ namespace Xarial.XToolkit.Services.Expressions
             }
 
             m_Solver = solver;
-
-            m_Comparison = comparison;
         }
 
         public string Solve(IExpressionToken token, TContext context)
@@ -134,6 +138,18 @@ namespace Xarial.XToolkit.Services.Expressions
             }
 
             return Resolve(token, context, new Dictionary<VariableCacheKey, object>(new VariableCacheKeyEqualityComparer(m_Comparison)))?.ToString();
+        }
+
+        protected virtual object SolveVariable(string name, object[] args, TContext context) 
+        {
+            if (m_Solver != null)
+            {
+                return m_Solver.Invoke(name, args, context);
+            }
+            else 
+            {
+                throw new Exception($"Solver is not specified. Either pass the solver delegate in the constructor or override '{nameof(SolveVariable)}' method");
+            }
         }
 
         private object Resolve(IExpressionToken token, TContext context, Dictionary<VariableCacheKey, object> variableCache)
@@ -180,7 +196,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
                     if (!variableCache.TryGetValue(cacheKey, out object varVal))
                     {
-                        varVal = m_Solver.Invoke(variable.Name, arguments, context);
+                        varVal = SolveVariable(variable.Name, arguments, context);
 
                         variableCache.Add(cacheKey, varVal);
                     }
@@ -199,11 +215,24 @@ namespace Xarial.XToolkit.Services.Expressions
 
     public class ExpressionSolver : ExpressionSolver<object>, IExpressionSolver
     {
+
+        public ExpressionSolver(StringComparison comparison = StringComparison.CurrentCulture) : base(comparison)
+        {
+        }
+
         public ExpressionSolver(VariableValueProviderDelegate solver, StringComparison comparison = StringComparison.CurrentCulture)
             : base((n, a, c) => solver.Invoke(n, a), comparison)
         {
         }
 
         public string Solve(IExpressionToken token) => base.Solve(token, null);
+
+        protected override object SolveVariable(string name, object[] args, object context)
+            => SolveVariable(name, args, null);
+
+        protected virtual object SolveVariable(string name, object[] args)
+        {
+            return base.SolveVariable(name, args, null);
+        }
     }
 }
