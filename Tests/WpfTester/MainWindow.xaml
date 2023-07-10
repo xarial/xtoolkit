@@ -310,7 +310,19 @@
                         </ctrls:ExpressionBox.Style>
                     </ctrls:ExpressionBox>
                     <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
-                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" SingleLine="False" Height="100" VariableLinks="{Binding Path=VariableLinks}">
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" SingleLine="False"
+                                         Height="100" VariableLinks="{Binding Path=VariableLinks}">
+                        <ctrls:ExpressionBox.Resources>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="LightYellow"/>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Foreground" Value="Red"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Foreground" Value="Blue"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ctrls:ExpressionBox.Resources>
                         <ctrls:ExpressionBox.VariableDescriptor>
                             <local:MyExpressionVariableDescriptor/>
                         </ctrls:ExpressionBox.VariableDescriptor>

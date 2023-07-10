@@ -85,9 +85,14 @@ namespace WpfTester
                     ExpressionVariableArgumentDescriptor.CreateExpression("Default Argument", "Sample Default Argument", null)
                 };
             }
-            else 
+            else if(variable.Name == "*")
             {
                 dynamic = true;
+                return null;
+            }
+            else 
+            {
+                dynamic = false;
                 return null;
             }
         }
@@ -134,6 +139,8 @@ namespace WpfTester
             VariableLinks = new ObservableCollection<IExpressionVariableLink>(new IExpressionVariableLink[]
             {
                 new ExpressionVariableLinkGeneric(),
+                new ExpressionVariableLink("Insert Custom", "Custom with arguments", null, s => new ExpressionTokenCustomVariable("*", null, "Name", "Custom Variable"), true),
+                new ExpressionVariableLink("Insert Custom (no args)", "Custom without arguments", null, s => new ExpressionTokenCustomVariable(".", null, "Title", "Custom Variable without arguments"), true),
                 new ExpressionVariableLink("Insert 'var1'...", "Inserting 'var1'", m_Var1Icon, s => new ExpressionTokenVariable("var1", null), true),
                 new ExpressionVariableLink("Insert 'var2'", "Inserting 'var2'", null, s => new ExpressionTokenVariable("var2", new IExpressionToken[] { new ExpressionTokenText("X"), new ExpressionTokenText("Y") }), false)
             });

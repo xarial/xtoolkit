@@ -27,6 +27,7 @@ using System.ComponentModel;
 using System.Collections;
 using System.Globalization;
 using Xarial.XToolkit.Wpf.Dialogs;
+using static System.Windows.Forms.LinkLabel;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -55,6 +56,22 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
+    public class SupportsArgumentsVisibilityConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            var args = (IEnumerable)values[0];
+            var dynArgs = (bool)values[1];
+
+            return (dynArgs || (args != null && args.GetEnumerator().MoveNext())) ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class ExpressionVariableTokenControl : Control, INotifyPropertyChanged
     {
         static ExpressionVariableTokenControl()
@@ -69,19 +86,46 @@ namespace Xarial.XToolkit.Wpf.Controls
         internal event Action<ExpressionVariableTokenControl> EditingStarted;
         internal event Action<ExpressionVariableTokenControl> EditingCompleted;
 
+        public ICommand ApplyRowChangesCommand { get; }
+        public ICommand CancelRowChangesCommand { get; }
+
         private FrameworkElement m_Main;
         private FrameworkElement m_Error;
         private DataGrid m_DataGrid;
         private PopupMenu m_PopupEditor;
+        private TextBlock m_ClosePopupButton;
 
-        private readonly string m_VariableName;
-        private IExpressionTokenVariable m_Variable;
+        private string m_VariableName;
+        public IExpressionTokenVariable Variable 
+        {
+            get => m_Variable;
+            private set 
+            {
+                m_Variable = value;
+                this.NotifyChanged();
+                this.NotifyChanged(nameof(AllowEditName));
+            }
+        }
+
         private bool m_DynamicArguments;
         private ObservableCollection<ExpressionVariableArgumentDescriptor> m_Arguments;
 
         private bool m_Edit;
+        public bool AllowEditName => Variable is IExpressionTokenCustomVariable;
 
         private Exception m_Exception;
+
+        public string VariableName 
+        {
+            get => m_VariableName;
+            set 
+            {
+                m_VariableName = value;
+                this.NotifyChanged();
+            }
+        }
+
+        private IExpressionTokenVariable m_Variable;
 
         internal ExpressionVariableTokenControl(ExpressionBox owner, IExpressionTokenVariable variable)
         {
@@ -94,9 +138,12 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             Owner.VariableDescriptorChanged += OnVariableDescriptorChanged;
 
-            m_Variable = variable;
+            Variable = variable;
 
-            m_VariableName = variable.Name;
+            VariableName = variable.Name;
+
+            ApplyRowChangesCommand = new RelayCommand(ApplyRowChanges);
+            CancelRowChangesCommand = new RelayCommand(CancelRowChanges);
 
             UpdateVariableControl(variable);
             UpdateVariableArguments(variable);
@@ -108,6 +155,8 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_PopupEditor = (PopupMenu)this.Template.FindName("PART_PopupEditor", this);
             m_Main = (FrameworkElement)this.Template.FindName("PART_Main", this);
             m_Error = (FrameworkElement)this.Template.FindName("PART_Error", this);
+            m_ClosePopupButton = (TextBlock)this.Template.FindName("PART_CloseArgumentsWindow", this);
+            m_ClosePopupButton.MouseDown += OnClosePopupButtonMouseDown;
 
             m_PopupEditor.Opened += OnPopupEditorOpened;
             m_PopupEditor.Closed += OnClosed;
@@ -126,9 +175,24 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        private void ApplyRowChanges()
+        {
+            m_DataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        }
+
+        private void CancelRowChanges()
+        {
+            m_DataGrid.CancelEdit(DataGridEditingUnit.Row);
+        }
+
+        private void OnClosePopupButtonMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Commit();
+        }
+
         public void Edit() 
         {
-            if (Arguments != null)
+            if (Arguments != null || AllowEditName)
             {
                 if (m_PopupEditor != null)
                 {
@@ -169,13 +233,13 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void CommitChanges()
         {
-            var oldVar = m_Variable;
+            var oldVar = Variable;
 
-            m_Variable = new ExpressionTokenVariable(m_VariableName, Arguments?.Select(a => a.GetToken(Owner.GetExpressionParser())).ToArray());
+            Variable = new ExpressionTokenVariable(VariableName, Arguments?.Select(a => a.GetToken(Owner.GetExpressionParser())).ToArray());
 
-            if (!m_Variable.IsSame(oldVar))
+            if (oldVar is IExpressionTokenCustomVariable || !Variable.IsSame(oldVar))
             {
-                UpdateVariableControl(m_Variable);
+                UpdateVariableControl(Variable);
 
                 VariableUpdated?.Invoke(this);
             }
@@ -186,8 +250,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             var argDesc = NewDynamicArgument();
             e.NewItem = argDesc;
         }
-
-        internal IExpressionTokenVariable Variable => m_Variable;
 
         public ObservableCollection<ExpressionVariableArgumentDescriptor> Arguments
         {
@@ -318,7 +380,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     m_Main.Visibility = Visibility.Collapsed;
                     m_Error.Visibility = Visibility.Visible;
-                    m_Error.ToolTip = ex.ParseUserError(out _, "Variable error");
+                    m_Error.ToolTip = ex.ParseUserError(out _, $"Variable '{Variable?.Name}' error");
                 }
                 else
                 {
@@ -496,7 +558,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                 var inlines = AddExpressionToken(Inlines, expressionToken, ref pos);
 
-                if (enterArgs)
+                if (enterArgs || expressionToken is IExpressionTokenCustomVariable)
                 {
                     var cont = inlines.OfType<InlineUIContainer>().FirstOrDefault();
 
@@ -620,13 +682,13 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public static readonly DependencyProperty NewArgumentItemTemplateProperty =
             DependencyProperty.Register(
-            nameof(NewArgumentItemTemplate), typeof(ControlTemplate),
+            nameof(NewArgumentItemTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<ControlTemplate>("Themes/Generic.xaml", "NewArgumentItemTemplate")));
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "NewArgumentItemTemplate")));
 
-        public ControlTemplate NewArgumentItemTemplate
+        public DataTemplate NewArgumentItemTemplate
         {
-            get { return (ControlTemplate)GetValue(NewArgumentItemTemplateProperty); }
+            get { return (DataTemplate)GetValue(NewArgumentItemTemplateProperty); }
             set { SetValue(NewArgumentItemTemplateProperty, value); }
         }
 
@@ -900,7 +962,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         private void InsertVariable(IExpressionVariableLink link)
         {
             var var = link.Factory.Invoke(this);
-
+            
             if (var != null)
             {
                 Insert(var, link.EnterArguments);
@@ -1031,7 +1093,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
 
             m_TextBox.Document.PageWidth = width;
-
         }
 
         private static void OnSingleLinePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
