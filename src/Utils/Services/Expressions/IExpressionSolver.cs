@@ -43,6 +43,9 @@ namespace Xarial.XToolkit.Services.Expressions
     /// <remarks>This service caches the variable values</remarks>
     public class ExpressionSolver<TContext> : IExpressionSolver<TContext>
     {
+        string IExpressionSolver.Solve(IExpressionToken token, IVariableValueProvider varValProv, object context)
+            => Solve(token, (IVariableValueProvider<TContext>)varValProv, (TContext)context);
+
         private class VariableCacheKey
         {
             internal string VariableName { get; }
@@ -197,8 +200,5 @@ namespace Xarial.XToolkit.Services.Expressions
 
             return value.ToString();
         }
-
-        public string Solve(IExpressionToken token, IVariableValueProvider varValProv, object context) 
-            => Solve(token, (IVariableValueProvider<TContext>)varValProv,(TContext)context);
     }
 }

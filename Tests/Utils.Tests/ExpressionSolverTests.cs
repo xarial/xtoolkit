@@ -23,6 +23,21 @@ namespace Utils.Tests
         }
     }
 
+    public class VariableValueProviderImp1 : VariableValueProvider<object> 
+    {
+        public override object Provide(string name, object[] args, object context)
+        {
+            if (name == "id")
+            {
+                return "_" + context?.ToString();
+            }
+            else
+            {
+                throw new Exception();
+            }
+        }
+    }
+
     public class ExpressionSolverTests
     {
         [Test]
@@ -250,21 +265,25 @@ namespace Utils.Tests
         [Test]
         public void SolveVariableImplExprSolverTest()
         {
-            var solver = new ExpressionSolver<int>();
+            var solver1 = new ExpressionSolver<int>();
+            var solver2 = new ExpressionSolver<object>();
 
             var provider = new VariableValueProviderImp();
+            var provider1 = new VariableValueProviderImp1();
 
             var t1 = new ExpressionTokenVariable("id", null);
 
-            IExpressionSolver solver1 = solver;
+            IExpressionSolver solver1_1 = solver1;
 
-            var r1 = solver.Solve(t1, provider, 10);
-            var r2 = solver.Solve(t1, provider, (object)20);
-            var r3 = solver1.Solve(t1, provider, 30);
+            var r1 = solver1.Solve(t1, provider, 10);
+            var r2 = solver1.Solve(t1, provider, 20);
+            var r3 = solver1_1.Solve(t1, provider, (object)30);
+            var r4 = solver2.Solve(t1, provider1, "ABC");
 
             Assert.AreEqual("10", r1);
             Assert.AreEqual("20", r2);
             Assert.AreEqual("30", r3);
+            Assert.AreEqual("_ABC", r4);
         }
     }
 }

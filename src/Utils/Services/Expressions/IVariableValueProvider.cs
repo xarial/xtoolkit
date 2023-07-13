@@ -31,7 +31,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
     public class VariableValueProvider<TContext> : IVariableValueProvider<TContext>
     {
-        public object Provide(string name, object[] args, object context) => Provide(name, args, (TContext)context);
+        object IVariableValueProvider.Provide(string name, object[] args, object context) => Provide(name, args, (TContext)context);
 
         private readonly VariableValueProviderDelegate<TContext> m_Provider;
 
