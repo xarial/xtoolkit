@@ -12,7 +12,8 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
 {
     internal abstract class SettingsJsonConverter : JsonConverter
     {
-        protected string VERSION_NODE_NAME = "__version";
+        protected string VERSION_NODE_NAME = "$version";
+        protected string LEGACY_VERSION_NODE_NAME = "__version";
 
         protected Type m_SettsType;
         protected Version m_LatestVersion;

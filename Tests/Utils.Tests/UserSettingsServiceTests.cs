@@ -116,8 +116,8 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         {
             var srv = new UserSettingsService();
 
-            var mock1 = "{\"Field1\":\"AAA\",\"Field2\":10.0,\"__version\":\"0.0\"}";
-            var mock2 = "{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"__version\":\"2.1.0\"}";
+            var mock1 = "{\"Field1\":\"AAA\",\"Field2\":10.0,\"$version\":\"0.0\"}";
+            var mock2 = "{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}";
 
             var setts1 = srv.ReadSettings<SettsMock1>(new StringReader(mock1));
             var setts2 = srv.ReadSettings<SettsMock1>(new StringReader(mock2));
@@ -148,6 +148,19 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         }
 
         [Test]
+        public void LegacyReadSettingsTest()
+        {
+            var srv = new UserSettingsService();
+
+            var mock = "{\"Field1\":\"XYZ\",\"__version\":\"1.1.0\"}";
+
+            var setts = srv.ReadSettings<SettsMock1>(new StringReader(mock));
+
+            Assert.AreEqual("XYZ", setts.Field1);
+            Assert.AreEqual(default(double), setts.Field2);
+        }
+
+        [Test]
         public void WriteSettingsTest()
         {
             var srv = new UserSettingsService();
@@ -172,7 +185,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             srv.StoreSettings(setts2, new StringWriter(res2));
 
             Assert.AreEqual("{\"Field1\":\"AAA\",\"Field2\":10.0}", res1.ToString());
-            Assert.AreEqual("{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"__version\":\"2.1.0\"}", res2.ToString());
+            Assert.AreEqual("{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}", res2.ToString());
         }
 
         [Test]
@@ -238,9 +251,9 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             var ser = new BaseValueSerializer<string>(x => "ABC", x => "XYZ");
 
             srv.StoreSettings(setts, new StringWriter(res1), ser);
-            var res2 = srv.ReadSettings<SettsMock2>(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"__version\":\"2.1.0\"}"), ser);
+            var res2 = srv.ReadSettings<SettsMock2>(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}"), ser);
 
-            Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"__version\":\"2.1.0\"}", res1.ToString());
+            Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}", res1.ToString());
             Assert.AreEqual("XYZ", res2.Field1);
         }
 
@@ -249,7 +262,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         {
             var srv = new UserSettingsService();
 
-            var mock1 = "{\"Field1\":\"AAA\",\"__version\":\"1.0\"}";
+            var mock1 = "{\"Field1\":\"AAA\",\"$version\":\"1.0\"}";
 
             var setts1 = srv.ReadSettings<SettsMock5>(new StringReader(mock1), t => { ((SettsMock5Transformer)t).NewValue = "BBB"; return t; });
             
