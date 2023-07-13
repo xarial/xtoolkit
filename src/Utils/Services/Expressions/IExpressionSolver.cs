@@ -221,7 +221,7 @@ namespace Xarial.XToolkit.Services.Expressions
         public string Solve(IExpressionToken token, object context) => Solve(token, (TContext)context);
     }
 
-    public class ExpressionSolver : ExpressionSolver<object>, IExpressionSolver
+    public class ExpressionSolver : ExpressionSolver<object>
     {
         public ExpressionSolver(StringComparison comparison = StringComparison.CurrentCulture) : base(comparison)
         {
@@ -232,14 +232,6 @@ namespace Xarial.XToolkit.Services.Expressions
         {
         }
 
-        public string Solve(IExpressionToken token) => base.Solve(token, null);
-
-        protected override object SolveVariable(string name, object[] args, object context)
-            => SolveVariable(name, args, null);
-
-        protected virtual object SolveVariable(string name, object[] args)
-        {
-            return base.SolveVariable(name, args, null);
-        }
+        public string Solve(IExpressionToken token) => base.Solve(token, default);
     }
 }
