@@ -45,7 +45,7 @@ namespace Utils.Tests
         {
             int solverCalled = 0;
 
-            var solver = new ExpressionSolver<object>();
+            var solver = new ExpressionSolver();
 
             var provider = new VariableValueProvider<object>((v, a, c) =>
             {
@@ -66,7 +66,7 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver<object>();
+            var solver = new ExpressionSolver();
             
             var provider = new VariableValueProvider<object>((v, a, c) =>
             {
@@ -97,7 +97,7 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver<object>();
+            var solver = new ExpressionSolver();
 
             var provider = new VariableValueProvider<object>((v, a, c) =>
             {
@@ -133,7 +133,7 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver<object>();
+            var solver = new ExpressionSolver();
 
             var provider = new VariableValueProvider<object>((v, a, c) =>
             {
@@ -193,7 +193,7 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver<object>();
+            var solver = new ExpressionSolver();
 
             var provider = new VariableValueProvider<object>((v, a, c) =>
             {
@@ -205,7 +205,7 @@ namespace Utils.Tests
                 }
                 else if (v == "f2" && a.Length == 3)
                 {
-                    return "f2_" + String.Join("+", a);
+                    return "f2_" + string.Join("+", a);
                 }
                 else if (v == "f1" && a.Length == 1 && object.Equals(a[0], "bf3_0"))
                 {
@@ -265,9 +265,9 @@ namespace Utils.Tests
         [Test]
         public void SolveVariableImplExprSolverTest()
         {
-            var solver1 = new ExpressionSolver<int>();
-            var solver2 = new ExpressionSolver<object>();
-
+            var solver1 = new ExpressionSolver();
+            var solver2 = new ExpressionSolver();
+            
             var provider = new VariableValueProviderImp();
             var provider1 = new VariableValueProviderImp1();
 
@@ -279,11 +279,13 @@ namespace Utils.Tests
             var r2 = solver1.Solve(t1, provider, 20);
             var r3 = solver1_1.Solve(t1, provider, (object)30);
             var r4 = solver2.Solve(t1, provider1, "ABC");
+            var r5 = solver2.Solve(t1, provider, 40);
 
             Assert.AreEqual("10", r1);
             Assert.AreEqual("20", r2);
             Assert.AreEqual("30", r3);
             Assert.AreEqual("_ABC", r4);
+            Assert.AreEqual("40", r5);
         }
     }
 }

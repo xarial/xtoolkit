@@ -28,24 +28,11 @@ namespace Xarial.XToolkit.Services.Expressions
     }
 
     /// <summary>
-    /// Solves the expression token with context
-    /// </summary>
-    public interface IExpressionSolver<TContext> : IExpressionSolver
-    {
-        /// <inheritdoc/>        
-        string Solve(IExpressionToken token, IVariableValueProvider<TContext> varValProv, TContext context);
-    }
-
-    /// <summary>
     /// Services that parses input expression and resolves variables
     /// </summary>
-    /// <typeparam name="TContext">Expression solver context</typeparam>
     /// <remarks>This service caches the variable values</remarks>
-    public class ExpressionSolver<TContext> : IExpressionSolver<TContext>
+    public class ExpressionSolver : IExpressionSolver
     {
-        string IExpressionSolver.Solve(IExpressionToken token, IVariableValueProvider varValProv, object context)
-            => Solve(token, (IVariableValueProvider<TContext>)varValProv, (TContext)context);
-
         private class VariableCacheKey
         {
             internal string VariableName { get; }
@@ -126,7 +113,8 @@ namespace Xarial.XToolkit.Services.Expressions
             m_Comparison = comparison;
         }
 
-        public string Solve(IExpressionToken token, IVariableValueProvider<TContext> varValProv, TContext context)
+        /// <inheritdoc/>>
+        public string Solve(IExpressionToken token, IVariableValueProvider varValProv, object context)
         {
             if (token == null)
             {
@@ -141,7 +129,7 @@ namespace Xarial.XToolkit.Services.Expressions
             return Resolve(token, varValProv, context, new Dictionary<VariableCacheKey, object>(new VariableCacheKeyEqualityComparer(m_Comparison)))?.ToString();
         }
 
-        private object Resolve(IExpressionToken token, IVariableValueProvider<TContext> varValProv, TContext context, Dictionary<VariableCacheKey, object> variableCache)
+        private object Resolve(IExpressionToken token, IVariableValueProvider varValProv, object context, Dictionary<VariableCacheKey, object> variableCache)
         {
             if (token == null)
             {
