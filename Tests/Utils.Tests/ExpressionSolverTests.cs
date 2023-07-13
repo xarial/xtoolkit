@@ -8,6 +8,21 @@ using Xarial.XToolkit.Services.Expressions;
 
 namespace Utils.Tests
 {
+    public class ExpressionSolverImp : ExpressionSolver<int> 
+    {
+        protected override object SolveVariable(string name, object[] args, int context)
+        {
+            if (name == "id")
+            {
+                return context;
+            }
+            else 
+            {
+                throw new Exception();
+            }
+        }
+    }
+
     public class ExpressionSolverTests
     {
         [Test]
@@ -220,6 +235,26 @@ namespace Utils.Tests
             Assert.IsNotNull(c3);
             Assert.IsNotNull(c4);
             Assert.IsNotNull(c5);
+        }
+
+        [Test]
+        public void SolveVariableImplExprSolverTest()
+        {
+            var calls = new List<Tuple<string, object[]>>();
+
+            var solver = new ExpressionSolverImp();
+
+            var t1 = new ExpressionTokenVariable("id", null);
+
+            IExpressionSolver solver1 = solver;
+
+            var r1 = solver.Solve(t1, 10);
+            var r2 = solver.Solve(t1, (object)20);
+            var r3 = solver1.Solve(t1, 30);
+
+            Assert.AreEqual("10", r1);
+            Assert.AreEqual("20", r2);
+            Assert.AreEqual("30", r3);
         }
     }
 }

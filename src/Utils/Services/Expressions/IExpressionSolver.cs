@@ -13,9 +13,9 @@ using System.Text;
 namespace Xarial.XToolkit.Services.Expressions
 {
     /// <summary>
-    /// Solves the expression token with context
+    /// Solver with the generic context
     /// </summary>
-    public interface IExpressionSolver<TContext>
+    public interface IExpressionSolver
     {
         /// <summary>
         /// Replaces the expression token with values
@@ -23,19 +23,25 @@ namespace Xarial.XToolkit.Services.Expressions
         /// <param name="token">Expression token to solve</param>
         /// <param name="context">Context</param>
         /// <returns>Expression with replaced variables</returns>
-        string Solve(IExpressionToken token, TContext context);
+        string Solve(IExpressionToken token, object context);
     }
 
-    //Solver without the context
-    public interface IExpressionSolver : IExpressionSolver<object>
+    /// <summary>
+    /// Solves the expression token with context
+    /// </summary>
+    public interface IExpressionSolver<TContext> : IExpressionSolver
     {
-        /// <inheritdoc/>
-        string Solve(IExpressionToken token);
+        /// <inheritdoc/>        
+        string Solve(IExpressionToken token, TContext context);
     }
 
     public delegate object VariableValueProviderDelegate<TContext>(string name, object[] args, TContext context);
     public delegate object VariableValueProviderDelegate(string name, object[] args);
 
+    /// <summary>
+    /// Helper class which parses input an caches variable values
+    /// </summary>
+    /// <typeparam name="TContext">Expression solver context</typeparam>
     public class ExpressionSolver<TContext> : IExpressionSolver<TContext>
     {
         private class VariableCacheKey
@@ -211,11 +217,12 @@ namespace Xarial.XToolkit.Services.Expressions
 
             return value.ToString();
         }
+
+        public string Solve(IExpressionToken token, object context) => Solve(token, (TContext)context);
     }
 
     public class ExpressionSolver : ExpressionSolver<object>, IExpressionSolver
     {
-
         public ExpressionSolver(StringComparison comparison = StringComparison.CurrentCulture) : base(comparison)
         {
         }
