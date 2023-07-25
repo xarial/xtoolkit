@@ -110,9 +110,12 @@ namespace Utils.Tests
         {
             var parser = new ExpressionParser();
 
-            var r1 = parser.Parse(@"\{\}\[\]\\");
+            var r1 = parser.Parse(@"{\}\[\]\\");
             var r2 = parser.Parse(@"a { x\}[\{\}\[\]\\\\] }");
             var r3 = parser.Parse(@"{\ b c }");
+            var r4 = parser.Parse(@"{ a [ x ] }");
+            var r5 = parser.Parse(@"\\\{\\\[\\\\");
+            var r6 = parser.Parse(@"{ \ A \\B \{C\} \[D\] }");
 
             Assert.IsInstanceOf<IExpressionTokenText>(r1);
             Assert.AreEqual("{}[]\\", ((IExpressionTokenText)r1).Text);
@@ -132,6 +135,16 @@ namespace Utils.Tests
             Assert.IsInstanceOf<IExpressionTokenVariable>(r3);
             Assert.AreEqual(" b c", ((IExpressionTokenVariable)r3).Name);
             Assert.AreEqual(0, ((IExpressionTokenVariable)r3).Arguments.Length);
+
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r4);
+            Assert.AreEqual("a", ((IExpressionTokenVariable)r4).Name);
+            Assert.AreEqual(1, ((IExpressionTokenVariable)r4).Arguments.Length);
+            Assert.AreEqual(" x ", ((IExpressionTokenText)((IExpressionTokenVariable)r4).Arguments[0]).Text);
+            
+            Assert.AreEqual(@"\{\[\\", ((IExpressionTokenText)r5).Text);
+
+            Assert.IsInstanceOf<IExpressionTokenVariable>(r6);
+            Assert.AreEqual(@" A \B {C} [D]", ((IExpressionTokenVariable)r6).Name);
         }
 
         [Test]
@@ -314,11 +327,26 @@ namespace Utils.Tests
                 new ExpressionTokenText("x")
             });
 
+            var t3 = new ExpressionTokenVariable("a", new IExpressionToken[]
+            {
+                new ExpressionTokenText(" x ")
+            });
+
+            var t4 = new ExpressionTokenText(@"\\{\\[\\\\");
+
+            var t5 = new ExpressionTokenVariable(@" A \B {C} [D]", new IExpressionToken[0]);
+
             var exp1 = parser.CreateExpression(t1);
             var exp2 = parser.CreateExpression(t2);
+            var exp3 = parser.CreateExpression(t3);
+            var exp4 = parser.CreateExpression(t4);
+            var exp5 = parser.CreateExpression(t5);
 
             Assert.AreEqual(@"AB{ x\{\} [CD\[\]_\{\}_\\_A] [{ \[\]_\{\}_\\_A }] }", exp1);
             Assert.AreEqual(@"{ \ a b [x] }", exp2);
+            Assert.AreEqual(@"{ a [ x ] }", exp3);
+            Assert.AreEqual(@"\\\\\{\\\\\[\\\\\\\\", exp4);
+            Assert.AreEqual(@"{ \ A \\B \{C\} \[D\] }", exp5);
         }
     }
 }

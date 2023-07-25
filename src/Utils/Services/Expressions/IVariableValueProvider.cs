@@ -5,6 +5,8 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
+using System;
+
 namespace Xarial.XToolkit.Services.Expressions
 {
     /// <summary>
@@ -44,6 +46,16 @@ namespace Xarial.XToolkit.Services.Expressions
         {
         }
 
-        public virtual object Provide(string name, object[] args, TContext context) => m_Provider.Invoke(name, args, context);
+        public virtual object Provide(string name, object[] args, TContext context)
+        {
+            if (m_Provider != null)
+            {
+                return m_Provider.Invoke(name, args, context);
+            }
+            else 
+            {
+                throw new Exception($"Provider is not specified. Either provide the provider delegate in the constructor overload or override '{nameof(Provide)}' method");
+            }
+        }
     }
 }
