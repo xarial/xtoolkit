@@ -28,6 +28,7 @@ using System.Collections;
 using System.Globalization;
 using Xarial.XToolkit.Wpf.Dialogs;
 using static System.Windows.Forms.LinkLabel;
+using System.Linq.Expressions;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -94,7 +95,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         private DataGrid m_DataGrid;
         private PopupMenu m_PopupEditor;
         private TextBlock m_ClosePopupButton;
-
+        
         private string m_VariableName;
         public IExpressionTokenVariable Variable 
         {
@@ -148,7 +149,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             UpdateVariableControl(variable);
             UpdateVariableArguments(variable);
         }
-
+        
         public override void OnApplyTemplate()
         {
             m_DataGrid = (DataGrid)this.Template.FindName("PART_DataGrid", this);
@@ -156,6 +157,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_Main = (FrameworkElement)this.Template.FindName("PART_Main", this);
             m_Error = (FrameworkElement)this.Template.FindName("PART_Error", this);
             m_ClosePopupButton = (TextBlock)this.Template.FindName("PART_CloseArgumentsWindow", this);
+            
             m_ClosePopupButton.MouseDown += OnClosePopupButtonMouseDown;
 
             m_PopupEditor.Opened += OnPopupEditorOpened;
@@ -459,6 +461,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         private RichTextBox m_TextBox;
         private FlowDocument m_Doc;
         private PopupMenu m_VariableLinksMenu;
+        private MenuItem m_PasteAsTextMenuItem;
 
         private readonly InternalChangeTracker m_InternalChangeTracker;
 
@@ -499,6 +502,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             m_TextBox = (RichTextBox)this.Template.FindName("PART_RichTextBox", this);
             m_VariableLinksMenu = (PopupMenu)this.Template.FindName("PART_VariableLinksMenu", this);
+            m_PasteAsTextMenuItem = (MenuItem) this.Template.FindName("PART_PasteAsTextMenuItem", this);
+
+            m_PasteAsTextMenuItem.Command = new RelayCommand(PasteAsText);
 
             m_Doc = m_TextBox.Document;
             m_TextBox.TextChanged += OnTextChanged;
@@ -1067,6 +1073,25 @@ namespace Xarial.XToolkit.Wpf.Controls
             else 
             {
                 return false;
+            }
+        }
+
+        private void PasteAsText()
+        {
+            var text = Clipboard.GetText();
+
+            if (!string.IsNullOrEmpty(text))
+            {
+                try
+                {
+                    var token = new ExpressionTokenText(text);
+
+                    Insert(token, false);
+                }
+                catch (Exception ex)
+                {
+                    SetExpressionError(ex);
+                }
             }
         }
 

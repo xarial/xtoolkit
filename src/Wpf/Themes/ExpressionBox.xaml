@@ -336,6 +336,14 @@
                         <RichTextBox x:Name="PART_RichTextBox" Grid.Column="1" IsDocumentEnabled="True" Foreground="{TemplateBinding Foreground}"
                                  AcceptsReturn="False" AcceptsTab="False" BorderBrush="{TemplateBinding BorderBrush}"
                                  BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}">
+                            <RichTextBox.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Command="ApplicationCommands.Cut"/>
+                                    <MenuItem Command="ApplicationCommands.Copy"/>
+                                    <MenuItem Command="ApplicationCommands.Paste"/>
+                                    <MenuItem Header="Paste As Text" x:Name="PART_PasteAsTextMenuItem"/>
+                                </ContextMenu>
+                            </RichTextBox.ContextMenu>
                             <FlowDocument/>
                         </RichTextBox>
                     </Grid>

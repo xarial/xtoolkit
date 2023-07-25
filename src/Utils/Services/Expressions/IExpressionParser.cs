@@ -134,7 +134,7 @@ namespace Xarial.XToolkit.Services.Expressions
         /// <summary>
         /// Defaul parser with default tags
         /// </summary>
-        public ExpressionParser() : this('{', '}', '[', ']', '\\')
+        public ExpressionParser() : this('{', '}', '[', ']', '"')
         {
         }
 
