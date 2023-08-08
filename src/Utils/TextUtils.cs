@@ -21,13 +21,14 @@ namespace Xarial.XToolkit
         /// <summary>
         /// Checks if the specified text matches any of the provided filters
         /// </summary>
-        /// <param name="text">FilePath</param>
+        /// <param name="text">Text to match</param>
         /// <param name="ignoreCase">Ignore the case</param>
         /// <param name="filters">Filters</param>
-        /// <returns></returns>
+        /// <returns>True if any of the fitler match the text</returns>
+        /// <remarks>This method supports wildcards *. If no filters specified this method returns true</remarks>
         public static bool MatchesAnyFilter(string text, bool ignoreCase, params string[] filters)
         {
-            if (filters?.Any() == false)
+            if (filters?.Any() != true)
             {
                 return true;
             }

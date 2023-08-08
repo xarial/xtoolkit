@@ -490,7 +490,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                 new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromRgb(171, 173, 179))));
         }
 
-
         public ExpressionBox()
         {
             m_InternalChangeTracker = new InternalChangeTracker();
