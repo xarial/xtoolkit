@@ -283,6 +283,7 @@
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -298,7 +299,7 @@
                     <Button Grid.Column="1" Command="{Binding Path=InsertVariableCommand}" CommandParameter="{Binding ElementName=expBox}">
                         <TextBlock Text="+"/>
                     </Button>
-                    <ctrls:ExpressionBox Expression="{Binding Path=Expression2}" Grid.Column="0" Grid.Row="1" Margin="5">
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression2}" Grid.Column="0" Grid.Row="1" Margin="5" Height="20">
                         <ctrls:ExpressionBox.Style>
                             <Style TargetType="{x:Type ctrls:ExpressionBox}">
                                 <Style.Triggers>
@@ -309,8 +310,8 @@
                             </Style>
                         </ctrls:ExpressionBox.Style>
                     </ctrls:ExpressionBox>
-                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2"/>
-                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" SingleLine="False"
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2" AcceptsReturn="True"/>
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" WrapText="True" AcceptsReturn="True"
                                          Height="100" VariableLinks="{Binding Path=VariableLinks}">
                         <ctrls:ExpressionBox.Resources>
                             <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="LightYellow"/>
@@ -327,7 +328,13 @@
                             <local:MyExpressionVariableDescriptor/>
                         </ctrls:ExpressionBox.VariableDescriptor>
                     </ctrls:ExpressionBox>
-                    <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="4" 
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="4" WrapText="False" AcceptsReturn="True"
+                                         Height="100" VariableLinks="{Binding Path=VariableLinks}">
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <local:MyExpressionVariableDescriptor/>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+                    <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="5" 
                                          Foreground="Green" Background="LightYellow">
                         <ctrls:ExpressionBox.VariableLinks>
                             <ctrls:ExpressionVariableLinkCollection>
@@ -357,7 +364,7 @@
                         </ctrls:ExpressionBox.VariableDescriptor>
                     </ctrls:ExpressionBox>
 
-                    <ctrls:ExpressionBox Expression="{Binding Path=Expression}" BorderThickness="0" Grid.Row="5">
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression}" BorderThickness="0" Grid.Row="6">
                         <ctrls:ExpressionBox.VariableLinksBoxDecorationTemplate>
                             <DataTemplate/>
                         </ctrls:ExpressionBox.VariableLinksBoxDecorationTemplate>

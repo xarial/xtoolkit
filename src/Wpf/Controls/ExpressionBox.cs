@@ -507,14 +507,26 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             m_Doc = m_TextBox.Document;
             m_TextBox.TextChanged += OnTextChanged;
-
-            SetSingleLineOptions(SingleLine);
+            m_TextBox.PreviewKeyDown += OnPreviewKeyDown;
+            SetTextWrapOptions(WrapText);
 
             m_IsInit = true;
 
             CommandManager.AddPreviewExecutedHandler(m_TextBox, OnPreviewCommandExecuted);
 
             RenderExpression(Expression);
+        }
+
+        private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter) 
+            {
+                if (AcceptsReturn)
+                {
+                    Insert(new ExpressionTokenText(Environment.NewLine), false);
+                    e.Handled = true;
+                }
+            }
         }
 
         private void OnPreviewCommandExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -720,15 +732,26 @@ namespace Xarial.XToolkit.Wpf.Controls
             set { SetValue(VariableLinksBoxVisibilityProperty, value); }
         }
 
-        public static readonly DependencyProperty SingleLineProperty =
+        public static readonly DependencyProperty WrapTextProperty =
             DependencyProperty.Register(
-            nameof(SingleLine), typeof(bool),
-            typeof(ExpressionBox), new PropertyMetadata(true, new PropertyChangedCallback(OnSingleLinePropertyChanged)));
+            nameof(WrapText), typeof(bool),
+            typeof(ExpressionBox), new PropertyMetadata(false, new PropertyChangedCallback(OnTextWrapPropertyChanged)));
 
-        public bool SingleLine
+        public bool WrapText
         {
-            get { return (bool)GetValue(SingleLineProperty); }
-            set { SetValue(SingleLineProperty, value); }
+            get { return (bool)GetValue(WrapTextProperty); }
+            set { SetValue(WrapTextProperty, value); }
+        }
+
+        public static readonly DependencyProperty AcceptsReturnProperty =
+            DependencyProperty.Register(
+            nameof(AcceptsReturn), typeof(bool),
+            typeof(ExpressionBox), new PropertyMetadata(false));
+
+        public bool AcceptsReturn
+        {
+            get { return (bool)GetValue(AcceptsReturnProperty); }
+            set { SetValue(AcceptsReturnProperty, value); }
         }
 
         internal IExpressionVariableDescriptor GetVariableDescriptor()
@@ -1107,11 +1130,11 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        private void SetSingleLineOptions(bool singleLine)
+        private void SetTextWrapOptions(bool wrap)
         {
             var width = double.NaN;
 
-            if (singleLine)
+            if (!wrap)
             {
                 width = 2000;
             }
@@ -1119,13 +1142,13 @@ namespace Xarial.XToolkit.Wpf.Controls
             m_TextBox.Document.PageWidth = width;
         }
 
-        private static void OnSingleLinePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void OnTextWrapPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var exprBox = (ExpressionBox)d;
 
             if (exprBox.m_IsInit)
             {
-                exprBox.SetSingleLineOptions((bool)e.NewValue);
+                exprBox.SetTextWrapOptions((bool)e.NewValue);
             }
         }
     }
