@@ -127,10 +127,10 @@ namespace Xarial.XToolkit.Services
         /// </summary>
         /// <param name="msgSvc">Message service</param>
         /// <param name="ex">Exception of the error</param>
-        /// <param name="unknownErrorMsg">Message for the unknown error</param>
-        public static void ShowError(this IMessageService msgSvc, Exception ex, string unknownErrorMsg = "Generic error")
+        /// <param name="genericErrorMsg">Message for the unknown error. If empty <see cref="ExceptionExtension.GlobalGenericErrorMessage"/> is used</param>
+        public static void ShowError(this IMessageService msgSvc, Exception ex, string genericErrorMsg = "")
         {
-            var err = msgSvc.ParseError(ex, unknownErrorMsg);
+            var err = msgSvc.ParseError(ex, genericErrorMsg);
             msgSvc.ShowError(err);
         }
 
@@ -140,9 +140,9 @@ namespace Xarial.XToolkit.Services
         /// <param name="msgSvc">Messgae service</param>
         /// <param name="ex">Exception to parse</param>
         /// <param name="additionalUserExceptions">Type of exceptions which should be considered as user friendly errors</param>
-        /// <param name="unknownErrorMsg">Message for the unknown error</param>
+        /// <param name="genericErrorMsg">Message for the unknown error. If empty <see cref="ExceptionExtension.GlobalGenericErrorMessage"/> is used</param>
         /// <returns></returns>
-        public static string ParseError(this IMessageService msgSvc, Exception ex, Type[] additionalUserExceptions, string unknownErrorMsg = "Generic error") 
-            => ex.ParseUserError(out _, unknownErrorMsg, additionalUserExceptions ?? new Type[0]);
+        public static string ParseError(this IMessageService msgSvc, Exception ex, Type[] additionalUserExceptions, string genericErrorMsg = "") 
+            => ex.ParseUserError(out _, genericErrorMsg, additionalUserExceptions ?? new Type[0]);
     }
 }
