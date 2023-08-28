@@ -12,8 +12,14 @@ using System.Text;
 
 namespace Xarial.XToolkit.Reporting
 {
+    /// <summary>
+    /// Addition methods for the <see cref="Exception"/>
+    /// </summary>
     public static class ExceptionExtension
     {
+        /// <summary>
+        /// Types of <see cref="Exception"/> to be recognized as user-friendly
+        /// </summary>
         public static List<Type> GlobalUserExceptionTypes { get; }
 
         static ExceptionExtension() 

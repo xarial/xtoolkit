@@ -16,7 +16,7 @@ namespace Xarial.XToolkit.Wpf.Services
 {
     public class WindowsMessageService : IMessageService
     {
-        public Type[] UserErrors { get; }
+        private readonly Type[] m_UserErrors;
 
         private readonly string m_Title;
 
@@ -24,7 +24,7 @@ namespace Xarial.XToolkit.Wpf.Services
 
         public WindowsMessageService(string title, Type[] userErrors) : this(title)
         {
-            UserErrors = userErrors;
+            m_UserErrors = userErrors;
         }
 
         public WindowsMessageService(string title)
@@ -112,5 +112,7 @@ namespace Xarial.XToolkit.Wpf.Services
                 return Show();
             }
         }
+
+        public string ParseError(Exception ex, string unknownErrorMsg) => this.ParseError(ex, m_UserErrors, unknownErrorMsg);
     }
 }
