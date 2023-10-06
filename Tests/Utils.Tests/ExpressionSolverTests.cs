@@ -8,6 +8,36 @@ using Xarial.XToolkit.Services.Expressions;
 
 namespace Utils.Tests
 {
+    public class VariableValueProviderImp : VariableValueProvider<int> 
+    {
+        public override object Provide(string name, object[] args, int context)
+        {
+            if (name == "id")
+            {
+                return context;
+            }
+            else 
+            {
+                throw new Exception();
+            }
+        }
+    }
+
+    public class VariableValueProviderImp1 : VariableValueProvider<object> 
+    {
+        public override object Provide(string name, object[] args, object context)
+        {
+            if (name == "id")
+            {
+                return "_" + context?.ToString();
+            }
+            else
+            {
+                throw new Exception();
+            }
+        }
+    }
+
     public class ExpressionSolverTests
     {
         [Test]
@@ -15,15 +45,17 @@ namespace Utils.Tests
         {
             int solverCalled = 0;
 
-            var solver = new ExpressionSolver((v, a) => 
+            var solver = new ExpressionSolver();
+
+            var provider = new VariableValueProvider<object>((v, a, c) =>
             {
                 solverCalled++;
-                return "xyz"; 
+                return "xyz";
             });
 
             var t1 = new ExpressionTokenText("abc");
 
-            var r1 = solver.Solve(t1);
+            var r1 = solver.Solve(t1, provider, null);
 
             Assert.AreEqual("abc", r1);
             Assert.AreEqual(0, solverCalled);
@@ -34,7 +66,9 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver((v, a) =>
+            var solver = new ExpressionSolver();
+            
+            var provider = new VariableValueProvider<object>((v, a, c) =>
             {
                 calls.Add(new Tuple<string, object[]>(v, a));
 
@@ -50,7 +84,7 @@ namespace Utils.Tests
 
             var t1 = new ExpressionTokenVariable("v", null);
 
-            var r1 = solver.Solve(t1);
+            var r1 = solver.Solve(t1, provider, null);
 
             Assert.AreEqual("abc", r1);
             Assert.AreEqual(1, calls.Count);
@@ -63,7 +97,9 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver((v, a) =>
+            var solver = new ExpressionSolver();
+
+            var provider = new VariableValueProvider<object>((v, a, c) =>
             {
                 calls.Add(new Tuple<string, object[]>(v, a));
 
@@ -84,7 +120,7 @@ namespace Utils.Tests
                 new ExpressionTokenText(" 2")
             });
 
-            var r1 = solver.Solve(t1);
+            var r1 = solver.Solve(t1, provider, null);
 
             Assert.AreEqual("1 abc 2", r1);
             Assert.AreEqual(1, calls.Count);
@@ -97,7 +133,9 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver((v, a) =>
+            var solver = new ExpressionSolver();
+
+            var provider = new VariableValueProvider<object>((v, a, c) =>
             {
                 calls.Add(new Tuple<string, object[]>(v, a));
 
@@ -133,7 +171,7 @@ namespace Utils.Tests
                 new ExpressionTokenVariable("x", new IExpressionToken[] { new ExpressionTokenText("y") }),
             });
 
-            var r1 = solver.Solve(t1);
+            var r1 = solver.Solve(t1, provider, null);
 
             var c1 = calls.FirstOrDefault(c => c.Item1 == "v");
             var c2 = calls.FirstOrDefault(c => c.Item1 == "V");
@@ -155,7 +193,9 @@ namespace Utils.Tests
         {
             var calls = new List<Tuple<string, object[]>>();
 
-            var solver = new ExpressionSolver((v, a) =>
+            var solver = new ExpressionSolver();
+
+            var provider = new VariableValueProvider<object>((v, a, c) =>
             {
                 calls.Add(new Tuple<string, object[]>(v, a));
 
@@ -165,7 +205,7 @@ namespace Utils.Tests
                 }
                 else if (v == "f2" && a.Length == 3)
                 {
-                    return "f2_" + String.Join("+", a);
+                    return "f2_" + string.Join("+", a);
                 }
                 else if (v == "f1" && a.Length == 1 && object.Equals(a[0], "bf3_0"))
                 {
@@ -175,7 +215,7 @@ namespace Utils.Tests
                 {
                     return "f1_1_a";
                 }
-                else if (v == "f3" && a.Length == 0) 
+                else if (v == "f3" && a.Length == 0)
                 {
                     return "f3_0";
                 }
@@ -205,7 +245,7 @@ namespace Utils.Tests
                 new ExpressionTokenVariable("f1", new IExpressionToken[]{ new ExpressionTokenText("a")})
             });
 
-            var r1 = solver.Solve(t1);
+            var r1 = solver.Solve(t1, provider, null);
 
             var c1 = calls.FirstOrDefault(c => c.Item1 == "f1" && c.Item2.SequenceEqual(new string[0]));
             var c2 = calls.FirstOrDefault(c => c.Item1 == "f1" && c.Item2.SequenceEqual(new string[] { "a" }));
@@ -220,6 +260,32 @@ namespace Utils.Tests
             Assert.IsNotNull(c3);
             Assert.IsNotNull(c4);
             Assert.IsNotNull(c5);
+        }
+
+        [Test]
+        public void SolveVariableImplExprSolverTest()
+        {
+            var solver1 = new ExpressionSolver();
+            var solver2 = new ExpressionSolver();
+            
+            var provider = new VariableValueProviderImp();
+            var provider1 = new VariableValueProviderImp1();
+
+            var t1 = new ExpressionTokenVariable("id", null);
+
+            IExpressionSolver solver1_1 = solver1;
+
+            var r1 = solver1.Solve(t1, provider, 10);
+            var r2 = solver1.Solve(t1, provider, 20);
+            var r3 = solver1_1.Solve(t1, provider, (object)30);
+            var r4 = solver2.Solve(t1, provider1, "ABC");
+            var r5 = solver2.Solve(t1, provider, 40);
+
+            Assert.AreEqual("10", r1);
+            Assert.AreEqual("20", r2);
+            Assert.AreEqual("30", r3);
+            Assert.AreEqual("_ABC", r4);
+            Assert.AreEqual("40", r5);
         }
     }
 }

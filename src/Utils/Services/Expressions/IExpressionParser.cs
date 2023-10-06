@@ -105,6 +105,14 @@ namespace Xarial.XToolkit.Services.Expressions
 
         private readonly char[] m_SpecialSymbols;
 
+        /// <summary>
+        /// Constructor with configurable tags
+        /// </summary>
+        /// <param name="variableStartTag">Char which indicates the start of the variable</param>
+        /// <param name="variableEndTag">Char which indicates the variable end</param>
+        /// <param name="argumentStartTag">Char which indicates the variable argument start</param>
+        /// <param name="argumentEndTag">Char which indicates the variable argument end</param>
+        /// <param name="escapeSymbol">Symbol which protects the system tags (variable and parameter start and end) to take the value as literal</param>
         public ExpressionParser(char variableStartTag, char variableEndTag, char argumentStartTag, char argumentEndTag, char escapeSymbol)
         {
             m_VariableStartTag = variableStartTag;
@@ -123,7 +131,10 @@ namespace Xarial.XToolkit.Services.Expressions
             };
         }
 
-        public ExpressionParser() : this('{', '}', '[', ']', '\\')
+        /// <summary>
+        /// Defaul parser with default tags
+        /// </summary>
+        public ExpressionParser() : this('{', '}', '[', ']', '"')
         {
         }
 
@@ -134,6 +145,9 @@ namespace Xarial.XToolkit.Services.Expressions
             return GroupElements(ParseTokens(expression, ref startPos, false));
         }
 
+        /// <summary>
+        /// <inheritdoc/>
+        /// </summary>
         public virtual string CreateExpression(IExpressionToken token)
         {
             if (token == null)
@@ -303,41 +317,39 @@ namespace Xarial.XToolkit.Services.Expressions
                         {
                             state.TokenType = ExpressionTokenType_e.Text;
                         }
-
-                        if (!state.CharProtected)
+                        
+                        if (state.TokenType == ExpressionTokenType_e.Variable)
                         {
-                            if (state.TokenType == ExpressionTokenType_e.Variable)
+                            if (thisChar == ' ' && !state.CharProtected)
                             {
-                                if (thisChar == ' ')
+                                if (state.TokenContent.Length != 0)
                                 {
-                                    if (state.TokenContent.Length != 0)
-                                    {
-                                        state.TokenNameSpaceBuffer.Append(thisChar);
-                                    }
-
-                                    continue;
+                                    state.TokenNameSpaceBuffer.Append(thisChar);
                                 }
-                                else
-                                {
-                                    if (state.IsVariableNameParsed)
-                                    {
-                                        throw new VariableNameInvalidException();
-                                    }
 
-                                    if (state.TokenNameSpaceBuffer.Length > 0)
-                                    {
-                                        state.TokenContent.Append(state.TokenNameSpaceBuffer);
-                                        state.TokenNameSpaceBuffer.Clear();
-                                    }
+                                continue;
+                            }
+                            else
+                            {
+                                if (state.IsVariableNameParsed)
+                                {
+                                    throw new VariableNameInvalidException();
+                                }
+
+                                if (state.TokenNameSpaceBuffer.Length > 0)
+                                {
+                                    state.TokenContent.Append(state.TokenNameSpaceBuffer);
+                                    state.TokenNameSpaceBuffer.Clear();
                                 }
                             }
                         }
-                        else
+
+                        state.TokenContent.Append(thisChar);
+
+                        if (state.CharProtected)
                         {
                             state.CharProtected = false;
                         }
-
-                        state.TokenContent.Append(thisChar);
                     }
                 }
             }

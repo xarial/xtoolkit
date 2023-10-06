@@ -14,26 +14,53 @@ using Xarial.XToolkit.Services;
 
 namespace Xarial.XToolkit.Wpf.Services
 {
+    /// <summary>
+    /// Represents the instance of the <see cref="IMessageService"/> based on WPF message box
+    /// </summary>
     public class WindowsMessageService : IMessageService
     {
-        public Type[] UserErrors { get; }
+        private readonly Type[] m_UserErrors;
 
         private readonly string m_Title;
 
         private readonly Dispatcher m_Dispatcher;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="title">Title of the message box</param>
+        /// <param name="userErrors">Additional user errors</param>
         public WindowsMessageService(string title, Type[] userErrors) : this(title)
         {
-            UserErrors = userErrors;
+            m_UserErrors = userErrors;
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="title">Title of the mesage box</param>
         public WindowsMessageService(string title)
         {
             m_Title = title;
             m_Dispatcher = Dispatcher.CurrentDispatcher;
         }
 
-        public bool? ShowMessage(string msg, MessageServiceIcon_e icon, MessageServiceButtons_e btns)
+        private MessageBoxResult ShowMessage(string msg, MessageBoxImage img, MessageBoxButton btn)
+        {
+            MessageBoxResult Show() => MessageBox.Show(msg, m_Title, btn, img);
+
+            if (m_Dispatcher != null)
+            {
+                return m_Dispatcher.Invoke(Show);
+            }
+            else
+            {
+                return Show();
+            }
+        }
+
+        /// <inheritdoc/>
+        public virtual bool? ShowMessage(string msg, MessageServiceIcon_e icon, MessageServiceButtons_e btns)
         {
             MessageBoxImage msgBoxImg;
             MessageBoxButton msgBoxBtns;
@@ -99,18 +126,7 @@ namespace Xarial.XToolkit.Wpf.Services
             }
         }
 
-        private MessageBoxResult ShowMessage(string msg, MessageBoxImage img, MessageBoxButton btn)
-        {
-            MessageBoxResult Show() => MessageBox.Show(msg, m_Title, btn, img);
-
-            if (m_Dispatcher != null)
-            {
-                return m_Dispatcher.Invoke(Show);
-            }
-            else
-            {
-                return Show();
-            }
-        }
+        /// <inheritdoc/>
+        public virtual string ParseError(Exception ex, string unknownErrorMsg) => this.ParseError(ex, m_UserErrors, unknownErrorMsg);
     }
 }

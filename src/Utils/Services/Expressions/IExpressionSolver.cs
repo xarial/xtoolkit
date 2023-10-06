@@ -13,30 +13,25 @@ using System.Text;
 namespace Xarial.XToolkit.Services.Expressions
 {
     /// <summary>
-    /// Solves the expression token with context
+    /// Solver with the generic context
     /// </summary>
-    public interface IExpressionSolver<TContext>
+    public interface IExpressionSolver
     {
         /// <summary>
         /// Replaces the expression token with values
         /// </summary>
         /// <param name="token">Expression token to solve</param>
+        /// <param name="varValProv">Service which provides the values for variables</param>
         /// <param name="context">Context</param>
         /// <returns>Expression with replaced variables</returns>
-        string Solve(IExpressionToken token, TContext context);
+        string Solve(IExpressionToken token, IVariableValueProvider varValProv, object context);
     }
 
-    //Solver without the context
-    public interface IExpressionSolver : IExpressionSolver<object>
-    {
-        /// <inheritdoc/>
-        string Solve(IExpressionToken token);
-    }
-
-    public delegate object VariableValueProviderDelegate<TContext>(string name, object[] args, TContext context);
-    public delegate object VariableValueProviderDelegate(string name, object[] args);
-
-    public class ExpressionSolver<TContext> : IExpressionSolver<TContext>
+    /// <summary>
+    /// Services that parses input expression and resolves variables
+    /// </summary>
+    /// <remarks>This service caches the variable values</remarks>
+    public class ExpressionSolver : IExpressionSolver
     {
         private class VariableCacheKey
         {
@@ -112,47 +107,29 @@ namespace Xarial.XToolkit.Services.Expressions
         }
 
         private readonly StringComparison m_Comparison;
-        private readonly VariableValueProviderDelegate<TContext> m_Solver;
 
         public ExpressionSolver(StringComparison comparison = StringComparison.CurrentCulture)
         {
             m_Comparison = comparison;
         }
 
-        public ExpressionSolver(VariableValueProviderDelegate<TContext> solver, StringComparison comparison = StringComparison.CurrentCulture)
-            : this(comparison)
-        {
-            if (solver == null)
-            {
-                throw new ArgumentNullException(nameof(solver));
-            }
-
-            m_Solver = solver;
-        }
-
-        public string Solve(IExpressionToken token, TContext context)
+        /// <inheritdoc/>>
+        public string Solve(IExpressionToken token, IVariableValueProvider varValProv, object context)
         {
             if (token == null)
             {
                 throw new ArgumentNullException(nameof(token));
             }
 
-            return Resolve(token, context, new Dictionary<VariableCacheKey, object>(new VariableCacheKeyEqualityComparer(m_Comparison)))?.ToString();
+            if (varValProv == null)
+            {
+                throw new ArgumentNullException(nameof(varValProv));
+            }
+
+            return Resolve(token, varValProv, context, new Dictionary<VariableCacheKey, object>(new VariableCacheKeyEqualityComparer(m_Comparison)))?.ToString();
         }
 
-        protected virtual object SolveVariable(string name, object[] args, TContext context) 
-        {
-            if (m_Solver != null)
-            {
-                return m_Solver.Invoke(name, args, context);
-            }
-            else 
-            {
-                throw new Exception($"Solver is not specified. Either pass the solver delegate in the constructor or override '{nameof(SolveVariable)}' method");
-            }
-        }
-
-        private object Resolve(IExpressionToken token, TContext context, Dictionary<VariableCacheKey, object> variableCache)
+        private object Resolve(IExpressionToken token, IVariableValueProvider varValProv, object context, Dictionary<VariableCacheKey, object> variableCache)
         {
             if (token == null)
             {
@@ -166,7 +143,7 @@ namespace Xarial.XToolkit.Services.Expressions
                 case IExpressionTokenGroup group:
                     foreach (var child in group.Children)
                     {
-                        value.Append(Resolve(child, context, variableCache));
+                        value.Append(Resolve(child, varValProv, context, variableCache));
                     }
                     break;
 
@@ -184,7 +161,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
                         for (int i = 0; i < variable.Arguments.Length; i++)
                         {
-                            arguments[i] = Resolve(variable.Arguments[i], context, variableCache);
+                            arguments[i] = Resolve(variable.Arguments[i], varValProv, context, variableCache);
                         }
                     }
                     else
@@ -196,7 +173,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
                     if (!variableCache.TryGetValue(cacheKey, out object varVal))
                     {
-                        varVal = SolveVariable(variable.Name, arguments, context);
+                        varVal = varValProv.Provide(variable.Name, arguments, context);
 
                         variableCache.Add(cacheKey, varVal);
                     }
@@ -210,29 +187,6 @@ namespace Xarial.XToolkit.Services.Expressions
             }
 
             return value.ToString();
-        }
-    }
-
-    public class ExpressionSolver : ExpressionSolver<object>, IExpressionSolver
-    {
-
-        public ExpressionSolver(StringComparison comparison = StringComparison.CurrentCulture) : base(comparison)
-        {
-        }
-
-        public ExpressionSolver(VariableValueProviderDelegate solver, StringComparison comparison = StringComparison.CurrentCulture)
-            : base((n, a, c) => solver.Invoke(n, a), comparison)
-        {
-        }
-
-        public string Solve(IExpressionToken token) => base.Solve(token, null);
-
-        protected override object SolveVariable(string name, object[] args, object context)
-            => SolveVariable(name, args, null);
-
-        protected virtual object SolveVariable(string name, object[] args)
-        {
-            return base.SolveVariable(name, args, null);
         }
     }
 }

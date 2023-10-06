@@ -27,10 +27,15 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
             Type objectType, object existingValue, JsonSerializer serializer)
         {
             var jToken = JToken.ReadFrom(reader);
-            
-            var versToken = jToken.SelectToken(VERSION_NODE_NAME);
 
             Version settsVers;
+
+            var versToken = jToken.SelectToken(VERSION_NODE_NAME);
+
+            if (versToken == null)
+            {
+                versToken = jToken.SelectToken(LEGACY_VERSION_NODE_NAME);
+            }
 
             if (versToken == null)
             {
