@@ -7,7 +7,6 @@
 
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -108,18 +107,38 @@ namespace Xarial.XToolkit.Services.UserSettings
         }
     }
 
+    /// <summary>
+    /// Additional methods for the <see cref="IUserSettingsService"/>
+    /// </summary>
     public static class UserSettingsServiceExtension
     {
-        public static T ReadSettings<T>(this UserSettingsService settsSvc, TextReader settsReader, params IValueSerializer[] serializers)
-            => ReadSettings<T>(settsSvc, settsReader, default(Func<IVersionsTransformer, IVersionsTransformer>), serializers);
+        /// <summary>
+        /// Reads settings of aa specified type
+        /// </summary>
+        /// <typeparam name="T">Settings type</typeparam>
+        public static T ReadSettings<T>(this IUserSettingsService settsSvc, TextReader settsReader, params IValueSerializer[] serializers)
+            => ReadSettings<T>(settsSvc, settsReader, default, serializers);
 
-        public static T ReadSettings<T>(this UserSettingsService settsSvc, TextReader settsReader, Func<IVersionsTransformer, IVersionsTransformer> versTransformerHandler, params IValueSerializer[] serializers)
+        /// <summary>
+        /// Reads settings of the specified type with custom version transformers
+        /// </summary>
+        /// <typeparam name="T">Settings type</typeparam>
+        public static T ReadSettings<T>(this IUserSettingsService settsSvc, TextReader settsReader, Func<IVersionsTransformer, IVersionsTransformer> versTransformerHandler, params IValueSerializer[] serializers)
             => (T)settsSvc.ReadSettings(settsReader, typeof(T), versTransformerHandler, serializers);
 
-        public static void StoreSettings<T>(this UserSettingsService settsSvc, T setts, TextWriter settsWriter, params IValueSerializer[] serializers)
+        /// <summary>
+        /// Stores settings of the specified type
+        /// </summary>
+        /// <typeparam name="T">Settings type</typeparam>
+        public static void StoreSettings<T>(this IUserSettingsService settsSvc, T setts, TextWriter settsWriter, params IValueSerializer[] serializers)
             => settsSvc.StoreSettings(setts, typeof(T), settsWriter, serializers);
 
-        public static T ReadSettings<T>(this UserSettingsService settsSvc, string settsFile, params IValueSerializer[] serializers)
+        /// <summary>
+        /// Reads settings of the specified type from a file
+        /// </summary>
+        /// <typeparam name="T">Settings type</typeparam>
+        /// <param name="settsFile">Settings file path</param>
+        public static T ReadSettings<T>(this IUserSettingsService settsSvc, string settsFile, params IValueSerializer[] serializers)
         {
             using (var textReader = File.OpenText(settsFile))
             {
@@ -127,7 +146,12 @@ namespace Xarial.XToolkit.Services.UserSettings
             }
         }
 
-        public static T ReadSettings<T>(this UserSettingsService settsSvc, StringBuilder settsStr, params IValueSerializer[] serializers)
+        /// <summary>
+        /// Reads settings from the string builder
+        /// </summary>
+        /// <typeparam name="T">Settings type</typeparam>
+        /// <param name="settsStr">Settings data</param>
+        public static T ReadSettings<T>(this IUserSettingsService settsSvc, StringBuilder settsStr, params IValueSerializer[] serializers)
         {
             using (var stringReader = new StringReader(settsStr.ToString()))
             {
@@ -135,7 +159,11 @@ namespace Xarial.XToolkit.Services.UserSettings
             }
         }
 
-        public static void StoreSettings<T>(this UserSettingsService settsSvc, T setts, StringBuilder settsStr, params IValueSerializer[] serializers)
+        /// <summary>
+        /// Stores settings into the string builder
+        /// </summary>
+        /// <param name="settsStr">String builder buffer</param>
+        public static void StoreSettings<T>(this IUserSettingsService settsSvc, T setts, StringBuilder settsStr, params IValueSerializer[] serializers)
         {
             using (var stringWriter = new StringWriter(settsStr))
             {
@@ -143,7 +171,12 @@ namespace Xarial.XToolkit.Services.UserSettings
             }
         }
 
-        public static void StoreSettings<T>(this UserSettingsService settsSvc, T setts, string settsFile, params IValueSerializer[] serializers)
+        /// <summary>
+        /// Stores settings into a specified file
+        /// </summary>
+        /// <typeparam name="T">Settings type</typeparam>
+        /// <param name="settsFile">Settings file path</param>
+        public static void StoreSettings<T>(this IUserSettingsService settsSvc, T setts, string settsFile, params IValueSerializer[] serializers)
         {
             var settsDir = Path.GetDirectoryName(settsFile);
 

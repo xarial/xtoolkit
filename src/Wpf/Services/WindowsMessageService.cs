@@ -127,6 +127,6 @@ namespace Xarial.XToolkit.Wpf.Services
         }
 
         /// <inheritdoc/>
-        public virtual string ParseError(Exception ex, string unknownErrorMsg) => this.ParseError(ex, m_UserErrors, unknownErrorMsg);
+        public virtual string ParseError(Exception ex, string genericErrorMsg) => this.ParseExceptionError(ex, m_UserErrors, genericErrorMsg);
     }
 }
