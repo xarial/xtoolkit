@@ -80,9 +80,9 @@ namespace Xarial.XToolkit.Services
         /// Method to parse user error from the <see cref="Exception"/>
         /// </summary>
         /// <param name="ex">Exception to parse error from</param>
-        /// <param name="unknownErrorMsg">Message for the unknown error</param>
+        /// <param name="genericErrorMsg">Message for the unknown error</param>
         /// <returns>User error to show</returns>
-        string ParseError(Exception ex, string unknownErrorMsg);
+        string ParseError(Exception ex, string genericErrorMsg);
     }
 
     /// <summary>
@@ -141,8 +141,9 @@ namespace Xarial.XToolkit.Services
         /// <param name="ex">Exception to parse</param>
         /// <param name="additionalUserExceptions">Type of exceptions which should be considered as user friendly errors</param>
         /// <param name="genericErrorMsg">Message for the unknown error. If empty <see cref="ExceptionExtension.GlobalGenericErrorMessage"/> is used</param>
-        /// <returns></returns>
-        public static string ParseError(this IMessageService msgSvc, Exception ex, Type[] additionalUserExceptions, string genericErrorMsg = "") 
+        /// <returns>Error content</returns>
+        /// <remarks>Use this method within the <see cref="IMessageService.ParseError(Exception, string)"/> unless custom error parsign is required</remarks>
+        public static string ParseExceptionError(this IMessageService msgSvc, Exception ex, Type[] additionalUserExceptions, string genericErrorMsg = "") 
             => ex.ParseUserError(out _, genericErrorMsg, additionalUserExceptions ?? new Type[0]);
     }
 }
