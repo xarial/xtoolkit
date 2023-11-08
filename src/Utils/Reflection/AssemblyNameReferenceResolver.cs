@@ -7,9 +7,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Xml.Linq;
 using Xarial.XToolkit.Helpers;
 
 namespace Xarial.XToolkit.Reflection
@@ -80,6 +82,8 @@ namespace Xarial.XToolkit.Reflection
 
                 if (exactMatch != null)
                 {
+                    Trace.WriteLine($"Assembly '{searchAssmName}' is resolved to '{exactMatch.Location}' as exact match via '{Name}' resolver", Name);
+
                     return exactMatch;
                 }
                 else 
@@ -91,6 +95,8 @@ namespace Xarial.XToolkit.Reflection
                 {
                     if (CompareAssemblyNames(name.Name, searchAssmName))
                     {
+                        Trace.WriteLine($"Loading '{searchAssmName}' from '{name.FilePath}' as exact match via '{Name}' resolver", Name);
+
                         return Assembly.LoadFrom(name.FilePath);
                     }
                     else 
@@ -105,10 +111,14 @@ namespace Xarial.XToolkit.Reflection
                 {
                     if (assmInfo.IsLoaded)
                     {
+                        Trace.WriteLine($"Loading '{assmInfo.Name}' from assembly name via '{Name}' resolver", Name);
+
                         return Assembly.Load(assmInfo.Name);
                     }
                     else 
                     {
+                        Trace.WriteLine($"Loading '{assmInfo.Name}' from file '{assmInfo.FilePath}' via '{Name}' resolver", Name);
+
                         return Assembly.LoadFrom(assmInfo.FilePath);
                     }
                 }
@@ -188,15 +198,32 @@ namespace Xarial.XToolkit.Reflection
         protected virtual AssemblyInfo ResolveAmbiguity(
             IReadOnlyList<AssemblyInfo> assmNames, AssemblyName searchAssmName)
         {
+            Trace.WriteLine($"Resolving ambiguity for '{searchAssmName}' via '{Name}' resolver", Name);
+
             var assmInfo = assmNames.FirstOrDefault(a => CompareAssemblyNames(a.Name, searchAssmName));
 
             if (assmInfo == null)
-            { 
+            {
+                Trace.WriteLine($"Ambiguity for '{searchAssmName}' is not resolved via exact match via '{Name}' resolver", Name);
+
                 assmInfo = assmNames.FirstOrDefault(a => a.IsLoaded);
 
                 if (assmInfo == null)
                 {
                     assmInfo = assmNames.FirstOrDefault();
+
+                    if (assmInfo != null)
+                    {
+                        Trace.WriteLine($"Ambiguity for '{searchAssmName}' is resolved by first assembly via '{Name}' resolver", Name);
+                    }
+                    else 
+                    {
+                        Trace.WriteLine($"Ambiguity for '{searchAssmName}' is not resolved via '{Name}' resolver", Name);
+                    }
+                }
+                else 
+                {
+                    Trace.WriteLine($"Ambiguity for '{searchAssmName}' is resolved by first loaded assembly via '{Name}' resolver", Name);
                 }
             }
 

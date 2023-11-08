@@ -26,10 +26,6 @@ namespace ConsoleTester
 
             m_AssmResolver = new AssemblyResolver(AppDomain.CurrentDomain);
             m_AssmResolver.RegisterAssemblyReferenceResolver(new CustomAppConfigBindingRedirectReferenceResolver());
-
-            //AppDomain.CurrentDomain.RegisterGlobalAssemblyReferenceResolver(new LocalFolderReferencesResolver(
-            //    Path.GetDirectoryName(typeof(Program).Assembly.Location),
-            //    AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture));
         }
 
         static void Main(string[] args)
