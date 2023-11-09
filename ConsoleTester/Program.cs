@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XToolkit;
 using Xarial.XToolkit.Helpers;
 using Xarial.XToolkit.Reflection;
 
@@ -25,11 +26,14 @@ namespace ConsoleTester
             System.Diagnostics.Debugger.Launch();
 
             m_AssmResolver = new AssemblyResolver(AppDomain.CurrentDomain);
-            m_AssmResolver.RegisterAssemblyReferenceResolver(new CustomAppConfigBindingRedirectReferenceResolver());
+            //m_AssmResolver.RegisterAssemblyReferenceResolver(new CustomAppConfigBindingRedirectReferenceResolver());
 
-            //AppDomain.CurrentDomain.RegisterGlobalAssemblyReferenceResolver(new LocalFolderReferencesResolver(
-            //    Path.GetDirectoryName(typeof(Program).Assembly.Location),
-            //    AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture));
+            var localPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+
+            m_AssmResolver.RegisterAssemblyReferenceResolver(
+                new LocalFolderReferencesResolver(FileSystemUtils.CombinePaths(localPath, @"..\..\..\Lib\bin\Debug"),
+                AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture, "", null,
+                new string[] { localPath }));
         }
 
         static void Main(string[] args)

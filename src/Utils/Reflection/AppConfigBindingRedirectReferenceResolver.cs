@@ -26,7 +26,7 @@ namespace Xarial.XToolkit.Reflection
         {
         }
 
-        public AppConfigBindingRedirectReferenceResolver(string name) : base(name) 
+        public AppConfigBindingRedirectReferenceResolver(string name, string[] filterDirs = null) : base(name, filterDirs) 
         {
         }
 
