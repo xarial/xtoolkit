@@ -1,5 +1,7 @@
 # How To Test AssemblyResolver
 
+## CustomAppConfigBindingRedirectReferenceResolver
+
 * Compile the **ConsoleTester** project. This project is referencing **Lib** dll with version 1.0.0.0
 * Copy and overwrite the files from the **!** folder into the build folder
     * **Lib.dll** reference is of version 1.1.0.0
@@ -22,3 +24,9 @@
 ~~~
 * Run the **ConsoleTester.exe** from the Windows File Explorer and attach to the process to debug
     * This is done so the default build process is not overriding the target files
+
+## LocalFolderReferencesResolver
+
+* Compile the **ConsoleTester** project. This project is referencing **Lib** dll with version 1.0.0.0
+* Start the project
+* Delete the **Lib.dll** from the compile folder when program start (within static method or on the **Debugger.Launch**)

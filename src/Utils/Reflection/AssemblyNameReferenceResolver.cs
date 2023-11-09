@@ -52,11 +52,14 @@ namespace Xarial.XToolkit.Reflection
         /// <remarks>Used in the logs</remarks>
         public string Name { get; }
 
+        private readonly string[] m_FilterDirs;
+
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="name">Name of the resolver</param>
-        public AssemblyNameReferenceResolver(string name) 
+        /// <param name="filterDirs">Only resolve the assembly if requesting assembly is in the specified directories</param>
+        public AssemblyNameReferenceResolver(string name, string[] filterDirs = null) 
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -64,67 +67,94 @@ namespace Xarial.XToolkit.Reflection
             }
 
             Name = name;
+
+            m_FilterDirs = filterDirs;
         }
         
         /// <inheritdoc/>>
         public virtual Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly)
         {
-            var searchAssmName = GetReplacementAssemblyName(assmName, requestingAssembly, out string searchDir, out bool recursiveSearch);
-
-            if (searchAssmName != null) 
+            if (ShouldResolve(appDomain, assmName, requestingAssembly))
             {
-                var matchedAssmNames = new List<AssemblyInfo>();
+                var searchAssmName = GetReplacementAssemblyName(assmName, requestingAssembly, out string searchDir, out bool recursiveSearch);
 
-                var replacementAssms = appDomain.GetAssemblies().Where(
-                                        a => Match(a.GetName(), searchAssmName));
-
-                var exactMatch = replacementAssms.FirstOrDefault(a => CompareAssemblyNames(a.GetName(), searchAssmName));
-
-                if (exactMatch != null)
+                if (searchAssmName != null)
                 {
-                    Trace.WriteLine($"Assembly '{searchAssmName}' is resolved to '{exactMatch.Location}' as exact match via '{Name}' resolver", Name);
+                    var matchedAssmNames = new List<AssemblyInfo>();
 
-                    return exactMatch;
-                }
-                else 
-                {
-                    matchedAssmNames.AddRange(replacementAssms.Select(a => new AssemblyInfo(a.GetName(), a.Location, true)));
-                }
+                    var replacementAssms = appDomain.GetAssemblies().Where(
+                                            a => Match(a.GetName(), searchAssmName));
 
-                foreach (var name in EnumerateAssemblyByName(searchDir, recursiveSearch, searchAssmName)) 
-                {
-                    if (CompareAssemblyNames(name.Name, searchAssmName))
+                    var exactMatch = replacementAssms.FirstOrDefault(a => CompareAssemblyNames(a.GetName(), searchAssmName));
+
+                    if (exactMatch != null)
                     {
-                        Trace.WriteLine($"Loading '{searchAssmName}' from '{name.FilePath}' as exact match via '{Name}' resolver", Name);
+                        Trace.WriteLine($"Assembly '{searchAssmName}' is resolved to '{exactMatch.Location}' as exact match via '{Name}' resolver", Name);
 
-                        return Assembly.LoadFrom(name.FilePath);
+                        return exactMatch;
                     }
-                    else 
+                    else
                     {
-                        matchedAssmNames.Add(name);
+                        matchedAssmNames.AddRange(replacementAssms.Select(a => new AssemblyInfo(a.GetName(), a.Location, true)));
                     }
-                }
 
-                var assmInfo = ResolveAmbiguity(matchedAssmNames, searchAssmName);
-
-                if (assmInfo != null) 
-                {
-                    if (assmInfo.IsLoaded)
+                    foreach (var name in EnumerateAssemblyByName(searchDir, recursiveSearch, searchAssmName))
                     {
-                        Trace.WriteLine($"Loading '{assmInfo.Name}' from assembly name via '{Name}' resolver", Name);
+                        if (CompareAssemblyNames(name.Name, searchAssmName))
+                        {
+                            Trace.WriteLine($"Loading '{searchAssmName}' from '{name.FilePath}' as exact match via '{Name}' resolver", Name);
 
-                        return Assembly.Load(assmInfo.Name);
+                            return LoadAssembly(new AssemblyInfo(AssemblyName.GetAssemblyName(name.FilePath), name.FilePath, false));
+                        }
+                        else
+                        {
+                            matchedAssmNames.Add(name);
+                        }
                     }
-                    else 
-                    {
-                        Trace.WriteLine($"Loading '{assmInfo.Name}' from file '{assmInfo.FilePath}' via '{Name}' resolver", Name);
 
-                        return Assembly.LoadFrom(assmInfo.FilePath);
+                    var assmInfo = ResolveAmbiguity(matchedAssmNames, searchAssmName);
+
+                    if (assmInfo != null)
+                    {
+                        return LoadAssembly(assmInfo);
                     }
                 }
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Checks if assembly should be resolved by this resolver
+        /// </summary>
+        /// <param name="appDomain">App Domain</param>
+        /// <param name="assmName">Assembly to resolve</param>
+        /// <param name="requestingAssembly">Requesting assembly</param>
+        /// <returns></returns>
+        protected virtual bool ShouldResolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly) 
+        {
+            if (m_FilterDirs?.Any() == true && requestingAssembly != null)
+            {
+                var reqAssmFilePath = requestingAssembly.Location;
+
+                return m_FilterDirs.Any(f => FileSystemUtils.IsInDirectory(reqAssmFilePath, f));
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        /// <summary>
+        /// Load the assembly
+        /// </summary>
+        /// <param name="assmInfo">Assembly information</param>
+        /// <returns>Loaded assembly</returns>
+        protected Assembly LoadAssembly(AssemblyInfo assmInfo) 
+        {
+            Trace.WriteLine($"Loading '{assmInfo.Name}' from file '{assmInfo.FilePath}' [Loaded={assmInfo.IsLoaded}] via '{Name}' resolver", Name);
+
+            return Assembly.Load(assmInfo.Name);
         }
 
         /// <summary>

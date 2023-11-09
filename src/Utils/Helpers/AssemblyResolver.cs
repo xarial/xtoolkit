@@ -35,7 +35,7 @@ namespace Xarial.XToolkit.Helpers
     /// <summary>
     /// This is a helper class allowing to specify strategies for resolving the missing dlls
     /// </summary>
-    public class AssemblyResolver
+    public class AssemblyResolver : IDisposable
     {
         private readonly List<IReferenceResolver> m_AssemblyResolvers;
         private readonly AppDomain m_AppDomain;
@@ -93,6 +93,11 @@ namespace Xarial.XToolkit.Helpers
             }
 
             return null;
+        }
+
+        public void Dispose()
+        {
+            m_AppDomain.AssemblyResolve -= OnResolveMissingAssembly;
         }
     }
 }
