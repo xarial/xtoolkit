@@ -1,4 +1,11 @@
-﻿using System.IO;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2023 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System.IO;
 using System.Text;
 using System.Xml.Serialization;
 using System.Xml;
