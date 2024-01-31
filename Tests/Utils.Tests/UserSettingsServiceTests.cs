@@ -24,7 +24,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             public double Field2 { get; set; }
         }
 
-        [UserSettingVersion("2.1.0", typeof(SettsMockTransformer))]
+        [UserSettingVersion("2.1.0", typeof(SettsMock2Transformer))]
         public class SettsMock2
         {
             public string Field1 { get; set; }
@@ -32,13 +32,13 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             public bool Field4 { get; set; }
         }
 
-        public class SettsMockTransformer : IEnumerable<VersionTransform>
+        public class SettsMock2Transformer : IVersionsTransformer
         {
-            public Type SettingType => typeof(SettsMock2);
+            public IReadOnlyList<VersionTransform> Transforms => m_Transforms;
 
             private List<VersionTransform> m_Transforms;
 
-            public SettsMockTransformer()
+            public SettsMock2Transformer()
             {
                 m_Transforms = new List<VersionTransform>();
                 m_Transforms.Add(new VersionTransform(
@@ -52,15 +52,29 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
                         return t;
                     }));
             }
+        }
 
-            public IEnumerator<VersionTransform> GetEnumerator()
-            {
-                return m_Transforms.GetEnumerator();
-            }
+        public class SettsMock5Transformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms => m_Transforms;
 
-            IEnumerator IEnumerable.GetEnumerator()
+            private List<VersionTransform> m_Transforms;
+
+            public string NewValue { get; set; }
+
+            public SettsMock5Transformer()
             {
-                return m_Transforms.GetEnumerator();
+                m_Transforms = new List<VersionTransform>();
+                m_Transforms.Add(new VersionTransform(
+                    new Version("1.0"),
+                    new Version("2.0"),
+                    t =>
+                    {
+                        var field1 = t.Children<JProperty>().First(p => p.Name == "Field1");
+                        field1.Value = new JValue(NewValue);
+
+                        return t;
+                    }));
             }
         }
 
@@ -72,6 +86,12 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         public class SettsMock4
         {
             public IObjectType Obj { get; set; }
+        }
+
+        [UserSettingVersion("2.0", typeof(SettsMock5Transformer))]
+        public class SettsMock5 
+        {
+            public string Field1 { get; set; }
         }
 
         public interface IObjectType 
@@ -96,8 +116,8 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         {
             var srv = new UserSettingsService();
 
-            var mock1 = "{\"Field1\":\"AAA\",\"Field2\":10.0,\"__version\":\"0.0\"}";
-            var mock2 = "{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"__version\":\"2.1.0\"}";
+            var mock1 = "{\"Field1\":\"AAA\",\"Field2\":10.0,\"$version\":\"0.0\"}";
+            var mock2 = "{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}";
 
             var setts1 = srv.ReadSettings<SettsMock1>(new StringReader(mock1));
             var setts2 = srv.ReadSettings<SettsMock1>(new StringReader(mock2));
@@ -128,6 +148,19 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         }
 
         [Test]
+        public void LegacyReadSettingsTest()
+        {
+            var srv = new UserSettingsService();
+
+            var mock = "{\"Field1\":\"XYZ\",\"__version\":\"1.1.0\"}";
+
+            var setts = srv.ReadSettings<SettsMock1>(new StringReader(mock));
+
+            Assert.AreEqual("XYZ", setts.Field1);
+            Assert.AreEqual(default(double), setts.Field2);
+        }
+
+        [Test]
         public void WriteSettingsTest()
         {
             var srv = new UserSettingsService();
@@ -152,7 +185,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             srv.StoreSettings(setts2, new StringWriter(res2));
 
             Assert.AreEqual("{\"Field1\":\"AAA\",\"Field2\":10.0}", res1.ToString());
-            Assert.AreEqual("{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"__version\":\"2.1.0\"}", res2.ToString());
+            Assert.AreEqual("{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}", res2.ToString());
         }
 
         [Test]
@@ -218,10 +251,22 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             var ser = new BaseValueSerializer<string>(x => "ABC", x => "XYZ");
 
             srv.StoreSettings(setts, new StringWriter(res1), ser);
-            var res2 = srv.ReadSettings<SettsMock2>(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"__version\":\"2.1.0\"}"), ser);
+            var res2 = srv.ReadSettings<SettsMock2>(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}"), ser);
 
-            Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"__version\":\"2.1.0\"}", res1.ToString());
+            Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}", res1.ToString());
             Assert.AreEqual("XYZ", res2.Field1);
+        }
+
+        [Test]
+        public void TransformHandlerTest() 
+        {
+            var srv = new UserSettingsService();
+
+            var mock1 = "{\"Field1\":\"AAA\",\"$version\":\"1.0\"}";
+
+            var setts1 = srv.ReadSettings<SettsMock5>(new StringReader(mock1), t => { ((SettsMock5Transformer)t).NewValue = "BBB"; return t; });
+            
+            Assert.AreEqual("BBB", setts1.Field1);
         }
     }
 }

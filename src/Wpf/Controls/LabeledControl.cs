@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2023 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -56,16 +63,38 @@ namespace Xarial.XToolkit.Wpf.Controls
 			set { SetValue(ContentProperty, value); }
 		}
 
-		public static readonly DependencyProperty TextBlockStyleProperty =
+		public static readonly DependencyProperty LabelStyleProperty =
 			DependencyProperty.Register(
-			nameof(TextBlockStyle), typeof(Style),
+			nameof(LabelStyle), typeof(Style),
 			typeof(LabeledControl),
 			new PropertyMetadata(typeof(LabeledControl).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "DefaultLabeledControlTextBlockStyle")));
 
-		public Style TextBlockStyle
+		public Style LabelStyle
 		{
-			get { return (Style)GetValue(TextBlockStyleProperty); }
-			set { SetValue(TextBlockStyleProperty, value); }
+			get { return (Style)GetValue(LabelStyleProperty); }
+			set { SetValue(LabelStyleProperty, value); }
 		}
-	}
+
+        public static readonly DependencyProperty LabelMarginProperty =
+            DependencyProperty.Register(
+            nameof(LabelMargin), typeof(Thickness),
+            typeof(LabeledControl));
+
+        public Thickness LabelMargin
+        {
+            get { return (Thickness)GetValue(LabelMarginProperty); }
+            set { SetValue(LabelMarginProperty, value); }
+        }
+
+        public static readonly DependencyProperty IconProperty =
+            DependencyProperty.Register(
+            nameof(Icon), typeof(ImageSource),
+            typeof(LabeledControl));
+
+        public ImageSource Icon
+        {
+            get { return (ImageSource)GetValue(IconProperty); }
+            set { SetValue(IconProperty, value); }
+        }
+    }
 }

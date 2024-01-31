@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ctrls="clr-namespace:Xarial.XToolkit.Wpf.Controls;assembly=Xarial.XToolkit.Wpf"
         xmlns:local="clr-namespace:WpfTester"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
@@ -36,8 +37,8 @@
             </TabItem>
             <TabItem Header="NumberBox">
                 <StackPanel Orientation="Vertical" DataContext="{Binding Path=NumberBox}">
-                    <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}" />
-                    <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}"/>
+                    <ctrls:NumberBoxDouble Margin="2" Value="{Binding Path=DoubleVal}" Height="50" />
+                    <ctrls:NumberBoxInteger Margin="2" Value="{Binding Path=IntVal}" MinimumValue="10" MaximumValue="100"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="TreeViewEx">
@@ -60,6 +61,12 @@
                     <CheckBox IsChecked="{Binding Path=ShowColumns}">
                         <TextBlock Text="Show Columns"/>
                     </CheckBox>
+                    <Button Command="{Binding Path=AddColumnCommand}" Margin="5" HorizontalAlignment="Left">
+                        <TextBlock Text="Add Column" Margin="5"/>
+                    </Button>
+                    <Button Command="{Binding Path=AddColumnAsyncCommand}" Margin="5" HorizontalAlignment="Left">
+                        <TextBlock Text="Add Column Async" Margin="5"/>
+                    </Button>
                     <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
                                      ColumnsSource="{Binding Path=ColumnsSource}"
                                      ColumnsPreCreated="OnColumnsPreCreated"
@@ -140,6 +147,54 @@
                             </local:MyCellEditingTemplateSelector>
                         </ctrls:XDataGrid.CellEditingTemplateSelector>
                     </ctrls:XDataGrid>
+                    <ctrls:XDataGrid ItemsSource="{Binding Path=DynamicRows}" CanUserAddRows="False"
+                                     ColumnsSource="{Binding Path=DynamicColumnsSource}">
+                        <ctrls:XDataGrid.ColumnHeaderTemplateSelector>
+                            <local:MyColumnTemplateSelector>
+                                <local:MyColumnTemplateSelector.AColumn>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=Title}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </local:MyColumnTemplateSelector.AColumn>
+                                <local:MyColumnTemplateSelector.Default>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=Title}"/>
+                                    </DataTemplate>
+                                </local:MyColumnTemplateSelector.Default>
+                            </local:MyColumnTemplateSelector>
+                        </ctrls:XDataGrid.ColumnHeaderTemplateSelector>
+                        <ctrls:XDataGrid.CellContentSelector>
+                            <local:CellContentSelector/>
+                        </ctrls:XDataGrid.CellContentSelector>
+                        <ctrls:XDataGrid.CellTemplateSelector>
+                            <local:MyCellTemplateSelector>
+                                <local:MyCellTemplateSelector.AColumn>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=Value}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </local:MyCellTemplateSelector.AColumn>
+                                <local:MyCellTemplateSelector.Default>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Path=Value}"/>
+                                    </DataTemplate>
+                                </local:MyCellTemplateSelector.Default>
+                            </local:MyCellTemplateSelector>
+                        </ctrls:XDataGrid.CellTemplateSelector>
+                        <ctrls:XDataGrid.CellEditingTemplateSelector>
+                            <local:MyCellEditingTemplateSelector>
+                                <local:MyCellEditingTemplateSelector.AColumn>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}" FontWeight="Bold" HorizontalAlignment="Center"/>
+                                    </DataTemplate>
+                                </local:MyCellEditingTemplateSelector.AColumn>
+                                <local:MyCellEditingTemplateSelector.Default>
+                                    <DataTemplate>
+                                        <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
+                                    </DataTemplate>
+                                </local:MyCellEditingTemplateSelector.Default>
+                            </local:MyCellEditingTemplateSelector>
+                        </ctrls:XDataGrid.CellEditingTemplateSelector>
+                    </ctrls:XDataGrid>
                 </StackPanel>
             </TabItem>
             <TabItem Header="XListView">
@@ -157,6 +212,7 @@
                     <Button Click="OnBrowseFileSave">Browse File Save</Button>
                     <Button Click="OnBrowseFilesOpen">Browse Files Open</Button>
                     <Button Click="OnBrowseFolder">Browse folder</Button>
+                    <Button Click="OnBrowseFolders">Browse folders</Button>
                 </StackPanel>
             </TabItem>
             <TabItem Header="ProgressPane">
@@ -199,22 +255,146 @@
             <TabItem Header="LabeledControl">
                 <Grid Grid.IsSharedSizeScope="True">
                     <StackPanel DataContext="{Binding Path=LabeledControl}" Orientation="Vertical">
-                        <ctrls:LabeledControl Label="Test Label:" Margin="2" GridSharedSizeGroup="LabelGridGroup">
+                        <ctrls:LabeledControl Label="Test Label:" Margin="2" LabelMargin="10" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="Some Text 1"/>
                         </ctrls:LabeledControl>
-                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" GridSharedSizeGroup="LabelGridGroup">
+                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" Icon="/WpfTester;component/Resources/icon.png" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="{Binding Path=Text1}"/>
                         </ctrls:LabeledControl>
                         <ctrls:LabeledControl Label="Another Test Label Number 3:" Margin="2">
                             <TextBox Text="Some Text 3"/>
-                            <ctrls:LabeledControl.TextBlockStyle>
+                            <ctrls:LabeledControl.LabelStyle>
                                 <Style TargetType="{x:Type TextBlock}">
                                     <Setter Property="Foreground" Value="Green"/>
                                 </Style>
-                            </ctrls:LabeledControl.TextBlockStyle>
+                            </ctrls:LabeledControl.LabelStyle>
+                        </ctrls:LabeledControl>
+                        <ctrls:LabeledControl Margin="2" Icon="/WpfTester;component/Resources/icon.png">
+                            <ComboBox/>
                         </ctrls:LabeledControl>
                     </StackPanel>
                 </Grid>
+            </TabItem>
+            <TabItem Header="ExpressionBox">
+                <Grid DataContext="{Binding Path=ExpressionBox}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox/>
+                    <ctrls:ExpressionBox x:Name="expBox" Expression="{Binding Path=Expression1}" VariableLinksBoxVisibility="Collapsed" VariableLinks="{Binding Path=VariableLinks}" Grid.Column="0" Margin="5">
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <local:MyExpressionVariableDescriptor/>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+                    <Button Grid.Column="1" Command="{Binding Path=InsertVariableCommand}" CommandParameter="{Binding ElementName=expBox}">
+                        <TextBlock Text="+"/>
+                    </Button>
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression2}" Grid.Column="0" Grid.Row="1" Margin="5" Height="20">
+                        <ctrls:ExpressionBox.Style>
+                            <Style TargetType="{x:Type ctrls:ExpressionBox}">
+                                <Style.Triggers>
+                                    <Trigger Property="Validation.HasError" Value="true">
+                                        <Setter Property="ToolTip" Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ctrls:ExpressionBox.Style>
+                    </ctrls:ExpressionBox>
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="2" AcceptsReturn="True"/>
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="3" WrapText="True" AcceptsReturn="True"
+                                         Height="100" VariableLinks="{Binding Path=VariableLinks}">
+                        <ctrls:ExpressionBox.Resources>
+                            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="LightYellow"/>
+                            <Style TargetType="{x:Type DataGridCell}">
+                                <Setter Property="Foreground" Value="Red"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Foreground" Value="Blue"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ctrls:ExpressionBox.Resources>
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <local:MyExpressionVariableDescriptor/>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+                    <ctrls:ExpressionBox Grid.Column="0" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="4" WrapText="False" AcceptsReturn="True"
+                                         Height="100" VariableLinks="{Binding Path=VariableLinks}">
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <local:MyExpressionVariableDescriptor/>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+                    <ctrls:ExpressionBox Grid.Column="0" Expression="{Binding Path=Expression3}" Margin="5" BorderBrush="Blue" BorderThickness="1" Grid.Row="5" 
+                                         Foreground="Green" Background="LightYellow">
+                        <ctrls:ExpressionBox.VariableLinks>
+                            <ctrls:ExpressionVariableLinkCollection>
+                                <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Insert 'prp' variable" EnterArguments="True"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="b" Title="Insert 'b' variable" Icon="/WpfTester;component/Resources/icon.png"/>
+                            </ctrls:ExpressionVariableLinkCollection>
+                        </ctrls:ExpressionBox.VariableLinks>
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <ctrls:ExpressionVariableDescriptor>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="prp" TitleFormat="{}Property '{0}'" DescriptionFormat="Property Variable" Dynamic="False">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the property" HasAdvancedEditor="True"/>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="b" TitleFormat="Variable 'b'" Background="LightBlue" Icon="/WpfTester;component/Resources/icon.png" DescriptionFormat="Variable 'b'" Dynamic="True">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentOptionsDescriptor Title="Options" Icon="/WpfTester;component/Resources/icon.png">
+                                            <ctrls:ExpressionVariableArgumentOptionsDescriptor.Items>
+                                                <sys:String>Item 1</sys:String>
+                                                <sys:String>Item 2</sys:String>
+                                                <sys:String>Item 3</sys:String>
+                                            </ctrls:ExpressionVariableArgumentOptionsDescriptor.Items>
+                                        </ctrls:ExpressionVariableArgumentOptionsDescriptor>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
+                            </ctrls:ExpressionVariableDescriptor>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+
+                    <ctrls:ExpressionBox Expression="{Binding Path=Expression}" BorderThickness="0" Grid.Row="6">
+                        <ctrls:ExpressionBox.VariableLinksBoxDecorationTemplate>
+                            <DataTemplate/>
+                        </ctrls:ExpressionBox.VariableLinksBoxDecorationTemplate>
+                        <ctrls:ExpressionBox.VariableLinks>
+                            <ctrls:ExpressionVariableLinkCollection>
+                                <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Custom property variable" EnterArguments="True"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="cutlistprp" Title="Cut-list custom property variable" EnterArguments="True"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="qty" Title="Quantity variable" EnterArguments="True"/>
+                            </ctrls:ExpressionVariableLinkCollection>
+                        </ctrls:ExpressionBox.VariableLinks>
+                        <ctrls:ExpressionBox.VariableDescriptor>
+                            <ctrls:ExpressionVariableDescriptor>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="prp" TitleFormat="{}{0}" DescriptionFormat="Property Variable" Background="LightBlue"  Dynamic="False">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the custom property"/>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="cutlistprp" TitleFormat="{}Cut-List {0}" DescriptionFormat="Cut-list Property Variable" Background="LightYellow"  Dynamic="False">
+                                    <ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                        <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the cut-list custom property"/>
+                                    </ctrls:ExpressionVariableArgumentsInfo.Arguments>
+                                </ctrls:ExpressionVariableArgumentsInfo>
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="qty" TitleFormat="Quantity" DescriptionFormat="Quantity Variable" Background="LightGreen"  Dynamic="False"/>
+                            </ctrls:ExpressionVariableDescriptor>
+                        </ctrls:ExpressionBox.VariableDescriptor>
+                    </ctrls:ExpressionBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="LoadingWheel">
+                <ctrls:LoadingWheel />
             </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">

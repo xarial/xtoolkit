@@ -1,39 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net461</TargetFrameworks>
-    <UseWPF>true</UseWPF>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net6.0-windows;netcoreapp3.1;net461</TargetFrameworks>
     <RootNamespace>Xarial.XToolkit.Wpf</RootNamespace>
     <AssemblyName>Xarial.XToolkit.Wpf</AssemblyName>
-	  <SignAssembly>false</SignAssembly>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
     <PackageId>Xarial.XToolkit.Wpf</PackageId>
-    <VersionPrefix>0.3.2</VersionPrefix>
-    <Authors>Xarial</Authors>
-    <Product>xToolkit</Product>
-    <Copyright>© 2021 Xarial Pty Limited</Copyright>
-    <PackageProjectUrl>https://xtoolkit.xarial.com</PackageProjectUrl>
-    <AssemblyOriginatorKeyFile></AssemblyOriginatorKeyFile>
-    <Company>Xarial Pty Limited</Company>
-    <RepositoryUrl>https://github.com/xarial/xtoolkit</RepositoryUrl>
     <PackageTags>toolkit,wpf,controls</PackageTags>
     <Description>Collection of WPF Controls and utilities</Description>
-    <RepositoryType>git</RepositoryType>
     <PackageIcon>icon.png</PackageIcon>
     <PackageIconUrl>https://xarial.com/xtoolkit-icon.png</PackageIconUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
-  </PropertyGroup>
-  
+  <Import Project="..\..\common\common.props" />
+
   <ItemGroup>
     <None Include="..\..\data\icon.png">
       <Pack>True</Pack>
@@ -46,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,6 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="Themes\LoadingWheel.xaml">
+      <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Update="Themes\LabeledControl.xaml">
       <SubType>Designer</SubType>
     </Page>

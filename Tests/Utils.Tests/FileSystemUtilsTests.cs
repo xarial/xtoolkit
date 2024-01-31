@@ -30,6 +30,10 @@ namespace Utils.Tests
 
             var r11 = FileSystemUtils.IsInDirectory(@"D:\b\c", @"D:\x\y");
 
+            var r12 = FileSystemUtils.IsInDirectory(@"D:\b\c\1.txt", @"D:\b");
+
+            var r13 = FileSystemUtils.IsInDirectory(@"D:\b\c\1.txt", @"D:\b\c\x");
+
             Assert.IsFalse(r1);
             Assert.IsTrue(r2);
             Assert.IsFalse(r3);
@@ -41,6 +45,23 @@ namespace Utils.Tests
             Assert.IsFalse(r9);
             Assert.IsFalse(r10);
             Assert.IsFalse(r11);
+            Assert.IsTrue(r12);
+            Assert.IsFalse(r13);
+        }
+
+        [Test]
+        public void GetRelativePathTest() 
+        {
+            var r1 = FileSystemUtils.GetRelativePath(@"D:\a\b\c\1.txt", @"D:\a\b");
+            var r2 = FileSystemUtils.GetRelativePath(@"D:\a\b\c\d", @"D:\a\b\");
+            var r3 = FileSystemUtils.GetRelativePath(@"D:\x\y\z\", @"D:\x\");
+            var r4 = FileSystemUtils.GetRelativePath(@"a\b\c\1.txt", @"a\b\");
+
+            Assert.AreEqual(@"c\1.txt", r1);
+            Assert.AreEqual(@"c\d", r2);
+            Assert.AreEqual(@"y\z\", r3);
+            Assert.AreEqual(@"c\1.txt", r4);
+            Assert.Throws<Exception>(() => FileSystemUtils.GetRelativePath(@"D:\a\b\c\1.txt", @"D:\a\b\c\d"));
         }
 
         [Test]
@@ -54,6 +75,7 @@ namespace Utils.Tests
                 @"D:\a\b\c",
                 @"D:\a\b\d\",
                 @"D:\z\ab",
+                @"D:\a\b"
             };
 
             var r1 = FileSystemUtils.GetTopFolders(i1);
@@ -109,6 +131,16 @@ namespace Utils.Tests
             Assert.AreEqual(p16, @"folder1\abc\xyz.txt");
             Assert.AreEqual(p17, @"abc\xyz.txt");
             Assert.AreEqual(p18, @"abc\xyz.txt");
+        }
+
+        [Test]
+        public void ReplaceIllegalRelativePathCharactersTest() 
+        {
+            var path = @"\dir?\subdir<>\file*.txt";
+
+            var res = FileSystemUtils.ReplaceIllegalRelativePathCharacters(path, c => c == '*' ? '+' : '_');
+
+            Assert.AreEqual(@"\dir_\subdir__\file+.txt", res);
         }
     }
 }

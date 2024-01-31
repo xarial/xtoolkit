@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -12,7 +12,8 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
 {
     internal abstract class SettingsJsonConverter : JsonConverter
     {
-        protected string VERSION_NODE_NAME = "__version";
+        protected string VERSION_NODE_NAME = "$version";
+        protected string LEGACY_VERSION_NODE_NAME = "__version";
 
         protected Type m_SettsType;
         protected Version m_LatestVersion;
@@ -34,10 +35,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
 
         public override bool CanWrite => m_CanWrite;
 
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == m_SettsType;
-        }
+        public override bool CanConvert(Type objectType) => objectType == m_SettsType;
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {

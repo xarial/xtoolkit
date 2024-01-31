@@ -1,14 +1,12 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Windows;
 using System.Windows.Data;
 
@@ -22,7 +20,7 @@ namespace Xarial.XToolkit.Wpf.Converters
 
         public bool Reverse { get; set; } = false;
 
-        public virtual object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             var boolVal = ConvertValueToBool(value);
 
@@ -30,16 +28,16 @@ namespace Xarial.XToolkit.Wpf.Converters
             {
                 if (boolVal.Value)
                 {
-                    return Reverse ? FalseValue : TrueValue;
+                    return ActualTrueValue;
                 }
                 else
                 {
-                    return Reverse ? TrueValue : FalseValue;
+                    return ActualFalseValue;
                 }
             }
             else
             {
-                return null;
+                return ActualFalseValue;
             }
         }
 
@@ -57,8 +55,22 @@ namespace Xarial.XToolkit.Wpf.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            throw new NotImplementedException();
+            if (value == TrueValue)
+            {
+                return !Reverse;
+            }
+            else if (value == FalseValue)
+            {
+                return Reverse;
+            }
+            else 
+            {
+                return null;
+            }
         }
+
+        private object ActualTrueValue => Reverse ? FalseValue : TrueValue;
+        private object ActualFalseValue => Reverse ? TrueValue : FalseValue;
     }
 
     [ValueConversion(typeof(bool), typeof(object))]

@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -17,13 +17,15 @@ namespace Xarial.XToolkit
 {
     public static class FileSystemUtils
     {
+        private static readonly Lazy<char[]> m_IllegalChars = new Lazy<char[]>(() => Path.GetInvalidFileNameChars().Union(Path.GetInvalidPathChars()).ToArray());
+
         /// <summary>
         /// Combines the directory paths
         /// </summary>
         /// <param name="srcPath">Start path</param>
         /// <param name="additionalPaths">Additional path parts</param>
         /// <returns>Combined path</returns>
-        /// <remarks>This method works with relative path, including moving the upper fodlers via ..</remarks>
+        /// <remarks>This method works with relative path, including moving the upper folders via ..</remarks>
         public static string CombinePaths(string srcPath, params string[] additionalPaths) 
         {
             var pathParts = new List<string>();
@@ -62,11 +64,15 @@ namespace Xarial.XToolkit
         /// <returns>Top level folders paths</returns>
         public static string[] GetTopFolders(IEnumerable<string> paths)
         {
+            bool IsSameOrInDirectory(string thisDir, string parentDir)
+                => NormalizeDirectoryPath(thisDir).StartsWith(NormalizeDirectoryPath(parentDir),
+                    StringComparison.CurrentCultureIgnoreCase);
+
             var result = new List<string>();
 
             foreach (var path in paths.OrderBy(p => p))
             {
-                if (!result.Any(r => IsInDirectory(path, r)))
+                if (!result.Any(r => IsSameOrInDirectory(path, r)))
                 {
                     result.Add(path);
                 }
@@ -76,17 +82,36 @@ namespace Xarial.XToolkit
         }
 
         /// <summary>
-        /// Checks if the specified directoryis in the other directory
+        /// Checks if the specified path is in the other directory
         /// </summary>
-        /// <param name="thisDir">Directory to check</param>
+        /// <param name="thisPath">Path to check</param>
         /// <param name="parentDir">Directory to check agains</param>
         /// <returns>True of directory is within another directory</returns>
-        public static bool IsInDirectory(string thisDir, string parentDir)
+        public static bool IsInDirectory(string thisPath, string parentDir)
         {
-            string NormalizePath(string path) => path.TrimEnd('\\') + "\\";
-
-            return NormalizePath(thisDir).StartsWith(NormalizePath(parentDir),
+            return thisPath.StartsWith(NormalizeDirectoryPath(parentDir),
                     StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        /// <summary>
+        /// Finds the relative path
+        /// </summary>
+        /// <param name="thisPath">Path to get relative path for</param>
+        /// <param name="relativeToDir">Relative directory</param>
+        /// <returns>Relative path</returns>
+        /// <exception cref="Exception"></exception>
+        public static string GetRelativePath(string thisPath, string relativeToDir) 
+        {
+            relativeToDir = NormalizeDirectoryPath(relativeToDir);
+
+            if (IsInDirectory(thisPath, relativeToDir))
+            {
+                return thisPath.Substring(relativeToDir.Length);
+            }
+            else 
+            {
+                throw new Exception($"'{relativeToDir}' is not in the '{thisPath}' directory");
+            }
         }
 
         /// <summary>
@@ -115,6 +140,48 @@ namespace Xarial.XToolkit
                 UseShellExecute = true,
                 Arguments = $"/select, \"{path}\""
             });
+        }
+
+        /// <summary>
+        /// Replaces illegal characters in the relative file path (rooted path is not supported)
+        /// </summary>
+        /// <param name="path">Input path</param>
+        /// <param name="replacer">Illegal characters replacer</param>
+        /// <returns>Legal file path</returns>
+        public static string ReplaceIllegalRelativePathCharacters(string path, Func<char, char> replacer) 
+        {
+            if (string.IsNullOrEmpty(path)) 
+            {
+                throw new ArgumentNullException(nameof(path));
+            }
+
+            var res = new StringBuilder();
+
+            foreach (var pathChar in path) 
+            {
+                if (pathChar != Path.DirectorySeparatorChar && m_IllegalChars.Value.Contains(pathChar))
+                {
+                    res.Append(replacer.Invoke(pathChar));
+                }
+                else
+                {
+                    res.Append(pathChar);
+                }
+            }
+
+            return res.ToString();
+        }
+
+        private static string NormalizeDirectoryPath(string path)
+        {
+            if (!path.EndsWith("\\"))
+            {
+                return path + "\\";
+            }
+            else
+            {
+                return path;
+            }
         }
     }
 }

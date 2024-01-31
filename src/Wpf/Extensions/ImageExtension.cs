@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -15,9 +15,18 @@ using System.Windows.Media.Imaging;
 
 namespace Xarial.XToolkit.Wpf.Extensions
 {
+    /// <summary>
+    /// Additional methods for the <see cref="Image"/>
+    /// </summary>
     public static class ImageExtension
     {
-        public static BitmapImage ToBitmapImage(this Image img)
+        /// <summary>
+        /// Converts <see cref="Image"/> to <see cref="BitmapImage"/>
+        /// </summary>
+        /// <param name="img">Image to convert</param>
+        /// <param name="freeze">True to freeze the image</param>
+        /// <returns>Converted image</returns>
+        public static BitmapImage ToBitmapImage(this Image img, bool freeze = false)
         {
             using (var stream = new MemoryStream())
             {
@@ -29,6 +38,14 @@ namespace Xarial.XToolkit.Wpf.Extensions
                 bmpImg.CacheOption = BitmapCacheOption.OnLoad;
                 bmpImg.StreamSource = stream;
                 bmpImg.EndInit();
+
+                if (freeze) 
+                {
+                    if (bmpImg.CanFreeze && !bmpImg.IsFrozen) 
+                    {
+                        bmpImg.Freeze();
+                    }
+                }
 
                 return bmpImg;
             }

@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xarial.XToolkit;
 using Xarial.XToolkit.Wpf.Controls;
 using Xarial.XToolkit.Wpf.Dialogs;
 using Xarial.XToolkit.Wpf.Utils;
@@ -56,29 +57,36 @@ namespace WpfTester
         private void OnBrowseFileOpen(object sender, RoutedEventArgs e)
         {
             if (FileSystemBrowser.BrowseFileOpen(out string path, out int filterIndex, "Test",
-                FileSystemBrowser.BuildFilterString(new FileFilter("Txt1", "*.txt"),
-                new FileFilter("Txt2", "*.txt")))) 
+                FileFilter.BuildFilterString(new FileFilter("Txt1", "*.txt"),
+                new FileFilter("Txt2", "*.txt")), "", "test1.txt")) 
             {
             }
         }
 
         private void OnBrowseFilesOpen(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFilesOpen(out string[] path))
+            if (FileSystemBrowser.BrowseFilesOpen(out string[] path, "", "", "", "abc.txt"))
             {
             }
         }
 
         private void OnBrowseFileSave(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFileSave(out string path))
+            if (FileSystemBrowser.BrowseFileSave(out string path, "", FileFilter.BuildFilterString(FileFilter.AllFiles), @"D:\Demo", "mytestfile.txt"))
             {
             }
         }
 
         private void OnBrowseFolder(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFolder(out string path))
+            if (FileSystemBrowser.BrowseFolder(out string path, "Test Folder Browser", @"D:\Demo"))
+            {
+            }
+        }
+
+        private void OnBrowseFolders(object sender, RoutedEventArgs e)
+        {
+            if (FileSystemBrowser.BrowseFolders(out string[] paths, "Test Folder Browser"))
             {
             }
         }

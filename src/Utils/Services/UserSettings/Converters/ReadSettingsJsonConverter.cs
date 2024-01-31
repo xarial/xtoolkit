@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -27,10 +27,15 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
             Type objectType, object existingValue, JsonSerializer serializer)
         {
             var jToken = JToken.ReadFrom(reader);
-            
-            var versToken = jToken.SelectToken(VERSION_NODE_NAME);
 
             Version settsVers;
+
+            var versToken = jToken.SelectToken(VERSION_NODE_NAME);
+
+            if (versToken == null)
+            {
+                versToken = jToken.SelectToken(LEGACY_VERSION_NODE_NAME);
+            }
 
             if (versToken == null)
             {
@@ -43,11 +48,14 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
 
             if (m_LatestVersion > settsVers)
             {
-                foreach (var tr in m_Transformers
-                    .Where(t => t.From >= settsVers && t.To <= m_LatestVersion)
-                    .OrderBy(t => t.From))
+                if (m_Transformers != null)
                 {
-                    jToken = tr.Transform(jToken);
+                    foreach (var tr in m_Transformers
+                        .Where(t => t.From >= settsVers && t.To <= m_LatestVersion)
+                        .OrderBy(t => t.From))
+                    {
+                        jToken = tr.Transform(jToken);
+                    }
                 }
             }
 

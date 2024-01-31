@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -20,8 +20,6 @@ namespace Xarial.XToolkit.Services.UserSettings
 
     public class BaseValueSerializer<TType> : IValueSerializer
     {
-        Type IValueSerializer.Type => typeof(TType);
-
         private readonly Func<TType, string> m_Serializer;
         private readonly Func<string, TType> m_Deserializer;
 
@@ -34,9 +32,6 @@ namespace Xarial.XToolkit.Services.UserSettings
             m_Serializer = serializer;
             m_Deserializer = deserializer;
         }
-
-        object IValueSerializer.DeserializeValue(string val) => DeserializeValue(val);
-        string IValueSerializer.SerializeValue(object val) => SerializeValue((TType)val);
 
         protected virtual TType DeserializeValue(string val) 
         {
@@ -61,5 +56,9 @@ namespace Xarial.XToolkit.Services.UserSettings
                 throw new Exception($"Either override the {nameof(SerializeValue)} or provide a serializer delegate in the constructor");
             }
         }
+
+        Type IValueSerializer.Type => typeof(TType);
+        object IValueSerializer.DeserializeValue(string val) => DeserializeValue(val);
+        string IValueSerializer.SerializeValue(object val) => SerializeValue((TType)val);
     }
 }

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace WpfTester
 {
-    [Flags]
     public enum Enum1 
     {
         Value1,
@@ -16,7 +15,6 @@ namespace WpfTester
         Value4
     }
 
-    [Flags]
     public enum Enum2
     {
         Value1,
@@ -27,7 +25,6 @@ namespace WpfTester
         Value4
     }
 
-    [Flags]
     public enum Enum3
     {
         Value1,

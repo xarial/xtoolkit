@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -12,8 +12,8 @@ namespace Xarial.XToolkit.Services.UserSettings
 {
     public class VersionTransform
     {
-        public Version From { get; private set; }
-        public Version To { get; private set; }
+        public Version From { get; }
+        public Version To { get; }
 
         private Func<JToken, JToken> m_Transform;
 

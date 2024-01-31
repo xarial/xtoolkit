@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -51,6 +51,7 @@ namespace Xarial.XToolkit.Wpf.Dialogs
 
         public string Title { get; set; }
         public string Description { get; set; }
+        public string Company { get; set; }
         public string Copyright { get; set; }
         public Version Version { get; set; }
         public Image Logo { get; set; }
@@ -79,6 +80,7 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             Title = assm.GetCustomAttribute<AssemblyProductAttribute>()?.Product;
             Description = assm.GetCustomAttribute<AssemblyDescriptionAttribute>()?.Description;
             Copyright = assm.GetCustomAttribute<AssemblyCopyrightAttribute>()?.Copyright;
+            Company = assm.GetCustomAttribute<AssemblyCompanyAttribute>()?.Company;
             Version = assm.GetName().Version;
             Licenses = licenses;
             Logo = logo;

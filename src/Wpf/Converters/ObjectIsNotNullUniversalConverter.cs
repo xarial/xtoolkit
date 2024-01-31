@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -17,8 +17,7 @@ namespace Xarial.XToolkit.Wpf.Converters
     [ValueConversion(typeof(object), typeof(object))]
     public class ObjectIsNotNullUniversalConverter : BooleanUniversalConverter
     {
-        protected override bool? ConvertValueToBool(object value)
-            => !(value is null);
+        protected override bool? ConvertValueToBool(object value) => !(value is null);
     }
 
     [ValueConversion(typeof(object), typeof(object))]

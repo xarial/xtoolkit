@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -31,7 +31,7 @@ namespace Xarial.XToolkit.Reflection
 
         public LocalFolderReferencesResolver(string searchDir,
             AssemblyMatchFilter_e matchFilter = AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture,
-            string name = "", params string[] assemblyNameFilters) : base(name)
+            string name = "", string[] assemblyNameFilters = null, string[] filterDirs = null) : base(name, filterDirs)
         {
             m_MatchFilter = matchFilter;
 

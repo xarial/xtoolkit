@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2021 Xarial Pty Limited
+//Copyright(C) 2023 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -13,24 +13,24 @@ namespace Xarial.XToolkit.Services.UserSettings.Attributes
     public class UserSettingVersionAttribute : Attribute
     {
         internal Version Version { get; }
-        internal IEnumerable<VersionTransform> VersionTransformers { get; }
+        internal IVersionsTransformer VersionTransformer { get; }
 
         /// <summary>
         /// Initiates the version support for this user setting
         /// </summary>
         /// <param name="version">Current (latest) version of settings</param>
-        /// <param name="versionTransformerType">Collection of version transformers of <see cref="IEnumerable<VersionTransform>"/>. Use <see cref="BaseUserSettingsVersionsTransformer"/></param>
+        /// <param name="versionTransformerType">Collection of version transformers of <see cref="IVersionsTransformer"/></param>
         public UserSettingVersionAttribute(string version, Type versionTransformerType)
         {
             Version = new Version(version);
 
-            if (typeof(IEnumerable<VersionTransform>).IsAssignableFrom(versionTransformerType))
+            if (typeof(IVersionsTransformer).IsAssignableFrom(versionTransformerType))
             {
-                VersionTransformers = (IEnumerable<VersionTransform>)Activator.CreateInstance(versionTransformerType);
+                VersionTransformer = (IVersionsTransformer)Activator.CreateInstance(versionTransformerType);
             }
             else 
             {
-                throw new InvalidCastException($"'{versionTransformerType.FullName}' must implement '{nameof(IEnumerable<VersionTransform>)}' interface. Use '{typeof(BaseUserSettingsVersionsTransformer)}'");
+                throw new InvalidCastException($"'{versionTransformerType.FullName}' must implement '{nameof(IVersionsTransformer)}' interface'");
             }
 
         }

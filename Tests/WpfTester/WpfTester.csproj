@@ -59,6 +59,7 @@
     <Compile Include="CheckableComboBoxVM.cs" />
     <Compile Include="EnumComboBoxVM.cs" />
     <Compile Include="ExpandToggleButtonVM.cs" />
+    <Compile Include="ExpressionBoxVM.cs" />
     <Compile Include="LabeledControlVM.cs" />
     <Compile Include="PopupMenuVM.cs" />
     <Compile Include="ProgressPanelVM.cs" />
@@ -108,16 +109,20 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Resources\icon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Licenses.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Utils\Utils.csproj">
+      <Project>{dc1650a1-131a-4a5b-b7b6-d7a3d7794e52}</Project>
+      <Name>Utils</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\Wpf\Wpf.csproj">
       <Project>{c367f6fc-c616-4e19-b076-aa65edba89b1}</Project>
       <Name>Wpf</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\icon.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Licenses.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

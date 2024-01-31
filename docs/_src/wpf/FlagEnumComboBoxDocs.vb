@@ -3,7 +3,7 @@ Imports System.ComponentModel
 
 Namespace Wpf.Docs
 
-    'enum-display-name-attribute
+    '--- enum-display-name-attribute
     <AttributeUsage(AttributeTargets.Field)>
     Public Class EnumDisplayNameAttribute
         Inherits DisplayNameAttribute
