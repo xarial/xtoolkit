@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Extensions;
@@ -48,7 +50,21 @@ namespace WpfTester
             }
         }
 
+        public ICommand CancelCommand { get; }
+
         public ICommand DoWorkCommand => new RelayCommand(DoWorkAsync);
+
+        private CancellationTokenSource m_CancellationTokenSrc;
+
+        public ProgressPanelVM() 
+        {
+            CancelCommand = new RelayCommand(Cancel);
+        }
+
+        private void Cancel()
+        {
+            m_CancellationTokenSrc.Cancel();
+        }
 
         private async void DoWorkAsync() 
         {
@@ -57,6 +73,8 @@ namespace WpfTester
                 IsWorkInProgress = true;
                 Progress = null;
                 Message = "Initializing...";
+                m_CancellationTokenSrc = new CancellationTokenSource();
+                var cancellationToken = m_CancellationTokenSrc.Token;
 
                 await Task.Delay(2000);
 
@@ -65,14 +83,20 @@ namespace WpfTester
 
                 for (int i = 0; i < 100; i++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     await Task.Delay(100);
                     Progress = (double)(i + 1) / 100d;
                 }
             }
-            catch
+            catch (OperationCanceledException)
             {
+                MessageBox.Show("Cancelled");
             }
-            finally 
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
             {
                 IsWorkInProgress = false;
             }

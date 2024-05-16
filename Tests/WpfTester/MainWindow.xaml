@@ -220,6 +220,13 @@
                     <ctrls:ProgressPanel Progress="{Binding Path=Progress}"
                                          Message="{Binding Path=Message}" Background="#7FFFFFFF"
                                          IsWorkInProgress="{Binding Path=IsWorkInProgress}">
+                        <ctrls:ProgressPanel.CancelButtonTemplate>
+                            <DataTemplate>
+                                <Button Command="{Binding Path=CancelCommand}" HorizontalAlignment="Center" Margin="5">
+                                    <TextBlock Text="Cancel" FontWeight="Bold" Foreground="Red" Margin="5"/>
+                                </Button>
+                            </DataTemplate>
+                        </ctrls:ProgressPanel.CancelButtonTemplate>
                         <ctrls:ProgressPanel.MessageTextBlockStyle>
                             <Style TargetType="{x:Type TextBlock}">
                                 <Setter Property="FontWeight" Value="Bold"/>

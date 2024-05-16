@@ -5,18 +5,15 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Text;
 using System.Windows;
 using System.Windows.Data;
 
 namespace Xarial.XToolkit.Wpf.Converters
 {
-    [ValueConversion(typeof(object), typeof(object))]
-    public class ObjectIsNotNullUniversalConverter : BooleanUniversalConverter
+    [ValueConversion(typeof(bool), typeof(object))]
+    public class BooleanVisibilityConverter : BooleanUniversalConverter
     {
-        protected override bool? ConvertValueToBool(object value) => !(value is null);
+        public override object FalseValue => Visibility.Collapsed;
+        public override object TrueValue => Visibility.Visible;
     }
 }

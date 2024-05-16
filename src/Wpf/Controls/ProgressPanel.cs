@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -97,6 +97,30 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (Style)GetValue(MessageTextBlockStyleProperty); }
             set { SetValue(MessageTextBlockStyleProperty, value); }
+        }
+
+
+        public static readonly DependencyProperty CancelButtonTemplateProperty =
+            DependencyProperty.Register(
+            nameof(CancelButtonTemplate), typeof(DataTemplate),
+            typeof(ProgressPanel),
+            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "CancelButtonDefaultTemplate")));
+
+        public DataTemplate CancelButtonTemplate
+        {
+            get { return (DataTemplate)GetValue(CancelButtonTemplateProperty); }
+            set { SetValue(CancelButtonTemplateProperty, value); }
+        }
+
+        public static readonly DependencyProperty CancelCommandProperty =
+            DependencyProperty.Register(
+            nameof(CancelCommand), typeof(ICommand),
+            typeof(ProgressPanel));
+
+        public ICommand CancelCommand
+        {
+            get { return (ICommand)GetValue(CancelCommandProperty); }
+            set { SetValue(CancelCommandProperty, value); }
         }
     }
 }

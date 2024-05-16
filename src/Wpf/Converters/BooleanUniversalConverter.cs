@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2023 Xarial Pty Limited
+//Copyright(C) 2024 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -71,12 +71,5 @@ namespace Xarial.XToolkit.Wpf.Converters
 
         private object ActualTrueValue => Reverse ? FalseValue : TrueValue;
         private object ActualFalseValue => Reverse ? TrueValue : FalseValue;
-    }
-
-    [ValueConversion(typeof(bool), typeof(object))]
-    public class BooleanVisibilityConverter : BooleanUniversalConverter
-    {
-        public override object FalseValue => Visibility.Collapsed;
-        public override object TrueValue => Visibility.Visible;
     }
 }

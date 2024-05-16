@@ -6,7 +6,9 @@
     <conv:BooleanVisibilityConverter x:Key="boolToVisConv"/>
     <conv:BooleanVisibilityConverter Reverse="True" x:Key="boolToVisRevConv"/>
     <conv:BooleanUniversalConverter Reverse="True" x:Key="boolRevConv"/>
+    <conv:ObjectIsNotNullUniversalConverter x:Key="objIsNotNullConv"/>
     <conv:ObjectIsNotNullUniversalConverter Reverse="True" x:Key="objIsNullConv"/>
+    <conv:ObjectIsNotNullVisibilityConverter x:Key="objIsNotNullVisConv"/>
     <conv:ProgressContentOpacityConverter x:Key="prgContentOpacityConv"/>
     
     <Style TargetType="{x:Type TextBlock}" x:Key="MessageTextBlockDefaultStyle">
@@ -20,6 +22,13 @@
         <Setter Property="Height" Value="20"/>
     </Style>
 
+    <DataTemplate x:Key="CancelButtonDefaultTemplate">
+        <Button HorizontalAlignment="Center" Margin="5" Command="{Binding Path=CancelCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ProgressPanel}}}"
+                Visibility="{Binding Path=CancelCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ProgressPanel}}, Converter={StaticResource objIsNotNullVisConv}}">
+            <TextBlock Text="Cancel" Margin="5"/>
+        </Button>
+    </DataTemplate>
+        
     <Style TargetType="{x:Type local:ProgressPanel}">
         <Setter Property="Background" Value="White"/>
         <Setter Property="Template">
@@ -34,12 +43,15 @@
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
                                 </Grid.RowDefinitions>
                                 <TextBlock Text="{TemplateBinding Message}"
                                            Style="{TemplateBinding MessageTextBlockStyle}"/>
                                 <ProgressBar Value="{TemplateBinding Progress}" IsIndeterminate="{TemplateBinding Progress, Converter={StaticResource objIsNullConv}}"
                                              Style="{TemplateBinding ProgressBarStyle}"
                                              Minimum="0" Maximum="1" Grid.Row="1"/>
+                                <ContentPresenter Content="{Binding}" ContentTemplate="{TemplateBinding CancelButtonTemplate}" Grid.Row="2"/>
                             </Grid>
                         </Grid>
                     </Grid>
