@@ -19,28 +19,26 @@ using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Wpf.Extensions;
 using System.Windows.Media;
 using System.Reflection;
+using Xarial.XToolkit.Wpf.Delegates;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
     [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-    public class FlagEnumValueToHeaderConverter : IValueConverter
+    public class FlagEnumValueToHeaderConverter : IMultiValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            var enumVal = value as Enum;
-            
-            if (enumVal != null)
+            var enumVal = values[0] as Enum;
+            var items = values[1] as ItemCollection;
+
+            if (enumVal != null && items != null)
             {
-                var enumType = enumVal.GetType();
+                //TODO: fix when sub-combined items still shown in the title
+                var selItems = items.Cast<FlagEnumComboBox.FlagEnumComboBoxItem>().Where(i => i.IsSelected);
+                var swallabedFlags = selItems.Where(i => i.Type == FlagEnumComboBox.EnumItemType_e.Combined).SelectMany(i => i.AffectedFlags);
+                var visItems = selItems.Where(i => !swallabedFlags.Any(f => Enum.Equals(f, i.Value)));
 
-                //TODO: this is a simple fix - need to implement more robust solution
-
-                var val = enumVal.ToString();
-                var vals = val.Split(',')
-                    .Select(v => (Enum)Enum.Parse(enumType, v.Trim()))
-                    .Select(e => EnumControlHelper.GetTitle(e));
-
-                return string.Join(", ", vals.ToArray());
+                return string.Join(", ", visItems.Select(i => i.Title));
             }
             else
             {
@@ -49,6 +47,11 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
@@ -124,21 +127,21 @@ namespace Xarial.XToolkit.Wpf.Controls
 #pragma warning restore CS0067
 
             private readonly FlagEnumComboBox m_Parent;
-            private readonly Enum m_Value;
-            private readonly Enum[] m_AffectedFlags;
+            internal Enum Value { get; }
+            internal Enum[] AffectedFlags { get; }
 
-            internal FlagEnumComboBoxItem(FlagEnumComboBox parent, Enum value, Enum[] affectedFlags)
+            internal FlagEnumComboBoxItem(FlagEnumComboBox parent, Enum value, Enum[] affectedFlags, string title, string description)
             {
                 m_Parent = parent;
                 m_Parent.ValueChanged += OnValueChanged;
-                m_Value = value;
-                m_AffectedFlags = affectedFlags;
+                Value = value;
+                AffectedFlags = affectedFlags;
 
-                if (m_AffectedFlags.Length > 1)
+                if (AffectedFlags.Length > 1)
                 {
                     Type = EnumItemType_e.Combined;
                 }
-                else if (m_AffectedFlags.Length == 0)
+                else if (AffectedFlags.Length == 0)
                 {
                     Type = EnumItemType_e.None;
                 }
@@ -147,11 +150,11 @@ namespace Xarial.XToolkit.Wpf.Controls
                     Type = EnumItemType_e.Default;
                 }
 
-                Title = EnumControlHelper.GetTitle(m_Value);
-                Description = EnumControlHelper.GetDescription(m_Value);
+                Title = title;
+                Description = description;
             }
 
-            public EnumItemType_e Type { get; private set; }
+            public EnumItemType_e Type { get; }
 
             public bool IsSelected
             {
@@ -165,7 +168,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                         }
                         else
                         {
-                            return m_Parent.Value.HasFlag(m_Value);
+                            return m_Parent.Value.HasFlag(Value);
                         }
                     }
                     else
@@ -177,7 +180,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     if (Type == EnumItemType_e.None)
                     {
-                        m_Parent.Value = (Enum)Enum.ToObject(m_Value.GetType(), 0);
+                        m_Parent.Value = (Enum)Enum.ToObject(Value.GetType(), 0);
                     }
                     else
                     {
@@ -185,7 +188,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                         if (value)
                         {
-                            foreach (var flag in m_AffectedFlags)
+                            foreach (var flag in AffectedFlags)
                             {
                                 if (!m_Parent.Value.HasFlag(flag))
                                 {
@@ -195,7 +198,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                         }
                         else
                         {
-                            foreach (var flag in m_AffectedFlags)
+                            foreach (var flag in AffectedFlags)
                             {
                                 if (m_Parent.Value.HasFlag(flag))
                                 {
@@ -204,7 +207,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                             }
                         }
 
-                        var enumVal = (Enum)Enum.ToObject(m_Value.GetType(), val);
+                        var enumVal = (Enum)Enum.ToObject(Value.GetType(), val);
                         enumVal = RemoveDanglingHiddentEnumValues(enumVal);
 
                         m_Parent.Value = enumVal;
@@ -224,31 +227,25 @@ namespace Xarial.XToolkit.Wpf.Controls
                     {
                         var val = Convert.ToInt32(enumVal);
                         val -= Convert.ToInt32(hiddenItem);
-                        enumVal = (Enum)Enum.ToObject(m_Value.GetType(), val);
+                        enumVal = (Enum)Enum.ToObject(Value.GetType(), val);
                     }
                 }
 
                 return enumVal;
             }
 
-            public string Title { get; private set; }
-            public string Description { get; private set; }
+            public string Title { get; }
+            public string Description { get; }
 
             private void OnValueChanged(Enum value)
-            {
-                this.NotifyChanged(nameof(IsSelected));
-            }
+                => this.NotifyChanged(nameof(IsSelected));
 
-            private bool IsNone(Enum val)
-            {
-                return Convert.ToInt32(val) == 0;
-            }
+            private bool IsNone(Enum val) => Convert.ToInt32(val) == 0;
 
-            public override string ToString()
-            {
-                return m_Value.ToString();
-            }
+            public override string ToString() => Value.ToString();
         }
+
+        public event EnumComboBoxItemCreateDelegate ItemCreate;
 
         internal event Action<Enum> ValueChanged;
 
@@ -353,8 +350,17 @@ namespace Xarial.XToolkit.Wpf.Controls
                         if (visible)
                         {
                             itemsList.Add(item);
+
+                            var arg = new EnumComboBoxItemArgument()
+                            {
+                                DisplayName = EnumControlHelper.GetTitle(item),
+                                Tooltip = EnumControlHelper.GetDescription(item)
+                            };
+
+                            ItemCreate?.Invoke(item, arg);
+
                             m_ComboBox.Items.Add(new FlagEnumComboBoxItem(this, item,
-                                m_CurFlags.Where(f => item.HasFlag(f)).ToArray()));
+                                m_CurFlags.Where(f => item.HasFlag(f)).ToArray(), arg.DisplayName, arg.Tooltip));
                         }
                         else 
                         {

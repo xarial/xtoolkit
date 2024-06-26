@@ -15,6 +15,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit;
 using Xarial.XToolkit.Wpf.Controls;
+using Xarial.XToolkit.Wpf.Delegates;
 using Xarial.XToolkit.Wpf.Dialogs;
 using Xarial.XToolkit.Wpf.Utils;
 
@@ -117,6 +118,24 @@ namespace WpfTester
 
                 throw new Exception();
             });
+        }
+
+        private void OnFlagEnumComboBoxItemCreate(Enum item, EnumComboBoxItemArgument arg)
+        {
+            if (Enum.Equals(item, FlagEnum1.Value2))
+            {
+                arg.DisplayName = "#VALUE2";
+                arg.Tooltip = "#CUSTOM VALUE 2";
+            }
+        }
+
+        private void OnEnumComboBoxItemCreate(Enum item, EnumComboBoxItemArgument arg)
+        {
+            if (Enum.Equals(item, Enum1.Value2))
+            {
+                arg.DisplayName = "#VALUE2";
+                arg.Tooltip = "#CUSTOM VALUE 2";
+            }
         }
     }
 }

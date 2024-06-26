@@ -16,7 +16,14 @@
                             <local:FlagEnumComboBoxItemTemplateSelector>
                                 <local:FlagEnumComboBoxItemTemplateSelector.Header>
                                     <DataTemplate>
-                                        <TextBlock Text="{Binding Path=Value, RelativeSource={RelativeSource AncestorType={x:Type local:FlagEnumComboBox}}, Converter={StaticResource valToHeaderConv}}"/>
+                                        <TextBlock>
+                                            <TextBlock.Text>
+                                                <MultiBinding Converter="{StaticResource valToHeaderConv}">
+                                                    <Binding Path="Value" RelativeSource="{RelativeSource AncestorType={x:Type local:FlagEnumComboBox}}"/>
+                                                    <Binding Path="Items" RelativeSource="{RelativeSource AncestorType={x:Type ComboBox}}"/>
+                                                </MultiBinding>
+                                            </TextBlock.Text>
+                                        </TextBlock>
                                     </DataTemplate>
                                 </local:FlagEnumComboBoxItemTemplateSelector.Header>
                                 <local:FlagEnumComboBoxItemTemplateSelector.Item>

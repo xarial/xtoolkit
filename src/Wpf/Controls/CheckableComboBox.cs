@@ -57,7 +57,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 }
                 else
                 {
-                    if (item.GetType().TryGetAttribute<DisplayNameAttribute>(out DisplayNameAttribute att))
+                    if (item.GetType().TryGetAttribute(out DisplayNameAttribute att))
                     {
                         title = att.DisplayName;
                     }

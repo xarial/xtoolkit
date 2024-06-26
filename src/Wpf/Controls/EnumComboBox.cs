@@ -19,12 +19,13 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit.Reflection;
+using Xarial.XToolkit.Wpf.Delegates;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
     public class EnumComboBox : ComboBox
     {
-        public class EnumComboBoxItem 
+        private class EnumComboBoxItem 
         {
             public Enum Value { get; }
 
@@ -38,6 +39,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             public override string ToString() => m_Title;
         }
+
+        public event EnumComboBoxItemCreateDelegate ItemCreate;
 
         private Type m_CurBoundType;
 
@@ -59,6 +62,25 @@ namespace Xarial.XToolkit.Wpf.Controls
             Value = selItem?.Value;
 
             base.OnSelectionChanged(e);
+        }
+
+        private void AddItem(Enum item)
+        {
+            var arg = new EnumComboBoxItemArgument()
+            {
+                DisplayName = EnumControlHelper.GetTitle(item),
+                Tooltip = EnumControlHelper.GetDescription(item)
+            };
+
+            ItemCreate?.Invoke(item, arg);
+
+            var cmbItem = new ComboBoxItem()
+            {
+                ToolTip = arg.Tooltip,
+                Content = new EnumComboBoxItem(item, arg.DisplayName),
+            };
+
+            Items.Add(cmbItem);
         }
 
         private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -86,13 +108,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                         if (visible)
                         {
-                            var cmbItem = new ComboBoxItem()
-                            {
-                                ToolTip = EnumControlHelper.GetDescription(item),
-                                Content = new EnumComboBoxItem(item, EnumControlHelper.GetTitle(item)),
-                            };
-                            
-                            cmb.Items.Add(cmbItem);
+                            cmb.AddItem(item);
                         }
                     }
                 }
