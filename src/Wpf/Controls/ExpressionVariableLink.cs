@@ -76,7 +76,9 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private IExpressionTokenVariable NewVariable(ExpressionBox sender) 
         {
-            if (InputBox.ShowAtCursor(InputTitle, InputPrompt, out string varName))
+            var varName = "";
+
+            if (InputBox.ShowAtCursor(InputTitle, InputPrompt, ref varName))
             {
                 return new ExpressionTokenVariable(varName, null);
             }

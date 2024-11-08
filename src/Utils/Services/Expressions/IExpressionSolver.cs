@@ -33,6 +33,34 @@ namespace Xarial.XToolkit.Services.Expressions
     /// <remarks>This service caches the variable values</remarks>
     public class ExpressionSolver : IExpressionSolver
     {
+        /// <summary>
+        /// Argument of <see cref="GetVariableValue(IExpressionTokenVariable, object[], IVariableValueProvider, object, CachedVariableValue)"/>
+        /// </summary>
+        protected class CachedVariableValue
+        {
+            /// <summary>
+            /// Current cached value or null, if not cached
+            /// </summary>
+            public object CachedValue { get; }
+
+            /// <summary>
+            /// True if the value read from cache
+            /// </summary>
+            public bool IsCached { get; }
+
+            /// <summary>
+            /// True to cache this value
+            /// </summary>
+            public bool Cache { get; set; }
+
+            internal CachedVariableValue(object cachedValue, bool isCached, bool cache)
+            {
+                CachedValue = cachedValue;
+                IsCached = isCached;
+                Cache = cache;
+            }
+        }
+
         private class VariableCacheKey
         {
             internal string VariableName { get; }
@@ -148,7 +176,7 @@ namespace Xarial.XToolkit.Services.Expressions
                     break;
 
                 case IExpressionTokenText text:
-                    value.Append(text.Text);
+                    value.Append(GetText(text));
                     break;
 
                 case IExpressionTokenVariable variable:
@@ -171,10 +199,14 @@ namespace Xarial.XToolkit.Services.Expressions
 
                     var cacheKey = new VariableCacheKey(variable.Name, arguments);
 
-                    if (!variableCache.TryGetValue(cacheKey, out object varVal))
-                    {
-                        varVal = varValProv.Provide(variable.Name, arguments, context);
+                    var isCached = variableCache.TryGetValue(cacheKey, out object varVal);
+                    
+                    var cachedVarVal = new CachedVariableValue(varVal, isCached, true);
 
+                    varVal = GetVariableValue(variable, arguments, varValProv, context, cachedVarVal);
+
+                    if (!isCached && cachedVarVal.Cache) 
+                    {
                         variableCache.Add(cacheKey, varVal);
                     }
 
@@ -188,5 +220,35 @@ namespace Xarial.XToolkit.Services.Expressions
 
             return value.ToString();
         }
+
+        /// <summary>
+        /// Extracts the value of the variable
+        /// </summary>
+        /// <param name="variable">Variable</param>
+        /// <param name="arguments">Resolved arguments</param>
+        /// <param name="varValProv">Variable value provider</param>
+        /// <param name="context">Context</param>
+        /// <param name="cachedVarVal">Cached argumetns data</param>
+        /// <returns>Value of the variable</returns>
+        protected virtual object GetVariableValue(IExpressionTokenVariable variable, object[] arguments, IVariableValueProvider varValProv,
+            object context, CachedVariableValue cachedVarVal)
+        {
+            if (!cachedVarVal.IsCached)
+            {
+                cachedVarVal.Cache = true;
+                return varValProv.Provide(variable.Name, arguments, context);
+            }
+            else 
+            {
+                return cachedVarVal.CachedValue;
+            }
+        }
+
+        /// <summary>
+        /// Extracts the value of text token
+        /// </summary>
+        /// <param name="text">Text token</param>
+        /// <returns>Text value</returns>
+        protected virtual string GetText(IExpressionTokenText text) => text.Text;
     }
 }

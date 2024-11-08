@@ -4,6 +4,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
+using Xarial.XToolkit.Wpf;
+using Xarial.XToolkit.Wpf.Controls;
 
 namespace WpfTester
 {
@@ -56,9 +59,22 @@ namespace WpfTester
         public FlagEnum2 Enum2 { get; set; }
         public FlagEnum3 Enum3 { get; set; }
 
+        public ICommand ItemCreateCommand { get; }
+
         public FlagEnumComboBoxVM() 
         {
             Enum2 = FlagEnum2.Value2;
+
+            ItemCreateCommand = new RelayCommand<EnumComboBoxItem>(OnItemCreate);
+        }
+
+        private void OnItemCreate(EnumComboBoxItem item)
+        {
+            if (Enum.Equals(item.Value, FlagEnum1.Value2))
+            {
+                item.DisplayName = "#VALUE2";
+                item.Tooltip = "#CUSTOM VALUE 2";
+            }
         }
     }
 

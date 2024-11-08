@@ -20,6 +20,7 @@ using Xarial.XToolkit.Wpf.Extensions;
 using System.Windows.Media;
 using System.Reflection;
 using Xarial.XToolkit.Wpf.Delegates;
+using System.Windows.Input;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -38,7 +39,7 @@ namespace Xarial.XToolkit.Wpf.Controls
                 var swallabedFlags = selItems.Where(i => i.Type == FlagEnumComboBox.EnumItemType_e.Combined).SelectMany(i => i.AffectedFlags);
                 var visItems = selItems.Where(i => !swallabedFlags.Any(f => Enum.Equals(f, i.Value)));
 
-                return string.Join(", ", visItems.Select(i => i.Title));
+                return string.Join(", ", visItems.Select(i => i.DisplayName));
             }
             else
             {
@@ -120,21 +121,19 @@ namespace Xarial.XToolkit.Wpf.Controls
             None
         }
 
-        internal class FlagEnumComboBoxItem : INotifyPropertyChanged
+        internal class FlagEnumComboBoxItem : EnumComboBoxItem, INotifyPropertyChanged
         {
 #pragma warning disable CS0067
             public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore CS0067
 
             private readonly FlagEnumComboBox m_Parent;
-            internal Enum Value { get; }
             internal Enum[] AffectedFlags { get; }
 
-            internal FlagEnumComboBoxItem(FlagEnumComboBox parent, Enum value, Enum[] affectedFlags, string title, string description)
+            internal FlagEnumComboBoxItem(FlagEnumComboBox parent, Enum value, Enum[] affectedFlags, string dispName, string tooltip) : base(value, dispName, tooltip)
             {
                 m_Parent = parent;
                 m_Parent.ValueChanged += OnValueChanged;
-                Value = value;
                 AffectedFlags = affectedFlags;
 
                 if (AffectedFlags.Length > 1)
@@ -149,9 +148,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                 {
                     Type = EnumItemType_e.Default;
                 }
-
-                Title = title;
-                Description = description;
             }
 
             public EnumItemType_e Type { get; }
@@ -234,9 +230,6 @@ namespace Xarial.XToolkit.Wpf.Controls
                 return enumVal;
             }
 
-            public string Title { get; }
-            public string Description { get; }
-
             private void OnValueChanged(Enum value)
                 => this.NotifyChanged(nameof(IsSelected));
 
@@ -245,7 +238,20 @@ namespace Xarial.XToolkit.Wpf.Controls
             public override string ToString() => Value.ToString();
         }
 
-        public event EnumComboBoxItemCreateDelegate ItemCreate;
+        public static readonly DependencyProperty ItemCreateCommandProperty =
+            DependencyProperty.Register(
+            nameof(ItemCreateCommand), typeof(ICommand),
+            typeof(FlagEnumComboBox));
+
+        /// <summary>
+        /// Command for handling the item creation
+        /// </summary>
+        /// <remarks>Instance of <see cref="EnumComboBoxItem"/> is passed as the command parameter. Display name and description of the item can be modified</remarks>
+        public ICommand ItemCreateCommand
+        {
+            get { return (ICommand)GetValue(ItemCreateCommandProperty); }
+            set { SetValue(ItemCreateCommandProperty, value); }
+        }
 
         internal event Action<Enum> ValueChanged;
 
@@ -351,16 +357,16 @@ namespace Xarial.XToolkit.Wpf.Controls
                         {
                             itemsList.Add(item);
 
-                            var arg = new EnumComboBoxItemArgument()
+                            var enumItem = new FlagEnumComboBoxItem(this, item, 
+                                m_CurFlags.Where(f => item.HasFlag(f)).ToArray(), 
+                                EnumControlHelper.GetTitle(item), EnumControlHelper.GetDescription(item));
+
+                            if (ItemCreateCommand != null)
                             {
-                                DisplayName = EnumControlHelper.GetTitle(item),
-                                Tooltip = EnumControlHelper.GetDescription(item)
-                            };
+                                ItemCreateCommand.Execute(enumItem);
+                            }
 
-                            ItemCreate?.Invoke(item, arg);
-
-                            m_ComboBox.Items.Add(new FlagEnumComboBoxItem(this, item,
-                                m_CurFlags.Where(f => item.HasFlag(f)).ToArray(), arg.DisplayName, arg.Tooltip));
+                            m_ComboBox.Items.Add(enumItem);
                         }
                         else 
                         {

@@ -16,14 +16,14 @@
         <TabControl Grid.Row="0">
             <TabItem Header="FlagEnumComboBox">
                 <StackPanel Orientation="Vertical" DataContext="{Binding Path=FlagEnumComboBox}">
-                    <ctrls:FlagEnumComboBox Margin="2" Value="{Binding Path=Enum1}" ItemCreate="OnFlagEnumComboBoxItemCreate"/>
+                    <ctrls:FlagEnumComboBox Margin="2" ItemCreateCommand="{Binding Path=ItemCreateCommand}" Value="{Binding Path=Enum1}"/>
                     <ctrls:FlagEnumComboBox Margin="2" Value="{Binding Path=Enum2}"/>
                     <ctrls:FlagEnumComboBox Margin="2" Value="{Binding Path=Enum3}"/>
                 </StackPanel>
             </TabItem>
             <TabItem Header="EnumComboBox">
                 <StackPanel Orientation="Vertical" DataContext="{Binding Path=EnumComboBox}">
-                    <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum1}" ItemCreate="OnEnumComboBoxItemCreate"/>
+                    <ctrls:EnumComboBox Margin="2" ItemCreateCommand="{Binding Path=ItemCreateCommand}" Value="{Binding Path=Enum1}"/>
                     <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum2}"/>
                     <ctrls:EnumComboBox Margin="2" Value="{Binding Path=Enum3}"/>
                 </StackPanel>
@@ -265,7 +265,7 @@
                         <ctrls:LabeledControl Label="Test Label:" Margin="2" LabelMargin="10" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="Some Text 1"/>
                         </ctrls:LabeledControl>
-                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" Icon="/WpfTester;component/Resources/icon.png" GridSharedSizeGroup="LabelGridGroup">
+                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" Icon="/Resources/icon.png" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="{Binding Path=Text1}"/>
                         </ctrls:LabeledControl>
                         <ctrls:LabeledControl Label="Another Test Label Number 3:" Margin="2">
@@ -276,7 +276,7 @@
                                 </Style>
                             </ctrls:LabeledControl.LabelStyle>
                         </ctrls:LabeledControl>
-                        <ctrls:LabeledControl Margin="2" Icon="/WpfTester;component/Resources/icon.png">
+                        <ctrls:LabeledControl Margin="2" Icon="/Resources/icon.png">
                             <ComboBox/>
                         </ctrls:LabeledControl>
                     </StackPanel>
@@ -346,7 +346,7 @@
                         <ctrls:ExpressionBox.VariableLinks>
                             <ctrls:ExpressionVariableLinkCollection>
                                 <ctrls:NamedExpressionVariableLink VariableName="prp" Title="Insert 'prp' variable" EnterArguments="True"/>
-                                <ctrls:NamedExpressionVariableLink VariableName="b" Title="Insert 'b' variable" Icon="/WpfTester;component/Resources/icon.png"/>
+                                <ctrls:NamedExpressionVariableLink VariableName="b" Title="Insert 'b' variable" Icon="/Resources/icon.png"/>
                             </ctrls:ExpressionVariableLinkCollection>
                         </ctrls:ExpressionBox.VariableLinks>
                         <ctrls:ExpressionBox.VariableDescriptor>
@@ -356,9 +356,9 @@
                                         <ctrls:ExpressionVariableArgumentTextDescriptor Title="Property Name" Description="Name of the property" HasAdvancedEditor="True"/>
                                     </ctrls:ExpressionVariableArgumentsInfo.Arguments>
                                 </ctrls:ExpressionVariableArgumentsInfo>
-                                <ctrls:ExpressionVariableArgumentsInfo VariableName="b" TitleFormat="Variable 'b'" Background="LightBlue" Icon="/WpfTester;component/Resources/icon.png" DescriptionFormat="Variable 'b'" Dynamic="True">
+                                <ctrls:ExpressionVariableArgumentsInfo VariableName="b" TitleFormat="Variable 'b'" Background="LightBlue" Icon="/Resources/icon.png" DescriptionFormat="Variable 'b'" Dynamic="True">
                                     <ctrls:ExpressionVariableArgumentsInfo.Arguments>
-                                        <ctrls:ExpressionVariableArgumentOptionsDescriptor Title="Options" Icon="/WpfTester;component/Resources/icon.png">
+                                        <ctrls:ExpressionVariableArgumentOptionsDescriptor Title="Options" Icon="/Resources/icon.png">
                                             <ctrls:ExpressionVariableArgumentOptionsDescriptor.Items>
                                                 <sys:String>Item 1</sys:String>
                                                 <sys:String>Item 2</sys:String>

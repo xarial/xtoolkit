@@ -49,9 +49,18 @@ namespace WpfTester
 
         private void OnShowInputBoxClick(object sender, RoutedEventArgs e)
         {
-            if (InputBox.Show("My Input Box", "Enter value", this, out string val)) 
+            string val = null;
+
+            if (InputBox.Show("My Input Box", "Enter value", this, ref val)) 
             {
                 MessageBox.Show($"Entered value: {val}");
+            }
+
+            var input = "ABC";
+
+            if (InputBox.Show("My Input Box with default value", "Enter value", this, ref input))
+            {
+                MessageBox.Show($"Entered value: {input}");
             }
         }
         
@@ -118,24 +127,6 @@ namespace WpfTester
 
                 throw new Exception();
             });
-        }
-
-        private void OnFlagEnumComboBoxItemCreate(Enum item, EnumComboBoxItemArgument arg)
-        {
-            if (Enum.Equals(item, FlagEnum1.Value2))
-            {
-                arg.DisplayName = "#VALUE2";
-                arg.Tooltip = "#CUSTOM VALUE 2";
-            }
-        }
-
-        private void OnEnumComboBoxItemCreate(Enum item, EnumComboBoxItemArgument arg)
-        {
-            if (Enum.Equals(item, Enum1.Value2))
-            {
-                arg.DisplayName = "#VALUE2";
-                arg.Tooltip = "#CUSTOM VALUE 2";
-            }
         }
     }
 }

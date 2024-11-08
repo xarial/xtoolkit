@@ -23,25 +23,44 @@ using Xarial.XToolkit.Wpf.Delegates;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
-    public class EnumComboBox : ComboBox
+    /// <summary>
+    /// Item in <see cref="EnumComboBox"/>
+    /// </summary>
+    public class EnumComboBoxItem
     {
-        private class EnumComboBoxItem 
+        /// <summary>
+        /// Value of this item
+        /// </summary>
+        public Enum Value { get; }
+
+        /// <summary>
+        /// Display name
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
+        /// Tooltip
+        /// </summary>
+        public string Tooltip { get; set; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="value">Value</param>
+        /// <param name="dispName">Title</param>
+        /// <param name="tooltip">Tooltip</param>
+        public EnumComboBoxItem(Enum value, string dispName, string tooltip) 
         {
-            public Enum Value { get; }
-
-            private readonly string m_Title;
-
-            public EnumComboBoxItem(Enum value, string title) 
-            {
-                Value = value;
-                m_Title = title;
-            }
-
-            public override string ToString() => m_Title;
+            Value = value;
+            DisplayName = dispName;
+            Tooltip = tooltip;
         }
 
-        public event EnumComboBoxItemCreateDelegate ItemCreate;
+        public override string ToString() => DisplayName;
+    }
 
+    public class EnumComboBox : ComboBox
+    {
         private Type m_CurBoundType;
 
         public static readonly DependencyProperty ValueProperty =
@@ -50,10 +69,28 @@ namespace Xarial.XToolkit.Wpf.Controls
 			typeof(EnumComboBox), new FrameworkPropertyMetadata(
                 null, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnValueChanged));
 
+        /// <summary>
+        /// Value
+        /// </summary>
         public Enum Value
         {
             get { return (Enum)GetValue(ValueProperty); }
             set { SetValue(ValueProperty, value); }
+        }
+
+        public static readonly DependencyProperty ItemCreateCommandProperty =
+            DependencyProperty.Register(
+            nameof(ItemCreateCommand), typeof(ICommand),
+            typeof(EnumComboBox));
+
+        /// <summary>
+        /// Command for handling the item creation
+        /// </summary>
+        /// <remarks>Instance of <see cref="EnumComboBoxItem"/> is passed as the command parameter. Display name and description of the item can be modified</remarks>
+        public ICommand ItemCreateCommand
+        {
+            get { return (ICommand)GetValue(ItemCreateCommandProperty); }
+            set { SetValue(ItemCreateCommandProperty, value); }
         }
 
         protected override void OnSelectionChanged(SelectionChangedEventArgs e)
@@ -66,18 +103,17 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         private void AddItem(Enum item)
         {
-            var arg = new EnumComboBoxItemArgument()
-            {
-                DisplayName = EnumControlHelper.GetTitle(item),
-                Tooltip = EnumControlHelper.GetDescription(item)
-            };
+            var enumItem = new EnumComboBoxItem(item, EnumControlHelper.GetTitle(item), EnumControlHelper.GetDescription(item));
 
-            ItemCreate?.Invoke(item, arg);
+            if (ItemCreateCommand != null) 
+            {
+                ItemCreateCommand.Execute(enumItem);
+            }
 
             var cmbItem = new ComboBoxItem()
             {
-                ToolTip = arg.Tooltip,
-                Content = new EnumComboBoxItem(item, arg.DisplayName),
+                ToolTip = enumItem.Tooltip,
+                Content = enumItem,
             };
 
             Items.Add(cmbItem);

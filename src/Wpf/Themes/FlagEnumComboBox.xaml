@@ -29,7 +29,7 @@
                                 <local:FlagEnumComboBoxItemTemplateSelector.Item>
                                     <DataTemplate>
                                         <CheckBox IsChecked="{Binding Path=IsSelected}">
-                                            <TextBlock Text="{Binding Path=Title}" ToolTip="{Binding Path=Description}">
+                                            <TextBlock Text="{Binding Path=DisplayName}" ToolTip="{Binding Path=Tooltip}">
                                                 <TextBlock.Foreground>
                                                     <MultiBinding Converter="{StaticResource itemFrgColorConv}">
                                                         <Binding Path="Type"/>

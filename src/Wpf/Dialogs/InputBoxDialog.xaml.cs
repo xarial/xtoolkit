@@ -19,9 +19,19 @@ using System.Windows.Shapes;
 
 namespace Xarial.XToolkit.Wpf.Dialogs
 {
+	/// <summary>
+	/// Simple dialog to collect input value
+	/// </summary>
 	public static class InputBox 
 	{
-		public static bool ShowAtCursor(string title, string prompt, out string value) 
+		/// <summary>
+		/// Shows the input box at the mouse cursor
+		/// </summary>
+		/// <param name="title">Title of the box</param>
+		/// <param name="prompt">User prompt</param>
+		/// <param name="value">Input value</param>
+		/// <returns>True if user clicked OK</returns>
+		public static bool ShowAtCursor(string title, string prompt, ref string value) 
 		{
 			var cursorPos = System.Windows.Forms.Cursor.Position;
 
@@ -37,21 +47,22 @@ namespace Xarial.XToolkit.Wpf.Dialogs
 				pos = new Point(cursorPos.X / scaleX, cursorPos.Y / scaleY);
 			}
 
-			return Show(title, prompt, pos, out value);
+			return Show(title, prompt, pos, ref value);
 		}
 
-		public static bool Show(string title, string prompt, Point pos, out string value)
-			=> Show(title, prompt, null, WindowStartupLocation.Manual, pos, out value);
+		public static bool Show(string title, string prompt, Point pos, ref string value)
+			=> Show(title, prompt, null, WindowStartupLocation.Manual, pos, ref value);
 
-		public static bool Show(string title, string prompt, Window parentWnd, out string value)
-			=> Show(title, prompt, parentWnd, parentWnd != null ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen, null, out value);
+		public static bool Show(string title, string prompt, Window parentWnd, ref string value)
+			=> Show(title, prompt, parentWnd, parentWnd != null ? WindowStartupLocation.CenterOwner : WindowStartupLocation.CenterScreen, null, ref value);
 
-		private static bool Show(string title, string prompt, Window parentWnd, WindowStartupLocation startupLocation, Point? pos, out string value)
+		private static bool Show(string title, string prompt, Window parentWnd, WindowStartupLocation startupLocation, Point? pos, ref string value)
 		{
 			var dlg = new InputBoxDialog()
 			{
 				Title = title,
 				Prompt = prompt,
+				Value = value,
 				Owner = parentWnd,
 				WindowStartupLocation = startupLocation
 			};
@@ -80,9 +91,10 @@ namespace Xarial.XToolkit.Wpf.Dialogs
 		public InputBoxDialog()
 		{
 			InitializeComponent();
+            this.Loaded += OnWindowLoaded;
 		}
 
-		public static readonly DependencyProperty PromptProperty =
+        public static readonly DependencyProperty PromptProperty =
 			DependencyProperty.Register(
 			nameof(Prompt), typeof(string),
 			typeof(InputBoxDialog), new PropertyMetadata("Input value"));
@@ -104,16 +116,22 @@ namespace Xarial.XToolkit.Wpf.Dialogs
 			set { SetValue(ValueProperty, value); }
 		}
 
-		private void OnCancel(object sender, RoutedEventArgs e)
+        private void OnWindowLoaded(object sender, RoutedEventArgs e)
+        {
+            if (!string.IsNullOrEmpty(Value))
+            {
+				txtValue.CaretIndex = Value.Length;
+            }
+        }
+
+        private void OnCancel(object sender, RoutedEventArgs e)
 		{
 			this.DialogResult = false;
-			this.Close();
 		}
 
 		private void OnOk(object sender, RoutedEventArgs e)
 		{
 			this.DialogResult = true;
-			this.Close();
 		}
-	}
+    }
 }

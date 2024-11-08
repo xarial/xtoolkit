@@ -4,6 +4,7 @@
     <Product>xToolkit</Product>
     <BuildNumber></BuildNumber>
     <VersionPrefix>0.5.0$(BuildNumber)</VersionPrefix>
+    <AssemblyVersion>0.5.0$(BuildNumber)</AssemblyVersion>
     <Company>Xarial Pty Limited</Company>
     <Copyright>Copyright © Xarial Pty Limited 2024</Copyright>
     <Authors>Xarial</Authors>
@@ -21,6 +22,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-	<DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
+    <DeterministicSourcePaths Condition="'$(EnableSourceLink)' == ''">false</DeterministicSourcePaths>
   </PropertyGroup>
 </Project>

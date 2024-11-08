@@ -13,14 +13,31 @@ using System.Text;
 
 namespace Xarial.XToolkit.Reflection
 {
+    /// <summary>
+    /// Match filter for <see cref="LocalFolderReferencesResolver"/>
+    /// </summary>
     [Flags]
     public enum AssemblyMatchFilter_e 
     {
+        /// <summary>
+        /// Match by public key token
+        /// </summary>
         PublicKeyToken = 1,
+
+        /// <summary>
+        /// Match by culture
+        /// </summary>
         Culture = 2,
+
+        /// <summary>
+        /// Match by version
+        /// </summary>
         Version = 4
     }
 
+    /// <summary>
+    /// Resolver to load referenced from the local folder
+    /// </summary>
     public class LocalFolderReferencesResolver : AssemblyNameReferenceResolver
     {
         private readonly string m_SearchDir;
