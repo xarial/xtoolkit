@@ -17,35 +17,70 @@ using Xarial.XToolkit.Helpers;
 namespace Xarial.XToolkit.Reflection
 {
     /// <summary>
+    /// Match filter for <see cref="LocalFolderReferencesResolver"/>
+    /// </summary>
+    [Flags]
+    public enum AssemblyNamePart_e
+    {
+        /// <summary>
+        /// Match by public key token
+        /// </summary>
+        PublicKeyToken = 1,
+
+        /// <summary>
+        /// Match by culture
+        /// </summary>
+        Culture = 2,
+
+        /// <summary>
+        /// Match by version
+        /// </summary>
+        Version = 4,
+
+        /// <summary>
+        /// Full name
+        /// </summary>
+        FullName = PublicKeyToken | Culture | Version
+    }
+
+    /// <summary>
+    /// Assembly information
+    /// </summary>
+    public class AssemblyInfo
+    {
+        /// <summary>
+        /// Loads assembly info from file
+        /// </summary>
+        /// <param name="filePath">Path to assembly file</param>
+        /// <returns>Assembly info</returns>
+        public static AssemblyInfo FromFile(string filePath)
+            => new AssemblyInfo(AssemblyName.GetAssemblyName(filePath), filePath, false);
+
+        /// <summary>
+        /// File path to the assembly
+        /// </summary>
+        public string FilePath { get; }
+
+        /// <summary>
+        /// Assembly name
+        /// </summary>
+        public AssemblyName Name { get; }
+
+        internal bool IsLoaded { get; }
+
+        internal AssemblyInfo(AssemblyName name, string filePath, bool isLoaded)
+        {
+            Name = name;
+            FilePath = filePath;
+            IsLoaded = isLoaded;
+        }
+    }
+
+    /// <summary>
     /// Default assembly name resolver
     /// </summary>
     public abstract class AssemblyNameReferenceResolver : IReferenceResolver
     {
-        /// <summary>
-        /// Assembly information
-        /// </summary>
-        public class AssemblyInfo
-        {
-            /// <summary>
-            /// File path to the assembly
-            /// </summary>
-            public string FilePath { get; }
-
-            /// <summary>
-            /// Assembly name
-            /// </summary>
-            public AssemblyName Name { get; }
-            
-            internal bool IsLoaded { get; }
-
-            internal AssemblyInfo(AssemblyName name, string filePath, bool isLoaded)
-            {
-                Name = name;
-                FilePath = filePath;
-                IsLoaded = isLoaded;
-            }
-        }
-
         /// <summary>
         /// Name of the resolver
         /// </summary>
@@ -83,7 +118,7 @@ namespace Xarial.XToolkit.Reflection
                     var matchedAssmNames = new List<AssemblyInfo>();
 
                     var replacementAssms = appDomain.GetAssemblies().Where(
-                                            a => Match(a.GetName(), searchAssmName));
+                                            a => Match(a.GetName(), searchAssmName, requestingAssembly));
 
                     var exactMatch = replacementAssms.FirstOrDefault(a => CompareAssemblyNames(a.GetName(), searchAssmName));
 
@@ -98,13 +133,13 @@ namespace Xarial.XToolkit.Reflection
                         matchedAssmNames.AddRange(replacementAssms.Select(a => new AssemblyInfo(a.GetName(), a.Location, true)));
                     }
 
-                    foreach (var name in EnumerateAssemblyByName(searchDir, recursiveSearch, searchAssmName))
+                    foreach (var name in EnumerateAssemblyByName(searchDir, recursiveSearch, searchAssmName, requestingAssembly))
                     {
                         if (CompareAssemblyNames(name.Name, searchAssmName))
                         {
                             Trace.WriteLine($"Loading '{searchAssmName}' from '{name.FilePath}' as exact match via '{Name}' resolver", Name);
 
-                            return LoadAssembly(new AssemblyInfo(AssemblyName.GetAssemblyName(name.FilePath), name.FilePath, false));
+                            return LoadAssembly(AssemblyInfo.FromFile(name.FilePath));
                         }
                         else
                         {
@@ -214,9 +249,10 @@ namespace Xarial.XToolkit.Reflection
         /// </summary>
         /// <param name="probeAssmName">Assembly candidate</param>
         /// <param name="searchAssmName">Target assembly</param>
+        /// <param name="requestingAssembly">Requesting assembly</param>
         /// <returns>True if assembly names are matching</returns>
         /// <remarks>Use this method to override logic for matching (e.g. full match or only match by file name, version, public key token etc.)</remarks>
-        protected virtual bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName)
+        protected virtual bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName, Assembly requestingAssembly)
             => CompareAssemblyNames(probeAssmName, searchAssmName);
 
         /// <summary>
@@ -260,10 +296,29 @@ namespace Xarial.XToolkit.Reflection
             return assmInfo;
         }
 
-        private bool CompareAssemblyNames(AssemblyName firstAssmName, AssemblyName secondAssmName)
-            => string.Equals(firstAssmName.FullName, secondAssmName.FullName);
+        /// <summary>
+        /// Compares two assembly names by filter
+        /// </summary>
+        /// <param name="firstAssmName">First assembly name</param>
+        /// <param name="secondAssmName">Second asembly name</param>
+        /// <param name="filter">Filter</param>
+        /// <returns>True if matched</returns>
+        protected bool CompareAssemblyNames(AssemblyName firstAssmName, AssemblyName secondAssmName, AssemblyNamePart_e filter = AssemblyNamePart_e.FullName)
+        {
+            if (filter == AssemblyNamePart_e.FullName)
+            {
+                return string.Equals(firstAssmName.FullName, secondAssmName.FullName);
+            }
+            else
+            {
+                return (firstAssmName.Name == secondAssmName.Name)
+                    && (!filter.HasFlag(AssemblyNamePart_e.PublicKeyToken) || GetPublicKeyToken(firstAssmName) == GetPublicKeyToken(secondAssmName))
+                    && (!filter.HasFlag(AssemblyNamePart_e.Culture) || firstAssmName.CultureName == firstAssmName.CultureName)
+                    && (!filter.HasFlag(AssemblyNamePart_e.Version) || firstAssmName.Version == secondAssmName.Version);
+            }
+        }
 
-        private IEnumerable<AssemblyInfo> EnumerateAssemblyByName(string dir, bool recurse, AssemblyName searchAssmName)
+        private IEnumerable<AssemblyInfo> EnumerateAssemblyByName(string dir, bool recurse, AssemblyName searchAssmName, Assembly requestingAssembly)
         {
             foreach (var probeAssmFilePath in ProvideProbeAssemblyFilePaths(dir, searchAssmName))
             {
@@ -271,7 +326,7 @@ namespace Xarial.XToolkit.Reflection
                 {
                     var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
 
-                    if (Match(probeAssmName, searchAssmName))
+                    if (Match(probeAssmName, searchAssmName, requestingAssembly))
                     {
                         yield return new AssemblyInfo(probeAssmName, probeAssmFilePath, false);
                     }
@@ -282,7 +337,7 @@ namespace Xarial.XToolkit.Reflection
             {
                 foreach (var subDir in Directory.EnumerateDirectories(dir, "*.*", SearchOption.TopDirectoryOnly))
                 {
-                    foreach (var res in EnumerateAssemblyByName(subDir, recurse, searchAssmName))
+                    foreach (var res in EnumerateAssemblyByName(subDir, recurse, searchAssmName, requestingAssembly))
                     {
                         yield return res;
                     }

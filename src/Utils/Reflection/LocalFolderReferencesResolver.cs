@@ -14,41 +14,43 @@ using System.Text;
 namespace Xarial.XToolkit.Reflection
 {
     /// <summary>
-    /// Match filter for <see cref="LocalFolderReferencesResolver"/>
-    /// </summary>
-    [Flags]
-    public enum AssemblyMatchFilter_e 
-    {
-        /// <summary>
-        /// Match by public key token
-        /// </summary>
-        PublicKeyToken = 1,
-
-        /// <summary>
-        /// Match by culture
-        /// </summary>
-        Culture = 2,
-
-        /// <summary>
-        /// Match by version
-        /// </summary>
-        Version = 4
-    }
-
-    /// <summary>
     /// Resolver to load referenced from the local folder
     /// </summary>
     public class LocalFolderReferencesResolver : AssemblyNameReferenceResolver
     {
         private readonly string m_SearchDir;
 
-        private readonly AssemblyMatchFilter_e m_MatchFilter;
+        private readonly AssemblyNamePart_e m_MatchFilter;
 
         private readonly string[] m_AssemblyNameFilters;
 
+        public LocalFolderReferencesResolver(string searchDir)
+            : this(searchDir, AssemblyNamePart_e.PublicKeyToken | AssemblyNamePart_e.Culture | AssemblyNamePart_e.Version,
+                  "", null, new string[] { searchDir })
+        {
+        }
+
         public LocalFolderReferencesResolver(string searchDir,
-            AssemblyMatchFilter_e matchFilter = AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture,
-            string name = "", string[] assemblyNameFilters = null, string[] filterDirs = null) : base(name, filterDirs)
+            AssemblyNamePart_e matchFilter) 
+            : this(searchDir, matchFilter, "", null, new string[] { searchDir })
+        {
+        }
+
+        public LocalFolderReferencesResolver(string searchDir,
+            AssemblyNamePart_e matchFilter, string name) 
+            : this(searchDir, matchFilter, name, null, new string[] { searchDir })
+        {
+        }
+
+        public LocalFolderReferencesResolver(string searchDir,
+            AssemblyNamePart_e matchFilter, string name, string[] assemblyNameFilters) 
+            : this(searchDir, matchFilter, name, assemblyNameFilters, new string[] { searchDir })
+        {
+        }
+
+        public LocalFolderReferencesResolver(string searchDir,
+            AssemblyNamePart_e matchFilter,
+            string name, string[] assemblyNameFilters, string[] filterDirs) : base(name, filterDirs)
         {
             m_MatchFilter = matchFilter;
 
@@ -57,6 +59,7 @@ namespace Xarial.XToolkit.Reflection
             m_AssemblyNameFilters = assemblyNameFilters;
         }
 
+        /// <inheritdoc/>
         protected override AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly,
             out string searchDir, out bool recursiveSearch)
         {
@@ -65,15 +68,13 @@ namespace Xarial.XToolkit.Reflection
             return assmName;
         }
 
-        protected override bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName)
+        /// <inheritdoc/>
+        protected override bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName, Assembly requestingAssembly)
         {
             if (m_AssemblyNameFilters?.Any() != true
                 || m_AssemblyNameFilters.Contains(searchAssmName.Name, StringComparer.CurrentCultureIgnoreCase))
             {
-                return (probeAssmName.Name == searchAssmName.Name)
-                    && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.PublicKeyToken) || GetPublicKeyToken(probeAssmName) == GetPublicKeyToken(searchAssmName))
-                    && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.Culture) || probeAssmName.CultureName == probeAssmName.CultureName)
-                    && (!m_MatchFilter.HasFlag(AssemblyMatchFilter_e.Version) || probeAssmName.Version == searchAssmName.Version);
+                return CompareAssemblyNames(probeAssmName, searchAssmName, m_MatchFilter);
             }
             else 
             {

@@ -22,6 +22,10 @@ namespace Utils.Tests
             var r7 = TextUtils.MatchesAnyFilter("D:\\myfile1.bin", "fil", "*1*");
             var r8 = TextUtils.MatchesAnyFilter("XYZ", true, null);
             var r9 = TextUtils.MatchesAnyFilter("XYZ");
+            var r10 = TextUtils.MatchesAnyFilter("", "*");
+            var r11 = TextUtils.MatchesAnyFilter("XYZ", "XYZ*");
+            var r12 = TextUtils.MatchesAnyFilter("XYZ", "*XYZ");
+            var r13 = TextUtils.MatchesAnyFilter("XYZ", "*XYZ*");
 
             Assert.IsTrue(r1);
             Assert.IsTrue(r2);
@@ -32,6 +36,10 @@ namespace Utils.Tests
             Assert.IsTrue(r7);
             Assert.IsTrue(r8);
             Assert.IsTrue(r9);
+            Assert.IsFalse(r10);
+            Assert.IsTrue(r11);
+            Assert.IsTrue(r12);
+            Assert.IsTrue(r13);
         }
     }
 }

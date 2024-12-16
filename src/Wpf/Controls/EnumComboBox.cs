@@ -81,7 +81,27 @@ namespace Xarial.XToolkit.Wpf.Controls
         public static readonly DependencyProperty ItemCreateCommandProperty =
             DependencyProperty.Register(
             nameof(ItemCreateCommand), typeof(ICommand),
-            typeof(EnumComboBox));
+            typeof(EnumComboBox), new FrameworkPropertyMetadata(OnItemCreateCommandPropertyChanged));
+
+        private static void OnItemCreateCommandPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var cmb = (EnumComboBox)d;
+
+            var cmd = e.NewValue as ICommand;
+
+            if (cmd != null) 
+            {
+                foreach (ComboBoxItem cmbItem in cmb.Items) 
+                {
+                    var enumItem = (EnumComboBoxItem)cmbItem.Content;
+
+                    cmd.Execute(enumItem);
+
+                    cmbItem.ToolTip = enumItem.Tooltip;
+                    cmbItem.Content = enumItem;
+                }
+            }
+        }
 
         /// <summary>
         /// Command for handling the item creation

@@ -41,6 +41,8 @@ namespace Xarial.XToolkit.Helpers
         private readonly AppDomain m_AppDomain;
         private readonly string m_LogName;
 
+        private Assembly m_LoadingAssembly;
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -76,9 +78,11 @@ namespace Xarial.XToolkit.Helpers
 
             if (!assmName.Name.EndsWith(".resources"))
             {
+                var requestingAssm = args.RequestingAssembly ?? Assembly.GetCallingAssembly();
+
                 foreach (var resolver in m_AssemblyResolvers)
                 {
-                    var assm = resolver.Resolve(m_AppDomain, assmName, args.RequestingAssembly);
+                    var assm = resolver.Resolve(m_AppDomain, assmName, requestingAssm);
 
                     if (assm != null)
                     {
@@ -95,6 +99,9 @@ namespace Xarial.XToolkit.Helpers
             return null;
         }
 
+        /// <summary>
+        /// Disposing
+        /// </summary>
         public void Dispose()
         {
             m_AppDomain.AssemblyResolve -= OnResolveMissingAssembly;
