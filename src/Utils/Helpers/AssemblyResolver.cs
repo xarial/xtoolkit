@@ -41,8 +41,6 @@ namespace Xarial.XToolkit.Helpers
         private readonly AppDomain m_AppDomain;
         private readonly string m_LogName;
 
-        private Assembly m_LoadingAssembly;
-
         /// <summary>
         /// Default constructor
         /// </summary>

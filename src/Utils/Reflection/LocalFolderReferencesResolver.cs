@@ -37,8 +37,14 @@ namespace Xarial.XToolkit.Reflection
         }
 
         public LocalFolderReferencesResolver(string searchDir,
-            AssemblyNamePart_e matchFilter, string name) 
+            AssemblyNamePart_e matchFilter, string name)
             : this(searchDir, matchFilter, name, null, new string[] { searchDir })
+        {
+        }
+
+        public LocalFolderReferencesResolver(string searchDir,
+            AssemblyNamePart_e matchFilter, string name, RequestingAssemblyFilter[] requestingAssmsFilter)
+            : this(searchDir, matchFilter, name, null, new string[] { searchDir }, requestingAssmsFilter)
         {
         }
 
@@ -50,7 +56,14 @@ namespace Xarial.XToolkit.Reflection
 
         public LocalFolderReferencesResolver(string searchDir,
             AssemblyNamePart_e matchFilter,
-            string name, string[] assemblyNameFilters, string[] filterDirs) : base(name, filterDirs)
+            string name, string[] assemblyNameFilters, string[] filterDirs) : this(searchDir, matchFilter, name, assemblyNameFilters, filterDirs, null)
+        { 
+        }
+
+        public LocalFolderReferencesResolver(string searchDir,
+            AssemblyNamePart_e matchFilter,
+            string name, string[] assemblyNameFilters, string[] filterDirs,
+            RequestingAssemblyFilter[] requestingAssmsFilter) : base(name, filterDirs, requestingAssmsFilter)
         {
             m_MatchFilter = matchFilter;
 

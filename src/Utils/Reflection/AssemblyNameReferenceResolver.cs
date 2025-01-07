@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.SymbolStore;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -17,7 +18,7 @@ using Xarial.XToolkit.Helpers;
 namespace Xarial.XToolkit.Reflection
 {
     /// <summary>
-    /// Match filter for <see cref="LocalFolderReferencesResolver"/>
+    /// Assembly name match filter
     /// </summary>
     [Flags]
     public enum AssemblyNamePart_e
@@ -77,6 +78,42 @@ namespace Xarial.XToolkit.Reflection
     }
 
     /// <summary>
+    /// Filter for the requesting assembly
+    /// </summary>
+    public class RequestingAssemblyFilter 
+    {
+        /// <summary>
+        /// Creates instance of the assembly filter
+        /// </summary>
+        /// <param name="assmName">Name of the assembly</param>
+        /// <param name="matchFilter">Match filter</param>
+        /// <returns>Requesting assembly filter</returns>
+        public static RequestingAssemblyFilter Create(string assmName, AssemblyNamePart_e matchFilter = AssemblyNamePart_e.FullName)
+            => new RequestingAssemblyFilter(new AssemblyName(assmName), matchFilter);
+
+        /// <summary>
+        /// Name of the assembly
+        /// </summary>
+        public AssemblyName Name { get; }
+
+        /// <summary>
+        /// Filter
+        /// </summary>
+        public AssemblyNamePart_e MatchFilter { get; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="name">Name of the requesting assembly</param>
+        /// <param name="matchFilter">Match filter</param>
+        public RequestingAssemblyFilter(AssemblyName name, AssemblyNamePart_e matchFilter)
+        {
+            Name = name;
+            MatchFilter = matchFilter;
+        }
+    }
+
+    /// <summary>
     /// Default assembly name resolver
     /// </summary>
     public abstract class AssemblyNameReferenceResolver : IReferenceResolver
@@ -89,12 +126,15 @@ namespace Xarial.XToolkit.Reflection
 
         private readonly string[] m_FilterDirs;
 
+        private readonly RequestingAssemblyFilter[] m_RequestingAssmsFilter;
+
         /// <summary>
         /// Default constructor
         /// </summary>
         /// <param name="name">Name of the resolver</param>
         /// <param name="filterDirs">Only resolve the assembly if requesting assembly is in the specified directories</param>
-        public AssemblyNameReferenceResolver(string name, string[] filterDirs = null) 
+        /// <param name="requestingAssmsFilter">Only resolve assemblies which match the requesting filter</param>
+        public AssemblyNameReferenceResolver(string name, string[] filterDirs, RequestingAssemblyFilter[] requestingAssmsFilter)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -104,6 +144,7 @@ namespace Xarial.XToolkit.Reflection
             Name = name;
 
             m_FilterDirs = filterDirs;
+            m_RequestingAssmsFilter = requestingAssmsFilter;
         }
         
         /// <inheritdoc/>>
@@ -168,13 +209,27 @@ namespace Xarial.XToolkit.Reflection
         /// <returns></returns>
         protected virtual bool ShouldResolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly) 
         {
-            if (m_FilterDirs?.Any() == true && requestingAssembly != null)
+            if (requestingAssembly != null)
             {
+                var reqAssmName = requestingAssembly.GetName();
                 var reqAssmFilePath = requestingAssembly.Location;
 
-                return m_FilterDirs.Any(f => FileSystemUtils.IsInDirectory(reqAssmFilePath, f));
+                return EmptyOrAny(m_RequestingAssmsFilter, a => CompareAssemblyNames(reqAssmName, a.Name, a.MatchFilter))
+                    || EmptyOrAny(m_FilterDirs, f => FileSystemUtils.IsInDirectory(reqAssmFilePath, f));
             }
             else
+            {
+                return true;
+            }
+        }
+
+        private bool EmptyOrAny<TSource>(IEnumerable<TSource> source, Func<TSource, bool> predicate) 
+        {
+            if (source?.Any() == true)
+            {
+                return source.Any(predicate);
+            }
+            else 
             {
                 return true;
             }
@@ -307,16 +362,18 @@ namespace Xarial.XToolkit.Reflection
         {
             if (filter == AssemblyNamePart_e.FullName)
             {
-                return string.Equals(firstAssmName.FullName, secondAssmName.FullName);
+                return CaseInsensitiveCompare(firstAssmName.FullName, secondAssmName.FullName);
             }
             else
             {
-                return (firstAssmName.Name == secondAssmName.Name)
-                    && (!filter.HasFlag(AssemblyNamePart_e.PublicKeyToken) || GetPublicKeyToken(firstAssmName) == GetPublicKeyToken(secondAssmName))
-                    && (!filter.HasFlag(AssemblyNamePart_e.Culture) || firstAssmName.CultureName == firstAssmName.CultureName)
+                return CaseInsensitiveCompare(firstAssmName.Name, secondAssmName.Name)
+                    && (!filter.HasFlag(AssemblyNamePart_e.PublicKeyToken) || CaseInsensitiveCompare(GetPublicKeyToken(firstAssmName), GetPublicKeyToken(secondAssmName)))
+                    && (!filter.HasFlag(AssemblyNamePart_e.Culture) || CaseInsensitiveCompare(firstAssmName.CultureName, firstAssmName.CultureName))
                     && (!filter.HasFlag(AssemblyNamePart_e.Version) || firstAssmName.Version == secondAssmName.Version);
             }
         }
+
+        private bool CaseInsensitiveCompare(string firstText, string secondText) => string.Equals(firstText, secondText, StringComparison.CurrentCultureIgnoreCase);
 
         private IEnumerable<AssemblyInfo> EnumerateAssemblyByName(string dir, bool recurse, AssemblyName searchAssmName, Assembly requestingAssembly)
         {
