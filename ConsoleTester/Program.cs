@@ -32,7 +32,7 @@ namespace ConsoleTester
 
             m_AssmResolver.RegisterAssemblyReferenceResolver(
                 new LocalFolderReferencesResolver(FileSystemUtils.CombinePaths(localPath, @"..\..\..\Lib\bin\Debug"),
-                AssemblyMatchFilter_e.PublicKeyToken | AssemblyMatchFilter_e.Culture, "", null,
+                AssemblyNamePart_e.PublicKeyToken | AssemblyNamePart_e.Culture, "", null,
                 new string[] { localPath }));
         }
 
