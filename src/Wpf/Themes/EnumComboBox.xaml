@@ -3,6 +3,8 @@
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls">
 
     <Style TargetType="{x:Type local:EnumComboBox}">
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Control}">

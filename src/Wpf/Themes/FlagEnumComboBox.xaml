@@ -6,6 +6,8 @@
     <local:EnumItemTypeToForegroundConverter x:Key="itemFrgColorConv"/>
 
     <Style TargetType="{x:Type local:FlagEnumComboBox}">
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Control}">
