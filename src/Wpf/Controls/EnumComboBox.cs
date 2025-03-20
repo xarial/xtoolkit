@@ -59,8 +59,14 @@ namespace Xarial.XToolkit.Wpf.Controls
         public override string ToString() => DisplayName;
     }
 
-    public class EnumComboBox : ComboBox
+    public class EnumComboBox : Control
     {
+        static EnumComboBox()
+        {
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(EnumComboBox),
+                new FrameworkPropertyMetadata(typeof(EnumComboBox)));
+        }
+
         private Type m_CurBoundType;
 
         public static readonly DependencyProperty ValueProperty =
@@ -89,18 +95,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             var cmd = e.NewValue as ICommand;
 
-            if (cmd != null) 
-            {
-                foreach (ComboBoxItem cmbItem in cmb.Items) 
-                {
-                    var enumItem = (EnumComboBoxItem)cmbItem.Content;
-
-                    cmd.Execute(enumItem);
-
-                    cmbItem.ToolTip = enumItem.Tooltip;
-                    cmbItem.Content = enumItem;
-                }
-            }
+            cmb.ExecuteItemCreateCommand(cmd);
         }
 
         /// <summary>
@@ -113,12 +108,22 @@ namespace Xarial.XToolkit.Wpf.Controls
             set { SetValue(ItemCreateCommandProperty, value); }
         }
 
-        protected override void OnSelectionChanged(SelectionChangedEventArgs e)
-        {
-            var selItem = (SelectedItem as ComboBoxItem)?.Content as EnumComboBoxItem;
-            Value = selItem?.Value;
+        private ComboBox m_ComboBox;
 
-            base.OnSelectionChanged(e);
+        public override void OnApplyTemplate()
+        {
+            base.OnApplyTemplate();
+            m_ComboBox = (ComboBox)this.Template.FindName("PART_ComboBox", this);
+            m_ComboBox.SelectionChanged += OnSelectionChanged;
+            SetValue(Value, null);
+        }
+
+        private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var cmbBox = (ComboBox)sender;
+
+            var selItem = (cmbBox.SelectedItem as ComboBoxItem)?.Content as EnumComboBoxItem;
+            Value = selItem?.Value;
         }
 
         private void AddItem(Enum item)
@@ -136,54 +141,80 @@ namespace Xarial.XToolkit.Wpf.Controls
                 Content = enumItem,
             };
 
-            Items.Add(cmbItem);
+            m_ComboBox.Items.Add(cmbItem);
         }
 
         private static void OnValueChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var cmb = d as EnumComboBox;
 
-            var val = e.NewValue as Enum;
-            
-            if (val != null)
+            cmb.SetValue(e.NewValue as Enum, e.OldValue as Enum);
+        }
+
+        private void SetValue(Enum val, Enum oldVal)
+        {
+            if (m_ComboBox != null)
             {
-                var enumType = val.GetType();
+                if (val != null)
+                 {
+                    var enumType = val.GetType();
 
-                if (enumType != cmb.m_CurBoundType)
-                {
-                    cmb.m_CurBoundType = enumType;
-
-                    cmb.Items.Clear();
-
-                    var items = Enum.GetValues(enumType);
-
-                    foreach (Enum item in items)
+                    if (enumType != m_CurBoundType)
                     {
-                        var visible = true;
-                        item.TryGetAttribute<BrowsableAttribute>(a => visible = a.Browsable);
+                        m_CurBoundType = enumType;
 
-                        if (visible)
+                        m_ComboBox.Items.Clear();
+
+                        var items = Enum.GetValues(enumType);
+
+                        foreach (Enum item in items)
                         {
-                            cmb.AddItem(item);
+                            var visible = true;
+                            item.TryGetAttribute<BrowsableAttribute>(a => visible = a.Browsable);
+
+                            if (visible)
+                            {
+                                AddItem(item);
+                            }
+                        }
+                    }
+
+                    if (!Enum.Equals(oldVal, val))
+                    {
+                        foreach (ComboBoxItem cmbItem in m_ComboBox.Items)
+                        {
+                            if (Enum.Equals((cmbItem.Content as EnumComboBoxItem).Value, val))
+                            {
+                                m_ComboBox.SelectedItem = cmbItem;
+                                break;
+                            }
                         }
                     }
                 }
-
-                if (!Enum.Equals(e.OldValue, e.NewValue))
+                else if (val == null)
                 {
-                    foreach (ComboBoxItem cmbItem in cmb.Items) 
-                    {
-                        if (Enum.Equals((cmbItem.Content as EnumComboBoxItem).Value, val)) 
-                        {
-                            cmb.SelectedItem = cmbItem;
-                            break;
-                        }
-                    }
+                    m_ComboBox.Items.Clear();
+                    m_CurBoundType = null;
                 }
             }
-            else if (val == null)
+        }
+
+        private void ExecuteItemCreateCommand(ICommand cmd)
+        {
+            if (m_ComboBox != null)
             {
-                cmb.Items.Clear();
+                if (cmd != null)
+                {
+                    foreach (ComboBoxItem cmbItem in m_ComboBox.Items)
+                    {
+                        var enumItem = (EnumComboBoxItem)cmbItem.Content;
+
+                        cmd.Execute(enumItem);
+
+                        cmbItem.ToolTip = enumItem.Tooltip;
+                        cmbItem.Content = enumItem;
+                    }
+                }
             }
         }
     }
