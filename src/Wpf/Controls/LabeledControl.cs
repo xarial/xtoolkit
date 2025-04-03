@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit.Wpf.Extensions;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -27,7 +28,11 @@ namespace Xarial.XToolkit.Wpf.Controls
     {
         static LabeledControl()
         {
-            DefaultStyleKeyProperty.OverrideMetadata(typeof(LabeledControl), new FrameworkPropertyMetadata(typeof(LabeledControl)));
+            DefaultStyleKeyProperty.OverrideMetadata(typeof(LabeledControl), 
+				new FrameworkPropertyMetadata(typeof(LabeledControl)));
+
+            StyleProperty.OverrideMetadata(typeof(LabeledControl),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<LabeledControl>("LabeledControl.xaml")));
         }
 
 		public static readonly DependencyProperty LabelProperty =
@@ -67,7 +72,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 			DependencyProperty.Register(
 			nameof(LabelStyle), typeof(Style),
 			typeof(LabeledControl),
-			new PropertyMetadata(typeof(LabeledControl).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "DefaultLabeledControlTextBlockStyle")));
+			new PropertyMetadata(typeof(LabeledControl).Assembly.LoadFromResources<Style>("Themes/LabeledControl.xaml", "DefaultLabeledControlTextBlockStyle")));
 
 		public Style LabelStyle
 		{

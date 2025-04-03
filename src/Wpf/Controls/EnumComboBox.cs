@@ -20,6 +20,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Wpf.Delegates;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -65,6 +66,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(EnumComboBox),
                 new FrameworkPropertyMetadata(typeof(EnumComboBox)));
+
+            StyleProperty.OverrideMetadata(typeof(EnumComboBox),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<EnumComboBox>("EnumComboBox.xaml")));
         }
 
         private Type m_CurBoundType;

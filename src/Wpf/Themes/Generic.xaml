@@ -1,15 +1,3 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/EnumComboBox.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/FlagEnumComboBox.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/NumberBox.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ProgressPanel.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ExpandToggleButton.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/PopupMenu.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/CheckableComboBox.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/LabeledControl.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/ExpressionBox.xaml" />
-        <ResourceDictionary Source="/Xarial.XToolkit.Wpf;component/Themes/LoadingWheel.xaml" />
-    </ResourceDictionary.MergedDictionaries>
 </ResourceDictionary>

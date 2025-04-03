@@ -21,6 +21,7 @@ using System.Windows.Media;
 using System.Reflection;
 using Xarial.XToolkit.Wpf.Delegates;
 using System.Windows.Input;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -267,6 +268,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(FlagEnumComboBox),
                 new FrameworkPropertyMetadata(typeof(FlagEnumComboBox)));
+
+            StyleProperty.OverrideMetadata(typeof(FlagEnumComboBox),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<FlagEnumComboBox>("FlagEnumComboBox.xaml")));
         }
 
         public override void OnApplyTemplate()

@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit.Wpf.Extensions;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -29,6 +30,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ProgressPanel),
                 new FrameworkPropertyMetadata(typeof(ProgressPanel)));
+
+            StyleProperty.OverrideMetadata(typeof(ProgressPanel),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<ProgressPanel>("ProgressPanel.xaml")));
         }
 
         public static readonly DependencyProperty ContentProperty =
@@ -79,7 +83,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(ProgressBarStyle), typeof(Style),
             typeof(ProgressPanel),
-            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "ProgressBarDefaultStyle")));
+            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/ProgressPanel.xaml", "ProgressBarDefaultStyle")));
 
         public Style ProgressBarStyle
         {
@@ -91,7 +95,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(MessageTextBlockStyle), typeof(Style),
             typeof(ProgressPanel),
-            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "MessageTextBlockDefaultStyle")));
+            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/ProgressPanel.xaml", "MessageTextBlockDefaultStyle")));
 
         public Style MessageTextBlockStyle
         {
@@ -104,7 +108,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(CancelButtonTemplate), typeof(DataTemplate),
             typeof(ProgressPanel),
-            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "CancelButtonDefaultTemplate")));
+            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<DataTemplate>("Themes/ProgressPanel.xaml", "CancelButtonDefaultTemplate")));
 
         public DataTemplate CancelButtonTemplate
         {

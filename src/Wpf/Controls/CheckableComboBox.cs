@@ -17,6 +17,7 @@ using System.Windows.Data;
 using Xarial.XToolkit.Wpf.Extensions;
 using Xarial.XToolkit.Reflection;
 using System.Text;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -199,6 +200,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CheckableComboBox),
                 new FrameworkPropertyMetadata(typeof(CheckableComboBox)));
+
+            StyleProperty.OverrideMetadata(typeof(CheckableComboBox),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<CheckableComboBox>("CheckableComboBox.xaml")));
         }
 
         public static readonly DependencyProperty ItemsSourceProperty =
@@ -227,7 +231,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(ItemTemplate), typeof(DataTemplate),
             typeof(CheckableComboBox),
-            new PropertyMetadata(typeof(CheckableComboBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "CheckableComboBoxItemTemplate")));
+            new PropertyMetadata(typeof(CheckableComboBox).Assembly.LoadFromResources<DataTemplate>("Themes/CheckableComboBox.xaml", "CheckableComboBoxItemTemplate")));
 
         public DataTemplate ItemTemplate
         {
@@ -239,7 +243,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(HeaderTemplate), typeof(DataTemplate),
             typeof(CheckableComboBox),
-            new PropertyMetadata(typeof(CheckableComboBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "CheckableComboBoxHeaderTemplate")));
+            new PropertyMetadata(typeof(CheckableComboBox).Assembly.LoadFromResources<DataTemplate>("Themes/CheckableComboBox.xaml", "CheckableComboBoxHeaderTemplate")));
 
         public DataTemplate HeaderTemplate
         {
