@@ -14,8 +14,17 @@ using System.Threading.Tasks;
 
 namespace Xarial.XToolkit.Services
 {
+    /// <summary>
+    /// Service for reading CSV files
+    /// </summary>
     public class CsvReader : IDisposable
     {
+        /// <summary>
+        /// Creates reader from file
+        /// </summary>
+        /// <param name="filePath">Path to a file</param>
+        /// <param name="delimeter">Delimeter</param>
+        /// <returns>CSV reader</returns>
         public static CsvReader FromFile(string filePath, char delimeter = ',')
             => new CsvReader(File.OpenText(filePath), delimeter);
 

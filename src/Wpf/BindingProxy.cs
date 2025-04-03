@@ -5,9 +5,6 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Windows;
 
 namespace Xarial.XToolkit.Wpf

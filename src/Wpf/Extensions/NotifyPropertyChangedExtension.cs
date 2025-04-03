@@ -14,8 +14,16 @@ using System.Text;
 
 namespace Xarial.XToolkit.Wpf.Extensions
 {
+    /// <summary>
+    /// Extension of <see cref="INotifyPropertyChanged"/>
+    /// </summary>
     public static class NotifyPropertyChangedExtension
     {
+        /// <summary>
+        /// Raises <see cref="INotifyPropertyChanged.PropertyChanged"/> for the calling property
+        /// </summary>
+        /// <param name="prpChanged">Object to raise event on</param>
+        /// <param name="prpName">Name of the property</param>
         public static void NotifyChanged(this INotifyPropertyChanged prpChanged, [CallerMemberName] string prpName = "")
         {
             var curType = prpChanged.GetType();

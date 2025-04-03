@@ -14,8 +14,17 @@ using System.Threading.Tasks;
 
 namespace Xarial.XToolkit.Services
 {
+    /// <summary>
+    /// Service for writing CSV file
+    /// </summary>
     public class CsvWriter : IDisposable
     {
+        /// <summary>
+        /// Creates CSV writer to file
+        /// </summary>
+        /// <param name="filePath">Path to the file</param>
+        /// <param name="delimeter">Delimeter symbol</param>
+        /// <returns>Instance of the writer</returns>
         public static CsvWriter ToFile(string filePath, char delimeter = ',')
             => new CsvWriter(File.CreateText(filePath), delimeter);
 
