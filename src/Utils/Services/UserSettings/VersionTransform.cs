@@ -10,13 +10,31 @@ using System;
 
 namespace Xarial.XToolkit.Services.UserSettings
 {
+    /// <summary>
+    /// Version transform instruction in <see cref="IVersionsTransformer"/>
+    /// </summary>
     public class VersionTransform
     {
+        /// <summary>
+        /// Version to transform from
+        /// </summary>
+        /// <remarks>To transform from the unknown version use the new Version()</remarks>
         public Version From { get; }
+
+        /// <summary>
+        /// Version to transform to
+        /// </summary>
         public Version To { get; }
 
         private Func<JToken, JToken> m_Transform;
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="from">Version to transform from</param>
+        /// <param name="to">Version ot transform to</param>
+        /// <param name="transform">Transfomr instruction</param>
+        /// <exception cref="ArgumentNullException"></exception>
         public VersionTransform(Version from, Version to, Func<JToken, JToken> transform)
         {
             if (from == null)
@@ -39,9 +57,6 @@ namespace Xarial.XToolkit.Services.UserSettings
             m_Transform = transform;
         }
 
-        public JToken Transform(JToken input)
-        {
-            return m_Transform.Invoke(input);
-        }
+        internal JToken Transform(JToken input) => m_Transform.Invoke(input);
     }
 }

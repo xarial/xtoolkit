@@ -41,7 +41,9 @@ namespace Xarial.XToolkit.Services.UserSettings
         void StoreSettings(object setts, Type settsType, TextWriter settsWriter, params IValueSerializer[] serializers);
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Newtonsoft.Json based <see cref="IUserSettingsService"/>
+    /// </summary>
     public class UserSettingsService : IUserSettingsService
     {
         /// <inheritdoc/>
