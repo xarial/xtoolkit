@@ -62,10 +62,17 @@ namespace Xarial.XToolkit.Wpf.Controls
     {
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            var args = (IEnumerable)values[0];
-            var dynArgs = (bool)values[1];
+            if (values[0] is IEnumerable && values[1] is bool)
+            {
+                var args = (IEnumerable)values[0];
+                var dynArgs = (bool)values[1];
 
-            return (dynArgs || (args != null && args.GetEnumerator().MoveNext())) ? Visibility.Visible : Visibility.Collapsed;
+                return (dynArgs || (args != null && args.GetEnumerator().MoveNext())) ? Visibility.Visible : Visibility.Collapsed;
+            }
+            else 
+            {
+                return false;
+            }
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
