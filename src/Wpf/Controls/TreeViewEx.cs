@@ -10,6 +10,9 @@ using System.Windows.Controls;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
+    /// <summary>
+    /// Extended TreeView control
+    /// </summary>
     public class TreeViewEx : TreeView
     {
         public TreeViewEx()

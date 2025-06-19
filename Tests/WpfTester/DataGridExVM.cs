@@ -117,7 +117,7 @@ namespace WpfTester
         }
     }
     
-    public class XDataGridVM : INotifyPropertyChanged
+    public class DataGridExVM : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -156,7 +156,7 @@ namespace WpfTester
             }
         }
 
-        public XDataGridVM() 
+        public DataGridExVM() 
         {
             Rows = new RowVM[]
             {

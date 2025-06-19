@@ -14,9 +14,15 @@ using System.Windows.Controls;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
-	public class XListView : ListView
+	/// <summary>
+	/// Extended ListView control
+	/// </summary>
+	public class ListViewEx : ListView
 	{
-		public XListView()
+		/// <summary>
+		/// Default constructor
+		/// </summary>
+		public ListViewEx()
 		{
 			this.SelectionChanged += OnSelectionChanged;
 		}
@@ -26,13 +32,19 @@ namespace Xarial.XToolkit.Wpf.Controls
 			SelectedItemsSource = this.SelectedItems;
 		}
 
-		public static readonly DependencyProperty SelectedItemsSourceProperty =
+        /// <summary>
+        /// Items source for selected items
+        /// </summary>
+        public static readonly DependencyProperty SelectedItemsSourceProperty =
 			DependencyProperty.Register(
 			nameof(SelectedItemsSource), typeof(IList),
-			typeof(XListView), new FrameworkPropertyMetadata(null,
+			typeof(ListViewEx), new FrameworkPropertyMetadata(null,
 				FrameworkPropertyMetadataOptions.BindsTwoWayByDefault,
 				OnSelectedItemsSourceChanged));
 
+		/// <summary>
+		/// Items source for selected items
+		/// </summary>
 		public IList SelectedItemsSource
 		{
 			get { return (IList)GetValue(SelectedItemsSourceProperty); }

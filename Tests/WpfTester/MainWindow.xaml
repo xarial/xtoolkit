@@ -56,8 +56,8 @@
                     </Button>
                 </StackPanel>
             </TabItem>
-            <TabItem Header="XDataGrid">
-                <StackPanel DataContext="{Binding Path=XDataGrid}" Orientation="Vertical">
+            <TabItem Header="DataGridEx">
+                <StackPanel DataContext="{Binding Path=DataGridEx}" Orientation="Vertical">
                     <CheckBox IsChecked="{Binding Path=ShowColumns}">
                         <TextBlock Text="Show Columns"/>
                     </CheckBox>
@@ -67,41 +67,41 @@
                     <Button Command="{Binding Path=AddColumnAsyncCommand}" Margin="5" HorizontalAlignment="Left">
                         <TextBlock Text="Add Column Async" Margin="5"/>
                     </Button>
-                    <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
+                    <ctrls:DataGridEx ItemsSource="{Binding Path=Rows}"
                                      ColumnsSource="{Binding Path=ColumnsSource}"
                                      ColumnsPreCreated="OnColumnsPreCreated"
                                      ColumnVisibilityBinding="{Binding Path=Header.Visibility, RelativeSource={RelativeSource Mode=Self}}">
-                        <ctrls:XDataGrid.StaticColumns>
+                        <ctrls:DataGridEx.StaticColumns>
                             <DataGridTextColumn Header="Static Text"/>
                             <DataGridCheckBoxColumn Header="Static Toggle"/>
-                        </ctrls:XDataGrid.StaticColumns>
-                        <ctrls:XDataGrid.ColumnHeaderStyle>
+                        </ctrls:DataGridEx.StaticColumns>
+                        <ctrls:DataGridEx.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
                             </Style>
-                        </ctrls:XDataGrid.ColumnHeaderStyle>
-                        <ctrls:XDataGrid.ColumnHeaderTemplate>
+                        </ctrls:DataGridEx.ColumnHeaderStyle>
+                        <ctrls:DataGridEx.ColumnHeaderTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Path=Title}" FontWeight="Bold" HorizontalAlignment="Center"/>
                             </DataTemplate>
-                        </ctrls:XDataGrid.ColumnHeaderTemplate>
-                        <ctrls:XDataGrid.CellContentSelector>
+                        </ctrls:DataGridEx.ColumnHeaderTemplate>
+                        <ctrls:DataGridEx.CellContentSelector>
                             <local:CellContentSelector/>
-                        </ctrls:XDataGrid.CellContentSelector>
-                        <ctrls:XDataGrid.CellTemplate>
+                        </ctrls:DataGridEx.CellContentSelector>
+                        <ctrls:DataGridEx.CellTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Path=Value}"/>
                             </DataTemplate>
-                        </ctrls:XDataGrid.CellTemplate>
-                        <ctrls:XDataGrid.CellEditingTemplate>
+                        </ctrls:DataGridEx.CellTemplate>
+                        <ctrls:DataGridEx.CellEditingTemplate>
                             <DataTemplate>
                                 <TextBox Text="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
                             </DataTemplate>
-                        </ctrls:XDataGrid.CellEditingTemplate>
-                    </ctrls:XDataGrid>
-                    <ctrls:XDataGrid ItemsSource="{Binding Path=Rows}"
+                        </ctrls:DataGridEx.CellEditingTemplate>
+                    </ctrls:DataGridEx>
+                    <ctrls:DataGridEx ItemsSource="{Binding Path=Rows}"
                                      ColumnsSource="{Binding Path=ColumnsSource}">
-                        <ctrls:XDataGrid.ColumnHeaderTemplateSelector>
+                        <ctrls:DataGridEx.ColumnHeaderTemplateSelector>
                             <local:MyColumnTemplateSelector>
                                 <local:MyColumnTemplateSelector.AColumn>
                                     <DataTemplate>
@@ -114,11 +114,11 @@
                                     </DataTemplate>
                                 </local:MyColumnTemplateSelector.Default>
                             </local:MyColumnTemplateSelector>
-                        </ctrls:XDataGrid.ColumnHeaderTemplateSelector>
-                        <ctrls:XDataGrid.CellContentSelector>
+                        </ctrls:DataGridEx.ColumnHeaderTemplateSelector>
+                        <ctrls:DataGridEx.CellContentSelector>
                             <local:CellContentSelector/>
-                        </ctrls:XDataGrid.CellContentSelector>
-                        <ctrls:XDataGrid.CellTemplateSelector>
+                        </ctrls:DataGridEx.CellContentSelector>
+                        <ctrls:DataGridEx.CellTemplateSelector>
                             <local:MyCellTemplateSelector>
                                 <local:MyCellTemplateSelector.AColumn>
                                     <DataTemplate>
@@ -131,8 +131,8 @@
                                     </DataTemplate>
                                 </local:MyCellTemplateSelector.Default>
                             </local:MyCellTemplateSelector>
-                        </ctrls:XDataGrid.CellTemplateSelector>
-                        <ctrls:XDataGrid.CellEditingTemplateSelector>
+                        </ctrls:DataGridEx.CellTemplateSelector>
+                        <ctrls:DataGridEx.CellEditingTemplateSelector>
                             <local:MyCellEditingTemplateSelector>
                                 <local:MyCellEditingTemplateSelector.AColumn>
                                     <DataTemplate>
@@ -145,11 +145,11 @@
                                     </DataTemplate>
                                 </local:MyCellEditingTemplateSelector.Default>
                             </local:MyCellEditingTemplateSelector>
-                        </ctrls:XDataGrid.CellEditingTemplateSelector>
-                    </ctrls:XDataGrid>
-                    <ctrls:XDataGrid ItemsSource="{Binding Path=DynamicRows}" CanUserAddRows="False"
+                        </ctrls:DataGridEx.CellEditingTemplateSelector>
+                    </ctrls:DataGridEx>
+                    <ctrls:DataGridEx ItemsSource="{Binding Path=DynamicRows}" CanUserAddRows="False"
                                      ColumnsSource="{Binding Path=DynamicColumnsSource}">
-                        <ctrls:XDataGrid.ColumnHeaderTemplateSelector>
+                        <ctrls:DataGridEx.ColumnHeaderTemplateSelector>
                             <local:MyColumnTemplateSelector>
                                 <local:MyColumnTemplateSelector.AColumn>
                                     <DataTemplate>
@@ -162,11 +162,11 @@
                                     </DataTemplate>
                                 </local:MyColumnTemplateSelector.Default>
                             </local:MyColumnTemplateSelector>
-                        </ctrls:XDataGrid.ColumnHeaderTemplateSelector>
-                        <ctrls:XDataGrid.CellContentSelector>
+                        </ctrls:DataGridEx.ColumnHeaderTemplateSelector>
+                        <ctrls:DataGridEx.CellContentSelector>
                             <local:CellContentSelector/>
-                        </ctrls:XDataGrid.CellContentSelector>
-                        <ctrls:XDataGrid.CellTemplateSelector>
+                        </ctrls:DataGridEx.CellContentSelector>
+                        <ctrls:DataGridEx.CellTemplateSelector>
                             <local:MyCellTemplateSelector>
                                 <local:MyCellTemplateSelector.AColumn>
                                     <DataTemplate>
@@ -179,8 +179,8 @@
                                     </DataTemplate>
                                 </local:MyCellTemplateSelector.Default>
                             </local:MyCellTemplateSelector>
-                        </ctrls:XDataGrid.CellTemplateSelector>
-                        <ctrls:XDataGrid.CellEditingTemplateSelector>
+                        </ctrls:DataGridEx.CellTemplateSelector>
+                        <ctrls:DataGridEx.CellEditingTemplateSelector>
                             <local:MyCellEditingTemplateSelector>
                                 <local:MyCellEditingTemplateSelector.AColumn>
                                     <DataTemplate>
@@ -193,13 +193,13 @@
                                     </DataTemplate>
                                 </local:MyCellEditingTemplateSelector.Default>
                             </local:MyCellEditingTemplateSelector>
-                        </ctrls:XDataGrid.CellEditingTemplateSelector>
-                    </ctrls:XDataGrid>
+                        </ctrls:DataGridEx.CellEditingTemplateSelector>
+                    </ctrls:DataGridEx>
                 </StackPanel>
             </TabItem>
-            <TabItem Header="XListView">
-                <StackPanel DataContext="{Binding Path=XListView}" Orientation="Vertical">
-                    <ctrls:XListView ItemsSource="{Binding Path=Items}"
+            <TabItem Header="ListViewEx">
+                <StackPanel DataContext="{Binding Path=ListViewEx}" Orientation="Vertical">
+                    <ctrls:ListViewEx ItemsSource="{Binding Path=Items}"
                                      SelectedItemsSource="{Binding Path=SelectedItems}"/>
                 </StackPanel>
             </TabItem>
@@ -403,6 +403,13 @@
             <TabItem Header="LoadingWheel">
                 <ctrls:LoadingWheel />
             </TabItem>
+            <TabItem Header="PasswordBoxEx">
+                <StackPanel DataContext="{Binding Path=PasswordBoxEx}" Orientation="Vertical">
+                    <ctrls:PasswordBoxEx Password="{Binding Path=Password, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                    <ctrls:PasswordBoxEx Password="{Binding Path=Password, UpdateSourceTrigger=PropertyChanged}" Background="Yellow" Margin="5"/>
+                </StackPanel>
+            </TabItem>
+            
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>

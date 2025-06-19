@@ -105,22 +105,22 @@ namespace WpfTester
         {
             columns.Sort((c1, c2) => 
             {
-                if (c1 is XDataGridColumn && c2 is XDataGridColumn)
+                if (c1 is DataGridColumnEx && c2 is DataGridColumnEx)
                 {
                     return 0;
                 }
 
-                if (!(c1 is XDataGridColumn) && !(c2 is XDataGridColumn))
+                if (!(c1 is DataGridColumnEx) && !(c2 is DataGridColumnEx))
                 {
                     return 0;
                 }
 
-                if (c1 is XDataGridColumn && !(c2 is XDataGridColumn))
+                if (c1 is DataGridColumnEx && !(c2 is DataGridColumnEx))
                 {
                     return -1;
                 }
 
-                if (!(c1 is XDataGridColumn) && c2 is XDataGridColumn)
+                if (!(c1 is DataGridColumnEx) && c2 is DataGridColumnEx)
                 {
                     return 1;
                 }

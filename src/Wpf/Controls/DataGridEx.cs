@@ -17,16 +17,23 @@ using System.Windows.Data;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
+	/// <summary>
+	/// Delegate of <see cref="DataGridEx.ColumnsPreCreated"/> event
+	/// </summary>
+	/// <param name="columns">List of columns</param>
 	public delegate void ColumnsPreCreatedDelegate(List<DataGridColumn> columns);
 
-	public class XDataGrid : DataGrid
+	/// <summary>
+	/// Extended DataGrid control
+	/// </summary>
+	public class DataGridEx : DataGrid
     {
 		public event ColumnsPreCreatedDelegate ColumnsPreCreated;
 
 		public static readonly DependencyProperty CellTemplateProperty =
 			DependencyProperty.Register(
 			nameof(CellTemplate), typeof(DataTemplate),
-			typeof(XDataGrid));
+			typeof(DataGridEx));
 
 		public DataTemplate CellTemplate
 		{
@@ -37,7 +44,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellTemplateSelector), typeof(DataTemplateSelector),
-			typeof(XDataGrid));
+			typeof(DataGridEx));
 
 		public DataTemplateSelector CellTemplateSelector
 		{
@@ -48,7 +55,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellEditingTemplateProperty =
             DependencyProperty.Register(
             nameof(CellEditingTemplate), typeof(DataTemplate),
-            typeof(XDataGrid));
+            typeof(DataGridEx));
 
         public DataTemplate CellEditingTemplate
         {
@@ -59,7 +66,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellEditingTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellEditingTemplateSelector), typeof(DataTemplateSelector),
-			typeof(XDataGrid));
+			typeof(DataGridEx));
 
 		public DataTemplateSelector CellEditingTemplateSelector
 		{
@@ -70,7 +77,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty ColumnsSourceProperty =
             DependencyProperty.Register(
             nameof(ColumnsSource), typeof(IEnumerable),
-            typeof(XDataGrid), new PropertyMetadata(OnColumnsSourcePropertyChanged));
+            typeof(DataGridEx), new PropertyMetadata(OnColumnsSourcePropertyChanged));
 
         public IEnumerable ColumnsSource
         {
@@ -81,7 +88,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty StaticColumnsProperty =
 			DependencyProperty.Register(
 			nameof(StaticColumns), typeof(List<DataGridColumn>),
-			typeof(XDataGrid), new PropertyMetadata(OnStaticColumnsPropertyChanged));
+			typeof(DataGridEx), new PropertyMetadata(OnStaticColumnsPropertyChanged));
 
 		public List<DataGridColumn> StaticColumns
 		{
@@ -92,7 +99,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellContentSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellContentSelector), typeof(ICellContentSelector),
-			typeof(XDataGrid));
+			typeof(DataGridEx));
 
 		public ICellContentSelector CellContentSelector
 		{
@@ -103,7 +110,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty ColumnHeaderTemplateProperty =
 			DependencyProperty.Register(
 			nameof(ColumnHeaderTemplate), typeof(DataTemplate),
-			typeof(XDataGrid));
+			typeof(DataGridEx));
 
 		public DataTemplate ColumnHeaderTemplate
 		{
@@ -114,7 +121,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty ColumnHeaderTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(ColumnHeaderTemplateSelector), typeof(DataTemplateSelector),
-			typeof(XDataGrid));
+			typeof(DataGridEx));
 
 		public DataTemplateSelector ColumnHeaderTemplateSelector
 		{
@@ -124,14 +131,14 @@ namespace Xarial.XToolkit.Wpf.Controls
 		
 		public BindingBase ColumnVisibilityBinding { get; set; }
 
-		public XDataGrid() 
+		public DataGridEx() 
 		{
 			SetValue(StaticColumnsProperty, new List<DataGridColumn>());
 		}
 
 		private static void OnColumnsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var dataGrid = (XDataGrid)d;
+			var dataGrid = (DataGridEx)d;
 			dataGrid.Dispatcher.Invoke(() =>
 			{
 				dataGrid.LoadColumns(dataGrid.StaticColumns, e.OldValue as IEnumerable, e.NewValue as IEnumerable);
@@ -140,7 +147,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
 		private static void OnStaticColumnsPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
-			var dataGrid = (XDataGrid)d;
+			var dataGrid = (DataGridEx)d;
 			dataGrid.Dispatcher.Invoke(() =>
 			{
 				dataGrid.LoadColumns(e.NewValue as IEnumerable<DataGridColumn>, dataGrid.ColumnsSource, dataGrid.ColumnsSource);
@@ -180,22 +187,22 @@ namespace Xarial.XToolkit.Wpf.Controls
 			{
 				foreach (var colSrc in columnSrc)
 				{
-					var col = new XDataGridColumn()
+					var col = new DataGridColumnEx()
 					{
 						Header = colSrc
 					};
 
-					SetBinding(col, nameof(CellTemplate), XDataGridColumn.CellTemplateProperty);
-					SetBinding(col, nameof(CellEditingTemplate), XDataGridColumn.CellEditingTemplateProperty);
-					SetBinding(col, nameof(CellContentSelector), XDataGridColumn.CellContentSelectorProperty);
+					SetBinding(col, nameof(CellTemplate), DataGridColumnEx.CellTemplateProperty);
+					SetBinding(col, nameof(CellEditingTemplate), DataGridColumnEx.CellEditingTemplateProperty);
+					SetBinding(col, nameof(CellContentSelector), DataGridColumnEx.CellContentSelectorProperty);
 					SetBinding(col, nameof(ColumnHeaderTemplate), DataGridColumn.HeaderTemplateProperty);
 					SetBinding(col, nameof(ColumnHeaderTemplateSelector), DataGridColumn.HeaderTemplateSelectorProperty);
-					SetBinding(col, nameof(CellTemplateSelector), XDataGridColumn.CellTemplateSelectorProperty);
-					SetBinding(col, nameof(CellEditingTemplateSelector), XDataGridColumn.CellEditingTemplateSelectorProperty);
+					SetBinding(col, nameof(CellTemplateSelector), DataGridColumnEx.CellTemplateSelectorProperty);
+					SetBinding(col, nameof(CellEditingTemplateSelector), DataGridColumnEx.CellEditingTemplateSelectorProperty);
 
 					if (ColumnVisibilityBinding != null)
 					{
-						BindingOperations.SetBinding(col, XDataGridColumn.VisibilityProperty, ColumnVisibilityBinding);
+						BindingOperations.SetBinding(col, DataGridColumnEx.VisibilityProperty, ColumnVisibilityBinding);
 					}
 
 					columns.Add(col);
@@ -218,7 +225,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 			});
 		}
 
-        private void SetBinding(XDataGridColumn targetColumn, 
+        private void SetBinding(DataGridColumnEx targetColumn, 
 			string srcPath, DependencyProperty targetPrp) 
 		{
 			var binding = new Binding
@@ -232,17 +239,28 @@ namespace Xarial.XToolkit.Wpf.Controls
 		}
 	}
 
+	/// <summary>
+	/// Content selector service for the cell
+	/// </summary>
+	/// <remarks>Set in <see cref="DataGridEx.CellContentSelector"/></remarks>
 	public interface ICellContentSelector 
 	{
+		/// <summary>
+		/// Selects content for the cell
+		/// </summary>
+		/// <param name="dataItem">Bound item</param>
+		/// <param name="column">Requesting column</param>
+		/// <param name="cell">Target cell</param>
+		/// <returns>Cell content</returns>
 		object SelectContent(object dataItem, DataGridColumn column, DataGridCell cell);
 	}
 
-	public class XDataGridColumn : DataGridColumn
+	public class DataGridColumnEx : DataGridColumn
 	{
 		public static readonly DependencyProperty CellTemplateProperty =
 			DependencyProperty.Register(
 			nameof(CellTemplate), typeof(DataTemplate),
-			typeof(XDataGridColumn));
+			typeof(DataGridColumnEx));
 
 		public DataTemplate CellTemplate
 		{
@@ -253,7 +271,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellTemplateSelector), typeof(DataTemplateSelector),
-			typeof(XDataGridColumn));
+			typeof(DataGridColumnEx));
 
 		public DataTemplateSelector CellTemplateSelector
 		{
@@ -264,7 +282,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellEditingTemplateProperty =
 			DependencyProperty.Register(
 			nameof(CellEditingTemplate), typeof(DataTemplate),
-			typeof(XDataGridColumn));
+			typeof(DataGridColumnEx));
 
 		public DataTemplate CellEditingTemplate
 		{
@@ -275,7 +293,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellEditingTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellEditingTemplateSelector), typeof(DataTemplateSelector),
-			typeof(XDataGridColumn));
+			typeof(DataGridColumnEx));
 
 		public DataTemplateSelector CellEditingTemplateSelector
 		{
@@ -286,7 +304,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		public static readonly DependencyProperty CellContentSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellContentSelector), typeof(ICellContentSelector),
-			typeof(XDataGridColumn));
+			typeof(DataGridColumnEx));
 
 		public ICellContentSelector CellContentSelector
 		{

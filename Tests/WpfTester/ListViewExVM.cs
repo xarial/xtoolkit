@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace WpfTester
 {
-    public class XListViewVM
+    public class ListViewExVM
     {
         public List<string> Items { get; set; }
         public IList SelectedItems { get; set; }
 
-        public XListViewVM() 
+        public ListViewExVM() 
         {
             Items = new List<string>(new string[] { "A", "B", "C", "D" });
         }
