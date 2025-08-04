@@ -21,6 +21,7 @@ namespace WpfTester
         public LabeledControlVM LabeledControl { get; }
         public ExpressionBoxVM ExpressionBox { get; }
         public PasswordBoxExVM PasswordBoxEx { get; }
+        public ColorPickerVM ColorPicker { get; }
 
         public MainVM() 
         {
@@ -37,6 +38,7 @@ namespace WpfTester
             LabeledControl = new LabeledControlVM();
             ExpressionBox = new ExpressionBoxVM();
             PasswordBoxEx = new PasswordBoxExVM();
+            ColorPicker = new ColorPickerVM();
         }
     }
 }

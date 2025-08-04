@@ -6,11 +6,16 @@ using System.Threading.Tasks;
 
 namespace Lib
 {
-    public class SampleClass
+    public interface ISampleClass 
     {
-        public void Foo() 
+        void Foo(string param);
+    }
+
+    public class SampleClass : ISampleClass
+    {
+        public void Foo(string param)
         {
-            Console.WriteLine("Foo 1.0.0");
+            Console.WriteLine($"Foo 1.0.0: '{param}'. Domain: {AppDomain.CurrentDomain.FriendlyName}");
         }
     }
 }

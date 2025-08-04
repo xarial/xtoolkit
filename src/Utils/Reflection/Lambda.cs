@@ -14,6 +14,9 @@ using System.Text;
 
 namespace Xarial.XToolkit.Reflection
 {
+    /// <summary>
+    /// Lambda helper methods
+    /// </summary>
     public static class Lambda
     {
         /// <summary>

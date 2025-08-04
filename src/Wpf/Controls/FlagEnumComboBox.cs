@@ -37,8 +37,8 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 //TODO: fix when sub-combined items still shown in the title
                 var selItems = items.Cast<FlagEnumComboBox.FlagEnumComboBoxItem>().Where(i => i.IsSelected);
-                var swallabedFlags = selItems.Where(i => i.Type == FlagEnumComboBox.EnumItemType_e.Combined).SelectMany(i => i.AffectedFlags);
-                var visItems = selItems.Where(i => !swallabedFlags.Any(f => Enum.Equals(f, i.Value)));
+                var swallawedFlags = selItems.Where(i => i.Type == FlagEnumComboBox.EnumItemType_e.Combined).SelectMany(i => i.AffectedFlags);
+                var visItems = selItems.Where(i => !swallawedFlags.Any(f => Enum.Equals(f, i.Value)));
 
                 return string.Join(", ", visItems.Select(i => i.DisplayName));
             }

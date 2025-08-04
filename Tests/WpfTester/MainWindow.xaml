@@ -409,7 +409,12 @@
                     <ctrls:PasswordBoxEx Password="{Binding Path=Password, UpdateSourceTrigger=PropertyChanged}" Background="Yellow" Margin="5"/>
                 </StackPanel>
             </TabItem>
-            
+            <TabItem Header="ColorPicker">
+                <StackPanel DataContext="{Binding Path=ColorPicker}" Orientation="Vertical">
+                    <ctrls:ColorPicker Width="300" Color="{Binding Path=Color}" BorderBrush="Black" BorderThickness="2"/>
+                </StackPanel>
+            </TabItem>
+
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>

@@ -8,11 +8,17 @@ using System.Threading.Tasks;
 using Xarial.XToolkit;
 using Xarial.XToolkit.Helpers;
 using Xarial.XToolkit.Reflection;
+using Xarial.XToolkit.Services;
 
 namespace ConsoleTester
 {
     class Program
     {
+        public interface ISampleClass
+        {
+            void Foo(string param);
+        }
+
         private static AssemblyResolver m_AssmResolver;
 
         private class CustomAppConfigBindingRedirectReferenceResolver : AppConfigBindingRedirectReferenceResolver 
@@ -25,10 +31,10 @@ namespace ConsoleTester
         {
             System.Diagnostics.Debugger.Launch();
 
+            var localPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+
             m_AssmResolver = new AssemblyResolver(AppDomain.CurrentDomain);
             //m_AssmResolver.RegisterAssemblyReferenceResolver(new CustomAppConfigBindingRedirectReferenceResolver());
-
-            var localPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
             m_AssmResolver.RegisterAssemblyReferenceResolver(
                 new LocalFolderReferencesResolver(FileSystemUtils.CombinePaths(localPath, @"..\..\..\Lib\bin\Debug"),
@@ -38,13 +44,20 @@ namespace ConsoleTester
 
         static void Main(string[] args)
         {
+            var localPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+
+            using (var isoInst = new IsolatedInstance(FileSystemUtils.CombinePaths(localPath, @"..\..\..\Lib\bin\Debug\Lib.dll"), "Lib.SampleClass"))
+            {
+                isoInst.Call<ISampleClass>(x => x.Foo("ABC"));
+            }
+
             Foo();
         }
         
         static void Foo() 
         {
             var f = new Lib.SampleClass();
-            f.Foo();
+            f.Foo("TEST");
         }
     }
 }

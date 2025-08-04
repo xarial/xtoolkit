@@ -239,6 +239,13 @@ namespace Xarial.XToolkit.Reflection
             return method;
         }
 
+        /// <summary>
+        /// Gets the individual enum values from the flag enum
+        /// </summary>
+        /// <param name="enumType">Type of enum</param>
+        /// <returns>Individual enum values</returns>
+        /// <exception cref="Exception">Type is not enum</exception>
+        /// <remarks>This methods excluded enum values which represent combination of other enum values</remarks>
         public static Enum[] GetEnumFlags(this Type enumType)
         {
             if (!enumType.IsEnum) 
