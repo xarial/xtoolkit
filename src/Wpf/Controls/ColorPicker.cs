@@ -92,7 +92,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         public static readonly DependencyProperty ColorProperty =
             DependencyProperty.Register(
             nameof(Color), typeof(Color?),
-            typeof(ColorPicker), new PropertyMetadata(default(Color?), OnColorChanged));
+            typeof(ColorPicker), new FrameworkPropertyMetadata(default(Color?), FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnColorChanged));
 
         private static void OnColorChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
