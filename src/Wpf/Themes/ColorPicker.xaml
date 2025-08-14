@@ -23,7 +23,7 @@
                                     </Hyperlink>
                                 </TextBlock>
                                 <TextBlock Grid.Column="1" Margin="2" VerticalAlignment="Center"
-                                           ToolTip="Remove color"
+                                           ToolTip="{TemplateBinding RemoveColorButtonTooltip}"
                                            Visibility="{TemplateBinding Color, Converter={StaticResource objIsNotNullToVisConv}}">
                                     <Hyperlink x:Name="PART_RemoveColorLink" TextDecorations="">
                                         <TextBlock Text="&#10060;" VerticalAlignment="Center"/>

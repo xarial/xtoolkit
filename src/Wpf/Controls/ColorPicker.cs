@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2025 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -99,6 +106,74 @@ namespace Xarial.XToolkit.Wpf.Controls
             ((ColorPicker)d).SetAppearance((Color?)e.NewValue);
         }
 
+        public static readonly DependencyProperty RemoveColorButtonTooltipProperty =
+            DependencyProperty.Register(
+            nameof(RemoveColorButtonTooltip), typeof(object),
+            typeof(ColorPicker), new PropertyMetadata("Remove Color"));
+
+        /// <summary>
+        /// Tooltip for the remove color button
+        /// </summary>
+        public object RemoveColorButtonTooltip
+        {
+            get { return (object)GetValue(RemoveColorButtonTooltipProperty); }
+            set { SetValue(RemoveColorButtonTooltipProperty, value); }
+        }
+
+        public static readonly DependencyProperty UnsetColorTitleProperty =
+            DependencyProperty.Register(
+            nameof(UnsetColorTitle), typeof(string),
+            typeof(ColorPicker), new PropertyMetadata("<None>", OnUnsetColorTitlePropertyChanged));
+
+        /// <summary>
+        /// Text to display when color is null
+        /// </summary>
+        public string UnsetColorTitle
+        {
+            get { return (string)GetValue(UnsetColorTitleProperty); }
+            set { SetValue(UnsetColorTitleProperty, value); }
+        }
+
+        public static readonly DependencyProperty UnsetColorForegroundProperty =
+            DependencyProperty.Register(
+            nameof(UnsetColorForeground), typeof(Brush),
+            typeof(ColorPicker), new PropertyMetadata(Brushes.Gray, OnUnsetColorForegroundPropertyChanged));
+
+        /// <summary>
+        /// Foreground for the label when color is null
+        /// </summary>
+        public Brush UnsetColorForeground
+        {
+            get { return (Brush)GetValue(UnsetColorForegroundProperty); }
+            set { SetValue(UnsetColorForegroundProperty, value); }
+        }
+
+        private static void OnUnsetColorTitlePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var colorPicker = (ColorPicker)d;
+
+            if (!colorPicker.Color.HasValue)
+            {
+                if (colorPicker.m_ColorTextBlock != null)
+                {
+                    colorPicker.m_ColorTextBlock.Text = (string)e.NewValue;
+                }
+            }
+        }
+
+        private static void OnUnsetColorForegroundPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            var colorPicker = (ColorPicker)d;
+
+            if (!colorPicker.Color.HasValue)
+            {
+                if (colorPicker.m_ColorTextBlock != null)
+                {
+                    colorPicker.m_ColorTextBlock.Foreground = (Brush)e.NewValue;
+                }
+            }
+        }
+
         private void SetAppearance(Color? color)
         {
             if (m_MainGrid != null) 
@@ -134,8 +209,8 @@ namespace Xarial.XToolkit.Wpf.Controls
                 }
                 else
                 {
-                    m_ColorTextBlock.Text = "<None>";
-                    m_ColorTextBlock.Foreground = Brushes.Gray;
+                    m_ColorTextBlock.Text = UnsetColorTitle;
+                    m_ColorTextBlock.Foreground = UnsetColorForeground;
                 }
             }
         }

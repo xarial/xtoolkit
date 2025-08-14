@@ -83,7 +83,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         public static readonly DependencyProperty LabelMarginProperty =
             DependencyProperty.Register(
             nameof(LabelMargin), typeof(Thickness),
-            typeof(LabeledControl));
+            typeof(LabeledControl), new PropertyMetadata(new Thickness(0, 0, 5, 0)));
 
         public Thickness LabelMargin
         {

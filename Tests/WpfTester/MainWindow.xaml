@@ -265,7 +265,7 @@
                         <ctrls:LabeledControl Label="Test Label:" Margin="2" LabelMargin="10" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="Some Text 1"/>
                         </ctrls:LabeledControl>
-                        <ctrls:LabeledControl Label="Another Test Label:" Margin="2" Icon="/Resources/icon.png" GridSharedSizeGroup="LabelGridGroup">
+                        <ctrls:LabeledControl Label="Another Test Label:" Icon="/Resources/icon.png" GridSharedSizeGroup="LabelGridGroup">
                             <TextBox Text="{Binding Path=Text1}"/>
                         </ctrls:LabeledControl>
                         <ctrls:LabeledControl Label="Another Test Label Number 3:" Margin="2">
@@ -276,6 +276,7 @@
                                 </Style>
                             </ctrls:LabeledControl.LabelStyle>
                         </ctrls:LabeledControl>
+                        <TextBlock Text="Some Text" Margin="2"/>
                         <ctrls:LabeledControl Margin="2" Icon="/Resources/icon.png">
                             <ComboBox/>
                         </ctrls:LabeledControl>
@@ -412,6 +413,7 @@
             <TabItem Header="ColorPicker">
                 <StackPanel DataContext="{Binding Path=ColorPicker}" Orientation="Vertical">
                     <ctrls:ColorPicker Width="300" Color="{Binding Path=Color}" BorderBrush="Black" BorderThickness="2"/>
+                    <ctrls:ColorPicker Color="{Binding Path=Color}" RemoveColorButtonTooltip="Set To Default" UnsetColorTitle="&lt;Default&gt;" UnsetColorForeground="Green"/>
                 </StackPanel>
             </TabItem>
 

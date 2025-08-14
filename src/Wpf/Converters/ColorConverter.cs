@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2025 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Globalization;
 using System.Windows.Data;
 
