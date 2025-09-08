@@ -217,10 +217,9 @@ namespace Xarial.XToolkit.Services.UserSettings
         /// <summary>
         /// Reads settings of the specified type from a file
         /// </summary>
-        /// <typeparam name="T">Settings type</typeparam>
         /// <param name="settsSvc">Settings service</param>
         /// <param name="settsFile">Settings file path</param>
-        public static T ReadSettings<T>(this IUserSettingsService<T> settsSvc, string settsFile)
+        public static object ReadSettings(this IUserSettingsService settsSvc, string settsFile)
         {
             using (var textReader = File.OpenText(settsFile))
             {
@@ -228,13 +227,17 @@ namespace Xarial.XToolkit.Services.UserSettings
             }
         }
 
+        ///<inheritdoc cref="ReadSettings(IUserSettingsService, string)"/>
+        /// <typeparam name="T">Settings type</typeparam>
+        public static T ReadSettings<T>(this IUserSettingsService<T> settsSvc, string settsFile)
+            => (T)ReadSettings((IUserSettingsService)settsSvc, settsFile);
+
         /// <summary>
         /// Reads settings from the string builder
         /// </summary>
-        /// <typeparam name="T">Settings type</typeparam>
         /// <param name="settsSvc">Settings service</param>
         /// <param name="settsStr">Settings data</param>
-        public static T ReadSettings<T>(this IUserSettingsService<T> settsSvc, StringBuilder settsStr)
+        public static object ReadSettings(this IUserSettingsService settsSvc, StringBuilder settsStr)
         {
             using (var stringReader = new StringReader(settsStr.ToString()))
             {
@@ -242,13 +245,18 @@ namespace Xarial.XToolkit.Services.UserSettings
             }
         }
 
+        /// <inheritdoc cref="ReadSettings(IUserSettingsService, StringBuilder)"/>
+        /// <typeparam name="T">Settings type</typeparam>
+        public static T ReadSettings<T>(this IUserSettingsService<T> settsSvc, StringBuilder settsStr)
+            => (T)ReadSettings((IUserSettingsService)settsSvc, settsStr);
+
         /// <summary>
         /// Stores settings into the string builder
         /// </summary>
         /// <param name="settsSvc">Settings service</param>
         /// <param name="setts">Settings</param>
         /// <param name="settsStr">String builder buffer</param>
-        public static void StoreSettings<T>(this IUserSettingsService<T> settsSvc, T setts, StringBuilder settsStr)
+        public static void StoreSettings(this IUserSettingsService settsSvc, object setts, StringBuilder settsStr)
         {
             using (var stringWriter = new StringWriter(settsStr))
             {
@@ -256,14 +264,18 @@ namespace Xarial.XToolkit.Services.UserSettings
             }
         }
 
+        /// <inheritdoc cref="StoreSettings(IUserSettingsService, object, StringBuilder)"/>
+        /// <typeparam name="T">Settings type</typeparam>
+        public static void StoreSettings<T>(this IUserSettingsService<T> settsSvc, T setts, StringBuilder settsStr)
+            => StoreSettings((IUserSettingsService)settsSvc, setts, settsStr);
+
         /// <summary>
         /// Stores settings into a specified file
         /// </summary>
-        /// <typeparam name="T">Settings type</typeparam>
         /// <param name="settsSvc">Settings service</param>
         /// <param name="setts">Settings</param>
         /// <param name="settsFile">Settings file path</param>
-        public static void StoreSettings<T>(this IUserSettingsService<T> settsSvc, T setts, string settsFile)
+        public static void StoreSettings(this IUserSettingsService settsSvc, object setts, string settsFile)
         {
             var settsDir = Path.GetDirectoryName(settsFile);
 
@@ -277,5 +289,10 @@ namespace Xarial.XToolkit.Services.UserSettings
                 settsSvc.StoreSettings(setts, textWriter);
             }
         }
+
+        /// <inheritdoc cref="StoreSettings(IUserSettingsService, object, string)"/>
+        /// <typeparam name="T">Settings type</typeparam>
+        public static void StoreSettings<T>(this IUserSettingsService<T> settsSvc, T setts, string settsFile)
+            => StoreSettings((IUserSettingsService)settsSvc, setts, settsFile);
     }
 }
