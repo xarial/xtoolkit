@@ -10,6 +10,9 @@ using System.Collections.Generic;
 
 namespace Xarial.XToolkit.Services.UserSettings.Attributes
 {
+    /// <summary>
+    /// Defines the user settings version
+    /// </summary>
     public class UserSettingVersionAttribute : Attribute
     {
         internal Version Version { get; }
@@ -32,7 +35,6 @@ namespace Xarial.XToolkit.Services.UserSettings.Attributes
             {
                 throw new InvalidCastException($"'{versionTransformerType.FullName}' must implement '{nameof(IVersionsTransformer)}' interface'");
             }
-
         }
     }
 }

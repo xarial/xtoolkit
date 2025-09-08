@@ -80,7 +80,7 @@ namespace Utils.Docs
         public static void StoreSettings() 
         {
             //--- store
-            var svc = new UserSettingsService();
+            var svc = new UserSettingsService<UserSettings>();
             
             var userSetts = new UserSettings();
 
@@ -94,7 +94,7 @@ namespace Utils.Docs
         public static void ReadSettings()
         {
             //--- read
-            var svc = new UserSettingsService();
+            var svc = new UserSettingsService<UserSettings>();
 
             var userSetts = svc.ReadSettings<UserSettings>(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

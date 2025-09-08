@@ -6,11 +6,14 @@
 //*********************************************************************
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Xarial.XToolkit.Services.UserSettings.Converters
 {
-    internal abstract class SettingsJsonConverter : JsonConverter
+    internal class SettingsJsonConverter : JsonConverter
     {
         protected string VERSION_NODE_NAME = "$version";
         protected string LEGACY_VERSION_NODE_NAME = "__version";
@@ -18,43 +21,72 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
         protected Type m_SettsType;
         protected Version m_LatestVersion;
 
-        private bool m_CanRead;
-        private bool m_CanWrite;
-
-        protected SettingsJsonConverter(Type settsType, bool canRead, bool canWrite, Version latestVers)
-        {
-            m_SettsType = settsType;
-
-            m_LatestVersion = latestVers;
-
-            m_CanRead = canRead;
-            m_CanWrite = canWrite;
-        }
-
-        public override bool CanRead => m_CanRead;
-
-        public override bool CanWrite => m_CanWrite;
+        public override bool CanRead => true;
+        public override bool CanWrite => true;
 
         public override bool CanConvert(Type objectType) => objectType == m_SettsType;
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        private IReadOnlyList<VersionTransform> m_Transformers;
+
+        internal SettingsJsonConverter(Type settsType, IReadOnlyList<VersionTransform> transformers, Version latestVers)
         {
-            throw new NotImplementedException();
+            m_SettsType = settsType;
+            m_Transformers = transformers;
+            m_LatestVersion = latestVers;
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            using (var jsonSerProv = new JsonSerializerExcludeConverterProvider(serializer, this))
+            {
+                var jObject = JObject.FromObject(value, jsonSerProv.Serializer);
+
+                jObject.Add(VERSION_NODE_NAME, m_LatestVersion.ToString());
+
+                jObject.WriteTo(writer);
+            }
         }
 
-        protected JsonSerializer GetSerializer(JsonSerializer baseSer)
+        public override object ReadJson(JsonReader reader,
+            Type objectType, object existingValue, JsonSerializer serializer)
         {
-            if (baseSer.Converters?.Contains(this) == true)
+            var jToken = JToken.ReadFrom(reader);
+
+            Version settsVers;
+
+            var versToken = jToken.SelectToken(VERSION_NODE_NAME);
+
+            if (versToken == null)
             {
-                baseSer.Converters.Remove(this);
+                versToken = jToken.SelectToken(LEGACY_VERSION_NODE_NAME);
             }
 
-            return baseSer;
+            if (versToken == null)
+            {
+                settsVers = new Version();
+            }
+            else
+            {
+                settsVers = Version.Parse(versToken.Value<string>());
+            }
+
+            if (m_LatestVersion > settsVers)
+            {
+                if (m_Transformers != null)
+                {
+                    foreach (var tr in m_Transformers
+                        .Where(t => t.From >= settsVers && t.To <= m_LatestVersion)
+                        .OrderBy(t => t.From))
+                    {
+                        jToken = tr.Transform(jToken);
+                    }
+                }
+            }
+
+            using (var jsonSerProv = new JsonSerializerExcludeConverterProvider(serializer, this))
+            {
+                return jToken.ToObject(objectType, jsonSerProv.Serializer);
+            }
         }
     }
 }

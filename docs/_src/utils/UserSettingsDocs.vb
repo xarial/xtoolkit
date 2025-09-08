@@ -71,7 +71,7 @@ Namespace Utils.Docs
 
         Sub StoreSettings()
             '--- store
-            Dim svc = New UserSettingsService()
+            Dim svc = New UserSettingsService(Of UserSettings)()
             Dim userSetts = New UserSettings()
             svc.StoreSettings(userSetts,
                               Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -81,8 +81,8 @@ Namespace Utils.Docs
 
         Sub ReadSettings()
             '--- read
-            Dim svc = New UserSettingsService()
-            Dim userSetts = svc.ReadSettings(Of UserSettings)(
+            Dim svc = New UserSettingsService(Of UserSettings)()
+            Dim userSetts = svc.ReadSettings(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                              "my-app-settings.json"))
             '---

@@ -1,0 +1,30 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Xarial.XToolkit.Services.UserSettings.Attributes
+{
+    /// <summary>
+    /// Specifies the known kind for the serialization
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
+    public class KnownKindAttribute : Attribute
+    {
+        internal Type Type { get; }
+
+        internal string Kind { get; }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <param name="kind">Kind of known type</param>
+        public KnownKindAttribute(Type type, string kind)
+        {
+            Type = type;
+            Kind = kind;
+        }
+    }
+}

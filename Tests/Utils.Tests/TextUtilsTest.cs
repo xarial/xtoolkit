@@ -26,6 +26,7 @@ namespace Utils.Tests
             var r11 = TextUtils.MatchesAnyFilter("XYZ", "XYZ*");
             var r12 = TextUtils.MatchesAnyFilter("XYZ", "*XYZ");
             var r13 = TextUtils.MatchesAnyFilter("XYZ", "*XYZ*");
+            var r14 = TextUtils.MatchesAnyFilter("", "");
 
             Assert.IsTrue(r1);
             Assert.IsTrue(r2);
@@ -40,6 +41,7 @@ namespace Utils.Tests
             Assert.IsTrue(r11);
             Assert.IsTrue(r12);
             Assert.IsTrue(r13);
+            Assert.IsTrue(r14);
         }
     }
 }

@@ -7,8 +7,10 @@
 
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Services.UserSettings.Attributes;
@@ -22,23 +24,33 @@ namespace Xarial.XToolkit.Services.UserSettings
     public interface IUserSettingsService 
     {
         /// <summary>
+        /// Settings type
+        /// </summary>
+        Type SettingsType { get; }
+
+        /// <summary>
         /// Reads user settings
         /// </summary>
         /// <param name="settsReader">Reader</param>
-        /// <param name="settsType">Settings type</param>
-        /// <param name="versTransformerHandler">Version transformer</param>
-        /// <param name="serializers">Custom serializers</param>
         /// <returns>Settings</returns>
-        object ReadSettings(TextReader settsReader, Type settsType, Func<IVersionsTransformer, IVersionsTransformer> versTransformerHandler, params IValueSerializer[] serializers);
+        object ReadSettings(TextReader settsReader);
         
         /// <summary>
         /// Stores user settings
         /// </summary>
         /// <param name="setts">Settings to store</param>
-        /// <param name="settsType">Settings type</param>
         /// <param name="settsWriter">Writer</param>
-        /// <param name="serializers">Custom serializers</param>
-        void StoreSettings(object setts, Type settsType, TextWriter settsWriter, params IValueSerializer[] serializers);
+        void StoreSettings(object setts, TextWriter settsWriter);
+    }
+
+    /// <inheritdoc/>
+    public interface IUserSettingsService<T> : IUserSettingsService 
+    {
+        /// <inheritdoc/>
+        new T ReadSettings(TextReader settsReader);
+
+        /// <inheritdoc/>
+        void StoreSettings(T setts, TextWriter settsWriter);
     }
 
     /// <summary>
@@ -46,46 +58,114 @@ namespace Xarial.XToolkit.Services.UserSettings
     /// </summary>
     public class UserSettingsService : IUserSettingsService
     {
-        /// <inheritdoc/>
-        public object ReadSettings(TextReader settsReader, Type settsType, Func<IVersionsTransformer, IVersionsTransformer> versTransformerHandler, params IValueSerializer[] serializers)
+        /// <summary>
+        /// Finds all known types
+        /// </summary>
+        /// <param name="srcType">Source type</param>
+        /// <returns>Known types and their short name</returns>
+        /// <remarks>Known types are found based on <see cref="KnownKindAttribute"/> attribute</remarks>
+        public static IReadOnlyDictionary<Type, string> GetKnownTypes(Type srcType) 
         {
-            var jsonSer = CreateJsonSerializer();
+            var knownTypes = new Dictionary<Type, string>();
 
-            if (TryGetVersionInfo(settsType, out Version vers, out IVersionsTransformer transform))
+            FindKnownTypes(srcType, knownTypes, new List<Type>());
+
+            return knownTypes;
+        }
+
+        private static void FindKnownTypes(Type type, Dictionary<Type, string> knownTypes, List<Type> processedTypes) 
+        {
+            foreach (var att in type.GetCustomAttributes<KnownKindAttribute>(true))
             {
-                if (versTransformerHandler != null)
+                if (!knownTypes.ContainsKey(type))
                 {
-                    transform = versTransformerHandler.Invoke(transform);
+                    knownTypes.Add(att.Type, att.Kind);
                 }
-
-                jsonSer.Converters.Add(new ReadSettingsJsonConverter(settsType, transform?.Transforms ?? Enumerable.Empty<VersionTransform>(), vers));
             }
 
-            foreach (var ser in serializers)
+            if (!processedTypes.Contains(type))
             {
-                jsonSer.Converters.Add(new CustomSerializerJsonConverter(ser));
-            }
+                processedTypes.Add(type);
 
-            return jsonSer.Deserialize(settsReader, settsType);
+                if (!type.IsPrimitive && !type.IsArray && !type.IsEnum)
+                {
+                    foreach (var prp in type.GetProperties())
+                    {
+                        var prpType = prp.PropertyType;
+
+                        FindKnownTypes(prpType, knownTypes, processedTypes);
+
+                        if (prpType.IsArray) 
+                        {
+                            if (prpType.HasElementType)
+                            {
+                                FindKnownTypes(prpType.GetElementType(), knownTypes, processedTypes);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         /// <inheritdoc/>
-        public void StoreSettings(object setts, Type settsType, TextWriter settsWriter, params IValueSerializer[] serializers)
+        public Type SettingsType { get; }
+
+        private readonly JsonSerializer m_JsonSer;
+
+        /// <summary>Constuctor</summary>
+        /// <param name="settsType">Type of settings</param>
+        /// <param name="serializers">Custom serializers</param>
+        public UserSettingsService(Type settsType, params IValueSerializer[] serializers) : this(settsType, null, serializers)
         {
-            var jsonSer = CreateJsonSerializer();
-
-            if (TryGetVersionInfo(settsType, out Version vers, out _))
-            {
-                jsonSer.Converters.Add(new WriteSettingsJsonConverter(settsType, vers));
-            }
-
-            foreach (var ser in serializers)
-            {
-                jsonSer.Converters.Add(new CustomSerializerJsonConverter(ser));
-            }
-
-            jsonSer.Serialize(settsWriter, setts, settsType);
         }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="settsType">Type of settings</param>
+        /// <param name="knownTypes">Known types for serialization</param>
+        /// <param name="serializers">Custom serializers</param>
+        public UserSettingsService(Type settsType, IReadOnlyDictionary<Type, string> knownTypes, params IValueSerializer[] serializers)
+        {
+            SettingsType = settsType;
+
+            m_JsonSer = CreateJsonSerializer();
+
+            if (TryGetVersionInfo(SettingsType, out Version vers, out IVersionsTransformer transform))
+            {
+                transform = GetVersionTransformer(transform);
+
+                m_JsonSer.Converters.Add(new SettingsJsonConverter(SettingsType, transform?.Transforms ?? Array.Empty<VersionTransform>(), vers));
+            }
+
+            if (serializers != null)
+            {
+                foreach (var ser in serializers)
+                {
+                    m_JsonSer.Converters.Add(new CustomSerializerJsonConverter(ser));
+                }
+            }
+
+            if (knownTypes?.Any() == true)
+            {
+                m_JsonSer.Converters.Add(new KnownKindJsonConverter(knownTypes));
+            }
+        }
+
+        /// <summary>
+        /// Provides version transformer
+        /// </summary>
+        /// <param name="src">Source version transformer</param>
+        /// <returns>Bersion transformer</returns>
+        protected virtual IVersionsTransformer GetVersionTransformer(IVersionsTransformer src) => src;
+
+        /// <inheritdoc/>
+        public object ReadSettings(TextReader settsReader)
+            => m_JsonSer.Deserialize(settsReader, SettingsType);
+
+        /// <inheritdoc/>
+        public void StoreSettings(object setts, TextWriter settsWriter)
+            => m_JsonSer.Serialize(settsWriter, setts, SettingsType);
 
         /// <summary>
         /// Override to provide custom JSON serializer
@@ -109,42 +189,42 @@ namespace Xarial.XToolkit.Services.UserSettings
         }
     }
 
+    /// <inheritdoc/>
+    public class UserSettingsService<T> : UserSettingsService, IUserSettingsService<T>
+    {
+        /// <inheritdoc/>
+        public new T ReadSettings(TextReader settsReader) => (T)base.ReadSettings(settsReader);
+
+        /// <inheritdoc/>
+        public UserSettingsService(params IValueSerializer[] serializers) : base(typeof(T), serializers)
+        {
+        }
+
+        /// <inheritdoc/>
+        public UserSettingsService(IReadOnlyDictionary<Type, string> knownTypes, params IValueSerializer[] serializers) : base(typeof(T), knownTypes, serializers)
+        {
+        }
+
+        /// <inheritdoc/>
+        public void StoreSettings(T setts, TextWriter settsWriter) => base.StoreSettings(setts, settsWriter);
+    }
+
     /// <summary>
     /// Additional methods for the <see cref="IUserSettingsService"/>
     /// </summary>
     public static class UserSettingsServiceExtension
     {
         /// <summary>
-        /// Reads settings of aa specified type
-        /// </summary>
-        /// <typeparam name="T">Settings type</typeparam>
-        public static T ReadSettings<T>(this IUserSettingsService settsSvc, TextReader settsReader, params IValueSerializer[] serializers)
-            => ReadSettings<T>(settsSvc, settsReader, default, serializers);
-
-        /// <summary>
-        /// Reads settings of the specified type with custom version transformers
-        /// </summary>
-        /// <typeparam name="T">Settings type</typeparam>
-        public static T ReadSettings<T>(this IUserSettingsService settsSvc, TextReader settsReader, Func<IVersionsTransformer, IVersionsTransformer> versTransformerHandler, params IValueSerializer[] serializers)
-            => (T)settsSvc.ReadSettings(settsReader, typeof(T), versTransformerHandler, serializers);
-
-        /// <summary>
-        /// Stores settings of the specified type
-        /// </summary>
-        /// <typeparam name="T">Settings type</typeparam>
-        public static void StoreSettings<T>(this IUserSettingsService settsSvc, T setts, TextWriter settsWriter, params IValueSerializer[] serializers)
-            => settsSvc.StoreSettings(setts, typeof(T), settsWriter, serializers);
-
-        /// <summary>
         /// Reads settings of the specified type from a file
         /// </summary>
         /// <typeparam name="T">Settings type</typeparam>
+        /// <param name="settsSvc">Settings service</param>
         /// <param name="settsFile">Settings file path</param>
-        public static T ReadSettings<T>(this IUserSettingsService settsSvc, string settsFile, params IValueSerializer[] serializers)
+        public static T ReadSettings<T>(this IUserSettingsService<T> settsSvc, string settsFile)
         {
             using (var textReader = File.OpenText(settsFile))
             {
-                return settsSvc.ReadSettings<T>(textReader, serializers);
+                return settsSvc.ReadSettings(textReader);
             }
         }
 
@@ -152,24 +232,27 @@ namespace Xarial.XToolkit.Services.UserSettings
         /// Reads settings from the string builder
         /// </summary>
         /// <typeparam name="T">Settings type</typeparam>
+        /// <param name="settsSvc">Settings service</param>
         /// <param name="settsStr">Settings data</param>
-        public static T ReadSettings<T>(this IUserSettingsService settsSvc, StringBuilder settsStr, params IValueSerializer[] serializers)
+        public static T ReadSettings<T>(this IUserSettingsService<T> settsSvc, StringBuilder settsStr)
         {
             using (var stringReader = new StringReader(settsStr.ToString()))
             {
-                return settsSvc.ReadSettings<T>(stringReader, serializers);
+                return settsSvc.ReadSettings(stringReader);
             }
         }
 
         /// <summary>
         /// Stores settings into the string builder
         /// </summary>
+        /// <param name="settsSvc">Settings service</param>
+        /// <param name="setts">Settings</param>
         /// <param name="settsStr">String builder buffer</param>
-        public static void StoreSettings<T>(this IUserSettingsService settsSvc, T setts, StringBuilder settsStr, params IValueSerializer[] serializers)
+        public static void StoreSettings<T>(this IUserSettingsService<T> settsSvc, T setts, StringBuilder settsStr)
         {
             using (var stringWriter = new StringWriter(settsStr))
             {
-                settsSvc.StoreSettings(setts, stringWriter, serializers);
+                settsSvc.StoreSettings(setts, stringWriter);
             }
         }
 
@@ -177,8 +260,10 @@ namespace Xarial.XToolkit.Services.UserSettings
         /// Stores settings into a specified file
         /// </summary>
         /// <typeparam name="T">Settings type</typeparam>
+        /// <param name="settsSvc">Settings service</param>
+        /// <param name="setts">Settings</param>
         /// <param name="settsFile">Settings file path</param>
-        public static void StoreSettings<T>(this IUserSettingsService settsSvc, T setts, string settsFile, params IValueSerializer[] serializers)
+        public static void StoreSettings<T>(this IUserSettingsService<T> settsSvc, T setts, string settsFile)
         {
             var settsDir = Path.GetDirectoryName(settsFile);
 
@@ -189,7 +274,7 @@ namespace Xarial.XToolkit.Services.UserSettings
 
             using (var textWriter = File.CreateText(settsFile))
             {
-                settsSvc.StoreSettings<T>(setts, textWriter, serializers);
+                settsSvc.StoreSettings(setts, textWriter);
             }
         }
     }

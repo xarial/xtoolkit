@@ -28,9 +28,9 @@ namespace Xarial.XToolkit.Reflection
                 filePath = Path.Combine(workDir, filePath);
             }
 
-            var ser = new UserSettingsService();
+            var ser = new UserSettingsService<IReadOnlyDictionary<string, string>>();
 
-            return ser.ReadSettings<IReadOnlyDictionary<string, string>>(filePath)
+            return ser.ReadSettings(filePath)
                 .ToDictionary(x => new AssemblyName(x.Key), y => y.Value, new AssemblyNameEqualityComparer());
         }
 

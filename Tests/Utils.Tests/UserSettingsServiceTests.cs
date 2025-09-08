@@ -109,23 +109,48 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             public string Value { get; set; }
         }
 
+        public class SettsMock6 
+        {
+            public ISettsChild1[] Children { get; set; }
+        }
+
+        [KnownKind(typeof(SettsChild1_1), "sc1")]
+        [KnownKind(typeof(SettsChild1_2), "sc2")]
+        public interface ISettsChild1 
+        {
+            string Par1 { get; }
+        }
+
+        public class SettsChild1_1 : ISettsChild1
+        {
+            public string Par1 { get; set; }
+            public string Par2 { get; set; }
+        }
+
+        public class SettsChild1_2 : ISettsChild1
+        {
+            public string Par1 { get; set; }
+            public string Par3 { get; set; }
+        }
+
         #endregion
 
         [Test]
         public void ReadSettingsTest()
         {
-            var srv = new UserSettingsService();
+            var srv1 = new UserSettingsService<SettsMock1>();
+            var srv2 = new UserSettingsService<SettsMock2>();
 
             var mock1 = "{\"Field1\":\"AAA\",\"Field2\":10.0,\"$version\":\"0.0\"}";
             var mock2 = "{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}";
 
-            var setts1 = srv.ReadSettings<SettsMock1>(new StringReader(mock1));
-            var setts2 = srv.ReadSettings<SettsMock1>(new StringReader(mock2));
-            var setts3 = srv.ReadSettings<SettsMock2>(new StringReader(mock2));
-            var setts4 = srv.ReadSettings<SettsMock1>(new StringReader(mock1));
-            var setts5 = srv.ReadSettings<SettsMock1>(new StringReader(mock2));
-            var setts6 = srv.ReadSettings<SettsMock2>(new StringReader(mock1));
-            var setts7 = srv.ReadSettings<SettsMock2>(new StringReader(mock2));
+            var setts1 = srv1.ReadSettings(new StringReader(mock1));
+            var setts2 = srv1.ReadSettings(new StringReader(mock2));
+            var setts3 = srv2.ReadSettings(new StringReader(mock2));
+            var setts4 = srv1.ReadSettings(new StringReader(mock1));
+            var setts5 = srv1.ReadSettings(new StringReader(mock2));
+            var setts6 = srv2.ReadSettings(new StringReader(mock1));
+            var setts7 = srv2.ReadSettings(new StringReader(mock2));
 
             Assert.AreEqual("AAA", setts1.Field1);
             Assert.AreEqual(10, setts1.Field2);
@@ -150,11 +175,11 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void LegacyReadSettingsTest()
         {
-            var srv = new UserSettingsService();
+            var srv = new UserSettingsService<SettsMock1>();
 
             var mock = "{\"Field1\":\"XYZ\",\"__version\":\"1.1.0\"}";
 
-            var setts = srv.ReadSettings<SettsMock1>(new StringReader(mock));
+            var setts = srv.ReadSettings(new StringReader(mock));
 
             Assert.AreEqual("XYZ", setts.Field1);
             Assert.AreEqual(default(double), setts.Field2);
@@ -163,7 +188,8 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void WriteSettingsTest()
         {
-            var srv = new UserSettingsService();
+            var srv1 = new UserSettingsService<SettsMock1>();
+            var srv2 = new UserSettingsService<SettsMock2>();
 
             var setts1 = new SettsMock1()
             {
@@ -181,8 +207,8 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             var res1 = new StringBuilder();
             var res2 = new StringBuilder();
 
-            srv.StoreSettings(setts1, new StringWriter(res1));
-            srv.StoreSettings(setts2, new StringWriter(res2));
+            srv1.StoreSettings(setts1, new StringWriter(res1));
+            srv2.StoreSettings(setts2, new StringWriter(res2));
 
             Assert.AreEqual("{\"Field1\":\"AAA\",\"Field2\":10.0}", res1.ToString());
             Assert.AreEqual("{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}", res2.ToString());
@@ -191,8 +217,6 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void CustomConverterTest() 
         {
-            var srv = new UserSettingsService();
-
             var setts = new SettsMock3()
             {
                 Obj = new ObjectType()
@@ -205,8 +229,10 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var ser = new BaseValueSerializer<ObjectType>(x => x.Value, x => new ObjectType() { Value = x });
 
-            srv.StoreSettings(setts, new StringWriter(res1), ser);
-            var res2 = srv.ReadSettings<SettsMock3>(new StringReader("{\"Obj\":\"ABC\"}"), ser);
+            var srv = new UserSettingsService<SettsMock3>(ser);
+
+            srv.StoreSettings(setts, new StringWriter(res1));
+            var res2 = srv.ReadSettings(new StringReader("{\"Obj\":\"ABC\"}"));
 
             Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
             Assert.AreEqual("ABC", res2.Obj.Value);
@@ -215,8 +241,6 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void CustomConverterDerivedTypeTest()
         {
-            var srv = new UserSettingsService();
-
             var setts = new SettsMock4()
             {
                 Obj = new ObjectType2()
@@ -229,8 +253,10 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var ser = new BaseValueSerializer<IObjectType>(x => x.Value, x => new ObjectType2() { Value = x });
 
-            srv.StoreSettings(setts, new StringWriter(res1), ser);
-            var res2 = srv.ReadSettings<SettsMock4>(new StringReader("{\"Obj\":\"ABC\"}"), ser);
+            var srv = new UserSettingsService<SettsMock4>(ser);
+
+            srv.StoreSettings(setts, new StringWriter(res1));
+            var res2 = srv.ReadSettings(new StringReader("{\"Obj\":\"ABC\"}"));
 
             Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
             Assert.AreEqual("ABC", res2.Obj.Value);
@@ -239,8 +265,6 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void CustomConverterAndVersionTest()
         {
-            var srv = new UserSettingsService();
-
             var setts = new SettsMock2()
             {
                 Field1 = ""
@@ -250,23 +274,89 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var ser = new BaseValueSerializer<string>(x => "ABC", x => "XYZ");
 
-            srv.StoreSettings(setts, new StringWriter(res1), ser);
-            var res2 = srv.ReadSettings<SettsMock2>(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}"), ser);
+            var srv = new UserSettingsService<SettsMock2>(ser);
+
+            srv.StoreSettings(setts, new StringWriter(res1));
+            var res2 = srv.ReadSettings(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}"));
 
             Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}", res1.ToString());
             Assert.AreEqual("XYZ", res2.Field1);
         }
 
+        private class UserSettingsServiceTransformHandler : UserSettingsService<SettsMock5> 
+        {
+            protected override IVersionsTransformer GetVersionTransformer(IVersionsTransformer src)
+            {
+                ((SettsMock5Transformer)src).NewValue = "BBB";
+                return src;
+            }
+        }
+
         [Test]
         public void TransformHandlerTest() 
         {
-            var srv = new UserSettingsService();
+            var srv = new UserSettingsServiceTransformHandler();
 
             var mock1 = "{\"Field1\":\"AAA\",\"$version\":\"1.0\"}";
 
-            var setts1 = srv.ReadSettings<SettsMock5>(new StringReader(mock1), t => { ((SettsMock5Transformer)t).NewValue = "BBB"; return t; });
+            var setts1 = srv.ReadSettings(new StringReader(mock1));
             
             Assert.AreEqual("BBB", setts1.Field1);
+        }
+
+        [Test]
+        public void KnowTypesWriteTest() 
+        {
+            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownTypes(typeof(SettsMock6)));
+
+            var setts1 = new SettsMock6()
+            {
+                Children = new ISettsChild1[] 
+                {
+                    new SettsChild1_1()
+                    {
+                        Par1 = "A",
+                        Par2 = "B",
+                    },
+                    new SettsChild1_2()
+                    {
+                        Par1 = "A1",
+                        Par3 = "B1",
+                    },
+                    new SettsChild1_1()
+                    {
+                        Par1 = "A2",
+                        Par2 = "B2",
+                    }
+                }
+            };
+
+            var res1 = new StringBuilder();
+
+            srv1.StoreSettings(setts1, new StringWriter(res1));
+
+            Assert.AreEqual("{\"Children\":[{\"Par1\":\"A\",\"Par2\":\"B\",\"$kind\":\"sc1\"},{\"Par1\":\"A1\",\"Par3\":\"B1\",\"$kind\":\"sc2\"},{\"Par1\":\"A2\",\"Par2\":\"B2\",\"$kind\":\"sc1\"}]}", res1.ToString());
+        }
+
+        [Test]
+        public void KnowTypesReadTest()
+        {
+            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownTypes(typeof(SettsMock6)));
+
+            var mock1 = "{\"Children\":[{\"Par1\":\"A\",\"Par2\":\"B\",\"$kind\":\"sc1\"},{\"Par1\":\"A1\",\"Par3\":\"B1\",\"$kind\":\"sc2\"},{\"Par1\":\"A2\",\"Par2\":\"B2\",\"$kind\":\"sc1\"}]}";
+
+            var setts1 = srv1.ReadSettings(new StringReader(mock1));
+
+            Assert.AreEqual(3, setts1.Children.Length);
+            Assert.IsInstanceOf<SettsChild1_1>(setts1.Children[0]);
+            Assert.AreEqual("A", ((SettsChild1_1)setts1.Children[0]).Par1);
+            Assert.AreEqual("B", ((SettsChild1_1)setts1.Children[0]).Par2);
+            Assert.IsInstanceOf<SettsChild1_2>(setts1.Children[1]);
+            Assert.AreEqual("A1", ((SettsChild1_2)setts1.Children[1]).Par1);
+            Assert.AreEqual("B1", ((SettsChild1_2)setts1.Children[1]).Par3);
+            Assert.IsInstanceOf<SettsChild1_1>(setts1.Children[2]);
+            Assert.AreEqual("A2", ((SettsChild1_1)setts1.Children[2]).Par1);
+            Assert.AreEqual("B2", ((SettsChild1_1)setts1.Children[2]).Par2);
         }
     }
 }

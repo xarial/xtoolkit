@@ -55,6 +55,11 @@ namespace Xarial.XToolkit
 
                 return filters.Any(f =>
                 {
+                    if (string.IsNullOrEmpty(text) && f == ANY_FILTER) 
+                    {
+                        return false;
+                    }
+
                     var regex = (f.StartsWith(ANY_FILTER) ? "" : "^")
                         + Regex.Escape(f).Replace($"\\{ANY_FILTER}", ".*").Replace("\\?", ".")
                         + (f.EndsWith(ANY_FILTER) ? "" : "$");
