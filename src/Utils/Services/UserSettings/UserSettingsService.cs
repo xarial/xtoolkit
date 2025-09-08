@@ -59,16 +59,16 @@ namespace Xarial.XToolkit.Services.UserSettings
     public class UserSettingsService : IUserSettingsService
     {
         /// <summary>
-        /// Finds all known types
+        /// Finds all known kinds
         /// </summary>
-        /// <param name="srcType">Source type</param>
-        /// <returns>Known types and their short name</returns>
-        /// <remarks>Known types are found based on <see cref="KnownKindAttribute"/> attribute</remarks>
-        public static IReadOnlyDictionary<Type, string> GetKnownTypes(Type srcType) 
+        /// <param name="type">Source type</param>
+        /// <returns>Known types and their kind name</returns>
+        /// <remarks>Known kinds are found based on <see cref="KnownKindAttribute"/> attribute</remarks>
+        public static IReadOnlyDictionary<Type, string> GetKnownKinds(Type type) 
         {
             var knownTypes = new Dictionary<Type, string>();
 
-            FindKnownTypes(srcType, knownTypes, new List<Type>());
+            FindKnownTypes(type, knownTypes, new List<Type>());
 
             return knownTypes;
         }
@@ -123,9 +123,9 @@ namespace Xarial.XToolkit.Services.UserSettings
         /// Constructor
         /// </summary>
         /// <param name="settsType">Type of settings</param>
-        /// <param name="knownTypes">Known types for serialization</param>
+        /// <param name="knownKinds">Known kinds for serialization</param>
         /// <param name="serializers">Custom serializers</param>
-        public UserSettingsService(Type settsType, IReadOnlyDictionary<Type, string> knownTypes, params IValueSerializer[] serializers)
+        public UserSettingsService(Type settsType, IReadOnlyDictionary<Type, string> knownKinds, params IValueSerializer[] serializers)
         {
             SettingsType = settsType;
 
@@ -146,9 +146,9 @@ namespace Xarial.XToolkit.Services.UserSettings
                 }
             }
 
-            if (knownTypes?.Any() == true)
+            if (knownKinds?.Any() == true)
             {
-                m_JsonSer.Converters.Add(new KnownKindJsonConverter(knownTypes));
+                m_JsonSer.Converters.Add(new KnownKindJsonConverter(knownKinds));
             }
         }
 

@@ -21,10 +21,10 @@ namespace Xarial.XToolkit.Services.UserSettings.Converters
         private readonly IReadOnlyDictionary<Type, string> m_KnownTypeToKindMap;
         private readonly IReadOnlyDictionary<string, Type> m_KindToKnownTypeMap;
 
-        internal KnownKindJsonConverter(IReadOnlyDictionary<Type, string> knownTypes) 
+        internal KnownKindJsonConverter(IReadOnlyDictionary<Type, string> knownKinds) 
         {
-            m_KnownTypeToKindMap = knownTypes;
-            m_KindToKnownTypeMap = knownTypes?.ToDictionary(x => x.Value, x => x.Key);
+            m_KnownTypeToKindMap = knownKinds;
+            m_KindToKnownTypeMap = knownKinds?.ToDictionary(x => x.Value, x => x.Key);
         }
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)

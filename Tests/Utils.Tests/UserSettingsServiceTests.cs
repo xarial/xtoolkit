@@ -307,7 +307,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void KnowTypesWriteTest() 
         {
-            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownTypes(typeof(SettsMock6)));
+            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownKinds(typeof(SettsMock6)));
 
             var setts1 = new SettsMock6()
             {
@@ -341,7 +341,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void KnowTypesReadTest()
         {
-            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownTypes(typeof(SettsMock6)));
+            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownKinds(typeof(SettsMock6)));
 
             var mock1 = "{\"Children\":[{\"Par1\":\"A\",\"Par2\":\"B\",\"$kind\":\"sc1\"},{\"Par1\":\"A1\",\"Par3\":\"B1\",\"$kind\":\"sc2\"},{\"Par1\":\"A2\",\"Par2\":\"B2\",\"$kind\":\"sc1\"}]}";
 
