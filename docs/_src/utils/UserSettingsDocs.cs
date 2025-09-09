@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Xarial.XToolkit.Services.UserSettings;
-using Xarial.XToolkit.Services.UserSettings.Attributes;
+using Xarial.XToolkit.Services.Data;
+using Xarial.XToolkit.Services.Data.Attributes;
 
 namespace Utils.Docs
 {
@@ -14,7 +14,7 @@ namespace Utils.Docs
         public static class V1
         {
             //--- v1
-            [UserSettingVersion("1.0.0", typeof(UserSettingsVersionTransformer))]
+            [DataVersion("1.0.0", typeof(UserSettingsVersionTransformer))]
             public class UserSettings
             {
                 public string Field1 { get; set; }
@@ -27,7 +27,7 @@ namespace Utils.Docs
         public static class V2
         {
             //--- v2
-            [UserSettingVersion("2.0.0", typeof(UserSettingsVersionTransformer))]
+            [DataVersion("2.0.0", typeof(UserSettingsVersionTransformer))]
             public class UserSettings
             {
                 public string TextField { get; set; }
@@ -38,7 +38,7 @@ namespace Utils.Docs
         }
 
         //--- v3
-        [UserSettingVersion("3.0.0", typeof(UserSettingsVersionTransformer))]
+        [DataVersion("3.0.0", typeof(UserSettingsVersionTransformer))]
         public class UserSettings
         {
             public string TextField { get; set; }
@@ -80,11 +80,11 @@ namespace Utils.Docs
         public static void StoreSettings() 
         {
             //--- store
-            var svc = new UserSettingsService<UserSettings>();
+            var svc = new NsJsonDataSerializer<UserSettings>();
             
             var userSetts = new UserSettings();
 
-            svc.StoreSettings(userSetts,
+            svc.Save(userSetts,
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
                 "my-app-settings.json"));
 
@@ -94,9 +94,9 @@ namespace Utils.Docs
         public static void ReadSettings()
         {
             //--- read
-            var svc = new UserSettingsService<UserSettings>();
+            var svc = new NsJsonDataSerializer<UserSettings>();
 
-            var userSetts = svc.ReadSettings<UserSettings>(
+            var userSetts = svc.Read(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "my-app-settings.json"));
             //---

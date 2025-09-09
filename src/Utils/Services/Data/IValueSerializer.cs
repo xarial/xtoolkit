@@ -9,7 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Xarial.XToolkit.Services.UserSettings
+namespace Xarial.XToolkit.Services.Data
 {
     /// <summary>
     /// Custom value serializer in <see cref="IVersionsTransformer"/>

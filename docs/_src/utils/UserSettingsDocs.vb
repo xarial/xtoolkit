@@ -4,14 +4,14 @@ Imports System.Collections.Generic
 Imports System.IO
 Imports System.Linq
 Imports System.Text
-Imports Xarial.XToolkit.Services.UserSettings
-Imports Xarial.XToolkit.Services.UserSettings.Attributes
+Imports Xarial.XToolkit.Services.Data
+Imports Xarial.XToolkit.Services.Data.Attributes
 
 Namespace Utils.Docs
 
     Module V1
         '--- v1
-        <UserSettingVersion("1.0.0", GetType(UserSettingsVersionTransformer))>
+        <DataVersion("1.0.0", GetType(UserSettingsVersionTransformer))>
         Public Class UserSettings
             Public Property Field1 As String
             Public Property Field2 As Double
@@ -22,7 +22,7 @@ Namespace Utils.Docs
 
     Module V2
         '--- v2
-        <UserSettingVersion("2.0.0", GetType(UserSettingsVersionTransformer))>
+        <DataVersion("2.0.0", GetType(UserSettingsVersionTransformer))>
         Public Class UserSettings
             Public Property TextField As String
             Public Property Field2 As Double
@@ -34,7 +34,7 @@ Namespace Utils.Docs
     Module UserSettingsDocs
 
         '--- v3
-        <UserSettingVersion("3.0.0", GetType(UserSettingsVersionTransformer))>
+        <DataVersion("3.0.0", GetType(UserSettingsVersionTransformer))>
         Public Class UserSettings
             Public Property TextField As String
             Public Property DoubleField As Double
@@ -71,9 +71,9 @@ Namespace Utils.Docs
 
         Sub StoreSettings()
             '--- store
-            Dim svc = New UserSettingsService(Of UserSettings)()
+            Dim svc = New NsJsonDataSerializer(Of UserSettings)()
             Dim userSetts = New UserSettings()
-            svc.StoreSettings(userSetts,
+            svc.Save(userSetts,
                               Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                                            "my-app-settings.json"))
             '---
@@ -81,8 +81,8 @@ Namespace Utils.Docs
 
         Sub ReadSettings()
             '--- read
-            Dim svc = New UserSettingsService(Of UserSettings)()
-            Dim userSetts = svc.ReadSettings(
+            Dim svc = New NsJsonDataSerializer(Of UserSettings)()
+            Dim userSetts = svc.Read(
                 Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                              "my-app-settings.json"))
             '---

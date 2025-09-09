@@ -8,22 +8,23 @@
 using System;
 using System.Collections.Generic;
 
-namespace Xarial.XToolkit.Services.UserSettings.Attributes
+namespace Xarial.XToolkit.Services.Data.Attributes
 {
     /// <summary>
-    /// Defines the user settings version
+    /// Defines the data version
     /// </summary>
-    public class UserSettingVersionAttribute : Attribute
+    /// <remarks>Used in <see cref="IDataSerializer"/></remarks>
+    public class DataVersionAttribute : Attribute
     {
         internal Version Version { get; }
         internal IVersionsTransformer VersionTransformer { get; }
 
         /// <summary>
-        /// Initiates the version support for this user setting
+        /// Initiates the version support for this data
         /// </summary>
-        /// <param name="version">Current (latest) version of settings</param>
+        /// <param name="version">Current (latest) version of the data</param>
         /// <param name="versionTransformerType">Collection of version transformers of <see cref="IVersionsTransformer"/></param>
-        public UserSettingVersionAttribute(string version, Type versionTransformerType)
+        public DataVersionAttribute(string version, Type versionTransformerType)
         {
             Version = new Version(version);
 

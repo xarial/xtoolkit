@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Xarial.XToolkit.Services.UserSettings.Attributes
+namespace Xarial.XToolkit.Services.Data.Attributes
 {
     /// <summary>
     /// Specifies the known kind for the serialization

@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Xarial.XToolkit.Services.UserSettings.Converters
+namespace Xarial.XToolkit.Services.Data.Converters
 {
     internal class SettingsJsonConverter : JsonConverter
     {

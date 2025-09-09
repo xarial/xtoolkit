@@ -8,7 +8,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 
-namespace Xarial.XToolkit.Services.UserSettings
+namespace Xarial.XToolkit.Services.Data
 {
     /// <summary>
     /// Version transform instruction in <see cref="IVersionsTransformer"/>
@@ -26,7 +26,7 @@ namespace Xarial.XToolkit.Services.UserSettings
         /// </summary>
         public Version To { get; }
 
-        private Func<JToken, JToken> m_Transform;
+        private readonly Func<JToken, JToken> m_Transform;
 
         /// <summary>
         /// Constructor

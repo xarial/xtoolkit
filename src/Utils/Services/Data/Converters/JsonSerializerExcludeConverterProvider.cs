@@ -8,7 +8,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Xarial.XToolkit.Services.UserSettings.Converters
+namespace Xarial.XToolkit.Services.Data.Converters
 {
     /// <summary>
     /// Service to get the JSON serializer without the specified converter to avoid infinite loop

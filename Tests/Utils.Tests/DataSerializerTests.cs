@@ -1,5 +1,4 @@
-﻿using Xarial.XToolkit.Services.UserSettings;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,13 +7,14 @@ using CoreTests;
 using System.IO;
 using System.Collections;
 using Newtonsoft.Json.Linq;
-using Xarial.XToolkit.Services.UserSettings.Attributes;
+using Xarial.XToolkit.Services.Data.Attributes;
 using NUnit.Framework;
 using Newtonsoft.Json;
+using Xarial.XToolkit.Services.Data;
 
-namespace Xarial.XToolkit.Services.UserSettings.Tests
+namespace Utils.Tests
 {
-    public class UserSettingsServiceTests
+    public class DataSerializerTests
     {
         #region Mocks
 
@@ -24,7 +24,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             public double Field2 { get; set; }
         }
 
-        [UserSettingVersion("2.1.0", typeof(SettsMock2Transformer))]
+        [DataVersion("2.1.0", typeof(SettsMock2Transformer))]
         public class SettsMock2
         {
             public string Field1 { get; set; }
@@ -88,7 +88,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             public IObjectType Obj { get; set; }
         }
 
-        [UserSettingVersion("2.0", typeof(SettsMock5Transformer))]
+        [DataVersion("2.0", typeof(SettsMock5Transformer))]
         public class SettsMock5 
         {
             public string Field1 { get; set; }
@@ -114,6 +114,20 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             public ISettsChild1[] Children { get; set; }
         }
 
+        public enum Enum1_e 
+        {
+            Val1,
+            Val2
+        }
+
+        [DataSerializerOptions(EnumSerializationType_e.Text, DataFormatting_e.Indented)]
+        public class SettsMock7
+        {
+            public string Field1 { get; set; }
+            public SettsChild1_1 Field2 { get; set; }
+            public Enum1_e Field3 { get; set; }
+        }
+
         [KnownKind(typeof(SettsChild1_1), "sc1")]
         [KnownKind(typeof(SettsChild1_2), "sc2")]
         public interface ISettsChild1 
@@ -136,21 +150,21 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         #endregion
 
         [Test]
-        public void ReadSettingsTest()
+        public void ReadTest()
         {
-            var srv1 = new UserSettingsService<SettsMock1>();
-            var srv2 = new UserSettingsService<SettsMock2>();
+            var srv1 = new NsJsonDataSerializer<SettsMock1>();
+            var srv2 = new NsJsonDataSerializer<SettsMock2>();
 
             var mock1 = "{\"Field1\":\"AAA\",\"Field2\":10.0,\"$version\":\"0.0\"}";
             var mock2 = "{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}";
 
-            var setts1 = srv1.ReadSettings(new StringReader(mock1));
-            var setts2 = srv1.ReadSettings(new StringReader(mock2));
-            var setts3 = srv2.ReadSettings(new StringReader(mock2));
-            var setts4 = srv1.ReadSettings(new StringReader(mock1));
-            var setts5 = srv1.ReadSettings(new StringReader(mock2));
-            var setts6 = srv2.ReadSettings(new StringReader(mock1));
-            var setts7 = srv2.ReadSettings(new StringReader(mock2));
+            var setts1 = srv1.Read(new StringReader(mock1));
+            var setts2 = srv1.Read(new StringReader(mock2));
+            var setts3 = srv2.Read(new StringReader(mock2));
+            var setts4 = srv1.Read(new StringReader(mock1));
+            var setts5 = srv1.Read(new StringReader(mock2));
+            var setts6 = srv2.Read(new StringReader(mock1));
+            var setts7 = srv2.Read(new StringReader(mock2));
 
             Assert.AreEqual("AAA", setts1.Field1);
             Assert.AreEqual(10, setts1.Field2);
@@ -173,23 +187,23 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         }
 
         [Test]
-        public void LegacyReadSettingsTest()
+        public void LegacyReadTest()
         {
-            var srv = new UserSettingsService<SettsMock1>();
+            var srv = new NsJsonDataSerializer<SettsMock1>();
 
             var mock = "{\"Field1\":\"XYZ\",\"__version\":\"1.1.0\"}";
 
-            var setts = srv.ReadSettings(new StringReader(mock));
+            var setts = srv.Read(new StringReader(mock));
 
             Assert.AreEqual("XYZ", setts.Field1);
             Assert.AreEqual(default(double), setts.Field2);
         }
 
         [Test]
-        public void WriteSettingsTest()
+        public void WriteTest()
         {
-            var srv1 = new UserSettingsService<SettsMock1>();
-            var srv2 = new UserSettingsService<SettsMock2>();
+            var srv1 = new NsJsonDataSerializer<SettsMock1>();
+            var srv2 = new NsJsonDataSerializer<SettsMock2>();
 
             var setts1 = new SettsMock1()
             {
@@ -207,11 +221,34 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
             var res1 = new StringBuilder();
             var res2 = new StringBuilder();
 
-            srv1.StoreSettings(setts1, new StringWriter(res1));
-            srv2.StoreSettings(setts2, new StringWriter(res2));
+            srv1.Save(setts1, new StringWriter(res1));
+            srv2.Save(setts2, new StringWriter(res2));
 
             Assert.AreEqual("{\"Field1\":\"AAA\",\"Field2\":10.0}", res1.ToString());
             Assert.AreEqual("{\"Field1\":\"BBB\",\"Field3\":12.5,\"Field4\":true,\"$version\":\"2.1.0\"}", res2.ToString());
+        }
+
+        [Test]
+        public void OptionsTest()
+        {
+            var srv1 = new NsJsonDataSerializer<SettsMock7>();
+            
+            var setts1 = new SettsMock7()
+            {
+                Field1 = "A",
+                Field2 = new SettsChild1_1() 
+                {
+                    Par1 = "B",
+                    Par2 = "C"
+                },
+                Field3 = Enum1_e.Val2
+            };
+
+            var res1 = new StringBuilder();
+
+            srv1.Save(setts1, new StringWriter(res1));
+
+            Assert.AreEqual("{\r\n  \"Field1\": \"A\",\r\n  \"Field2\": {\r\n    \"Par1\": \"B\",\r\n    \"Par2\": \"C\"\r\n  },\r\n  \"Field3\": \"Val2\"\r\n}", res1.ToString());
         }
 
         [Test]
@@ -229,10 +266,10 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var ser = new BaseValueSerializer<ObjectType>(x => x.Value, x => new ObjectType() { Value = x });
 
-            var srv = new UserSettingsService<SettsMock3>(ser);
+            var srv = new NsJsonDataSerializer<SettsMock3>(ser);
 
-            srv.StoreSettings(setts, new StringWriter(res1));
-            var res2 = srv.ReadSettings(new StringReader("{\"Obj\":\"ABC\"}"));
+            srv.Save(setts, new StringWriter(res1));
+            var res2 = srv.Read(new StringReader("{\"Obj\":\"ABC\"}"));
 
             Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
             Assert.AreEqual("ABC", res2.Obj.Value);
@@ -253,10 +290,10 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var ser = new BaseValueSerializer<IObjectType>(x => x.Value, x => new ObjectType2() { Value = x });
 
-            var srv = new UserSettingsService<SettsMock4>(ser);
+            var srv = new NsJsonDataSerializer<SettsMock4>(ser);
 
-            srv.StoreSettings(setts, new StringWriter(res1));
-            var res2 = srv.ReadSettings(new StringReader("{\"Obj\":\"ABC\"}"));
+            srv.Save(setts, new StringWriter(res1));
+            var res2 = srv.Read(new StringReader("{\"Obj\":\"ABC\"}"));
 
             Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
             Assert.AreEqual("ABC", res2.Obj.Value);
@@ -274,16 +311,16 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var ser = new BaseValueSerializer<string>(x => "ABC", x => "XYZ");
 
-            var srv = new UserSettingsService<SettsMock2>(ser);
+            var srv = new NsJsonDataSerializer<SettsMock2>(ser);
 
-            srv.StoreSettings(setts, new StringWriter(res1));
-            var res2 = srv.ReadSettings(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}"));
+            srv.Save(setts, new StringWriter(res1));
+            var res2 = srv.Read(new StringReader("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}"));
 
             Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}", res1.ToString());
             Assert.AreEqual("XYZ", res2.Field1);
         }
 
-        private class UserSettingsServiceTransformHandler : UserSettingsService<SettsMock5> 
+        private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5> 
         {
             protected override IVersionsTransformer GetVersionTransformer(IVersionsTransformer src)
             {
@@ -299,7 +336,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var mock1 = "{\"Field1\":\"AAA\",\"$version\":\"1.0\"}";
 
-            var setts1 = srv.ReadSettings(new StringReader(mock1));
+            var setts1 = srv.Read(new StringReader(mock1));
             
             Assert.AreEqual("BBB", setts1.Field1);
         }
@@ -307,7 +344,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void KnowTypesWriteTest() 
         {
-            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownKinds(typeof(SettsMock6)));
+            var srv1 = new NsJsonDataSerializer<SettsMock6>(DataSerializerExtension.GetKnownKinds<SettsMock6>());
 
             var setts1 = new SettsMock6()
             {
@@ -333,7 +370,7 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
 
             var res1 = new StringBuilder();
 
-            srv1.StoreSettings(setts1, new StringWriter(res1));
+            srv1.Save(setts1, new StringWriter(res1));
 
             Assert.AreEqual("{\"Children\":[{\"Par1\":\"A\",\"Par2\":\"B\",\"$kind\":\"sc1\"},{\"Par1\":\"A1\",\"Par3\":\"B1\",\"$kind\":\"sc2\"},{\"Par1\":\"A2\",\"Par2\":\"B2\",\"$kind\":\"sc1\"}]}", res1.ToString());
         }
@@ -341,11 +378,11 @@ namespace Xarial.XToolkit.Services.UserSettings.Tests
         [Test]
         public void KnowTypesReadTest()
         {
-            var srv1 = new UserSettingsService<SettsMock6>(UserSettingsService.GetKnownKinds(typeof(SettsMock6)));
+            var srv1 = new NsJsonDataSerializer<SettsMock6>(DataSerializerExtension.GetKnownKinds<SettsMock6>());
 
             var mock1 = "{\"Children\":[{\"Par1\":\"A\",\"Par2\":\"B\",\"$kind\":\"sc1\"},{\"Par1\":\"A1\",\"Par3\":\"B1\",\"$kind\":\"sc2\"},{\"Par1\":\"A2\",\"Par2\":\"B2\",\"$kind\":\"sc1\"}]}";
 
-            var setts1 = srv1.ReadSettings(new StringReader(mock1));
+            var setts1 = srv1.Read(new StringReader(mock1));
 
             Assert.AreEqual(3, setts1.Children.Length);
             Assert.IsInstanceOf<SettsChild1_1>(setts1.Children[0]);

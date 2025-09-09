@@ -10,10 +10,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Xarial.XToolkit.Services.UserSettings
+namespace Xarial.XToolkit.Services.Data
 {
     /// <summary>
-    /// Service to provide the transformation between versions in <see cref="IUserSettingsService"/>
+    /// Service to provide the transformation between versions in <see cref="IDataSerializer"/>
     /// </summary>
     public interface IVersionsTransformer 
     {

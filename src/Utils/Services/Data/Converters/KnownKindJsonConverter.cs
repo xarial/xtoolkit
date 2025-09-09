@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Xarial.XToolkit.Services.UserSettings.Converters
+namespace Xarial.XToolkit.Services.Data.Converters
 {
     internal class KnownKindJsonConverter : JsonConverter
     {

@@ -12,7 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using Xarial.XToolkit.Services.UserSettings;
+using Xarial.XToolkit.Services.Data;
 
 namespace Xarial.XToolkit.Reflection
 {
@@ -28,9 +28,9 @@ namespace Xarial.XToolkit.Reflection
                 filePath = Path.Combine(workDir, filePath);
             }
 
-            var ser = new UserSettingsService<IReadOnlyDictionary<string, string>>();
+            var ser = new NsJsonDataSerializer<IReadOnlyDictionary<string, string>>();
 
-            return ser.ReadSettings(filePath)
+            return ser.Read(filePath)
                 .ToDictionary(x => new AssemblyName(x.Key), y => y.Value, new AssemblyNameEqualityComparer());
         }
 
