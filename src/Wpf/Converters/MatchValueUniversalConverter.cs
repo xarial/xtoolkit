@@ -18,7 +18,7 @@ namespace Xarial.XToolkit.Wpf.Converters
     {
         public object TargetValue { get; set; }
 
-        protected override bool? ConvertValueToBool(object value)
+        protected override bool? ConvertValueToBool(object value, object parameter)
             => object.Equals(value, TargetValue);
     }
 }

@@ -12,9 +12,21 @@ using System.Windows.Data;
 namespace Xarial.XToolkit.Wpf.Converters
 {
     [ValueConversion(typeof(object), typeof(object))]
-    public class ObjectIsNotNullVisibilityConverter : ObjectIsNotNullUniversalConverter
+    public class ObjectIsOfTypeToVisibilityConverter : BooleanUniversalConverter
     {
         public override object FalseValue => Visibility.Collapsed;
         public override object TrueValue => Visibility.Visible;
+
+        protected override bool? ConvertValueToBool(object value, object parameter)
+        {
+            if (value != null && parameter is Type)
+            {
+                return ((Type)parameter).IsAssignableFrom(value.GetType());
+            }
+            else
+            {
+                return null;
+            }
+        }
     }
 }

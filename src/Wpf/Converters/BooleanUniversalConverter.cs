@@ -22,7 +22,7 @@ namespace Xarial.XToolkit.Wpf.Converters
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var boolVal = ConvertValueToBool(value);
+            var boolVal = ConvertValueToBool(value, parameter);
 
             if (boolVal.HasValue)
             {
@@ -41,7 +41,7 @@ namespace Xarial.XToolkit.Wpf.Converters
             }
         }
 
-        protected virtual bool? ConvertValueToBool(object value) 
+        protected virtual bool? ConvertValueToBool(object value, object parameter) 
         {
             if (value is bool)
             {

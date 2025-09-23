@@ -18,7 +18,7 @@ namespace Xarial.XToolkit.Wpf.Converters
     [ValueConversion(typeof(IEnumerable), typeof(object))]
     public class EnumerableIsNotEmptyUniversalConverter : BooleanUniversalConverter
     {
-        protected override bool? ConvertValueToBool(object value)
+        protected override bool? ConvertValueToBool(object value, object parameter)
             => value is IEnumerable && ((IEnumerable)value).GetEnumerator().MoveNext();
     }
 

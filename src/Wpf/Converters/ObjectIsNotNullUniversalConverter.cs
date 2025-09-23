@@ -17,6 +17,6 @@ namespace Xarial.XToolkit.Wpf.Converters
     [ValueConversion(typeof(object), typeof(object))]
     public class ObjectIsNotNullUniversalConverter : BooleanUniversalConverter
     {
-        protected override bool? ConvertValueToBool(object value) => !(value is null);
+        protected override bool? ConvertValueToBool(object value, object parameter) => !(value is null);
     }
 }
