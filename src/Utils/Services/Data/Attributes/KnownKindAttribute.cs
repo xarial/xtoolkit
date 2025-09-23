@@ -9,7 +9,7 @@ namespace Xarial.XToolkit.Services.Data.Attributes
     /// <summary>
     /// Specifies the known kind for the serialization
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface | AttributeTargets.Property, AllowMultiple = true)]
     public class KnownKindAttribute : Attribute
     {
         internal Type Type { get; }
