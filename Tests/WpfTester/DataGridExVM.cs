@@ -130,6 +130,8 @@ namespace WpfTester
 
         private bool m_ShowColumns;
 
+        public ICommand GetSelectedCellsCommand { get; }
+
         public ICommand AddColumnCommand { get; }
         public ICommand AddColumnAsyncCommand { get; }
 
@@ -217,6 +219,11 @@ namespace WpfTester
 
             AddColumnCommand = new RelayCommand(AddColumn);
             AddColumnAsyncCommand = new RelayCommand(AddColumnAsync);
+            GetSelectedCellsCommand = new RelayCommand<IList<object>>(GetSelectedCells, c => c?.Any() == true);
+        }
+
+        private void GetSelectedCells(IList<object> cells)
+        {
         }
 
         private async void AddColumnAsync()

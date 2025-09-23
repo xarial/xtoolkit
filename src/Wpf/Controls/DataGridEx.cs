@@ -5,6 +5,7 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -28,115 +29,234 @@ namespace Xarial.XToolkit.Wpf.Controls
 	/// </summary>
 	public class DataGridEx : DataGrid
     {
+		/// <summary>
+		/// Event is raised when columns are pre-created
+		/// </summary>
+		/// <remarks>Use this event to change columns (e.g. reorder)</remarks>
 		public event ColumnsPreCreatedDelegate ColumnsPreCreated;
 
-		public static readonly DependencyProperty CellTemplateProperty =
+        /// <summary>
+        /// Generic template for cell
+        /// </summary>
+        public static readonly DependencyProperty CellTemplateProperty =
 			DependencyProperty.Register(
 			nameof(CellTemplate), typeof(DataTemplate),
 			typeof(DataGridEx));
 
+		/// <summary>
+		/// Generic template for cell
+		/// </summary>
 		public DataTemplate CellTemplate
 		{
 			get { return (DataTemplate)GetValue(CellTemplateProperty); }
 			set { SetValue(CellTemplateProperty, value); }
 		}
 
+		/// <summary>
+		/// Generic cell template selector
+		/// </summary>
 		public static readonly DependencyProperty CellTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellTemplateSelector), typeof(DataTemplateSelector),
 			typeof(DataGridEx));
 
-		public DataTemplateSelector CellTemplateSelector
+        /// <summary>
+        /// Generic cell template selector
+        /// </summary>
+        public DataTemplateSelector CellTemplateSelector
 		{
 			get { return (DataTemplateSelector)GetValue(CellTemplateSelectorProperty); }
 			set { SetValue(CellTemplateSelectorProperty, value); }
 		}
 
+		/// <summary>
+		/// Generic cell editing template
+		/// </summary>
 		public static readonly DependencyProperty CellEditingTemplateProperty =
             DependencyProperty.Register(
             nameof(CellEditingTemplate), typeof(DataTemplate),
             typeof(DataGridEx));
 
+        /// <summary>
+        /// Generic cell editing template
+        /// </summary>
         public DataTemplate CellEditingTemplate
         {
             get { return (DataTemplate)GetValue(CellEditingTemplateProperty); }
             set { SetValue(CellEditingTemplateProperty, value); }
         }
 
-		public static readonly DependencyProperty CellEditingTemplateSelectorProperty =
+        /// <summary>
+        /// Generic cell editing template selector
+        /// </summary>
+        public static readonly DependencyProperty CellEditingTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellEditingTemplateSelector), typeof(DataTemplateSelector),
 			typeof(DataGridEx));
 
-		public DataTemplateSelector CellEditingTemplateSelector
+        /// <summary>
+        /// Generic cell editing template selector
+        /// </summary>
+        public DataTemplateSelector CellEditingTemplateSelector
 		{
 			get { return (DataTemplateSelector)GetValue(CellEditingTemplateSelectorProperty); }
 			set { SetValue(CellEditingTemplateSelectorProperty, value); }
 		}
 
+		/// <summary>
+		/// Dynamic columns source
+		/// </summary>
 		public static readonly DependencyProperty ColumnsSourceProperty =
             DependencyProperty.Register(
             nameof(ColumnsSource), typeof(IEnumerable),
             typeof(DataGridEx), new PropertyMetadata(OnColumnsSourcePropertyChanged));
 
+        /// <summary>
+        /// Dynamic columns source
+        /// </summary>
         public IEnumerable ColumnsSource
         {
             get { return (IEnumerable)GetValue(ColumnsSourceProperty); }
             set { SetValue(ColumnsSourceProperty, value); }
         }
 
+		/// <summary>
+		/// Static columns
+		/// </summary>
 		public static readonly DependencyProperty StaticColumnsProperty =
 			DependencyProperty.Register(
 			nameof(StaticColumns), typeof(List<DataGridColumn>),
 			typeof(DataGridEx), new PropertyMetadata(OnStaticColumnsPropertyChanged));
 
-		public List<DataGridColumn> StaticColumns
+        /// <summary>
+        /// Static columns
+        /// </summary>
+        public List<DataGridColumn> StaticColumns
 		{
 			get { return (List<DataGridColumn>)GetValue(StaticColumnsProperty); }
 			set { SetValue(StaticColumnsProperty, value); }
 		}
 
+		/// <summary>
+		/// Selector of the data context for cell
+		/// </summary>
 		public static readonly DependencyProperty CellContentSelectorProperty =
 			DependencyProperty.Register(
 			nameof(CellContentSelector), typeof(ICellContentSelector),
 			typeof(DataGridEx));
 
-		public ICellContentSelector CellContentSelector
+        /// <summary>
+        /// Selector of the data context for cell
+        /// </summary>
+        public ICellContentSelector CellContentSelector
 		{
 			get { return (ICellContentSelector)GetValue(CellContentSelectorProperty); }
 			set { SetValue(CellContentSelectorProperty, value); }
 		}
 
+		/// <summary>
+		/// Generic column header template
+		/// </summary>
 		public static readonly DependencyProperty ColumnHeaderTemplateProperty =
 			DependencyProperty.Register(
 			nameof(ColumnHeaderTemplate), typeof(DataTemplate),
 			typeof(DataGridEx));
 
-		public DataTemplate ColumnHeaderTemplate
+        /// <summary>
+        /// Generic column header template
+        /// </summary>
+        public DataTemplate ColumnHeaderTemplate
 		{
 			get { return (DataTemplate)GetValue(ColumnHeaderTemplateProperty); }
 			set { SetValue(ColumnHeaderTemplateProperty, value); }
 		}
 
-		public static readonly DependencyProperty ColumnHeaderTemplateSelectorProperty =
+        /// <summary>
+        /// Generic column header template selector
+        /// </summary>
+        public static readonly DependencyProperty ColumnHeaderTemplateSelectorProperty =
 			DependencyProperty.Register(
 			nameof(ColumnHeaderTemplateSelector), typeof(DataTemplateSelector),
 			typeof(DataGridEx));
 
-		public DataTemplateSelector ColumnHeaderTemplateSelector
+        /// <summary>
+        /// Generic column header template selector
+        /// </summary>
+        public DataTemplateSelector ColumnHeaderTemplateSelector
 		{
 			get { return (DataTemplateSelector)GetValue(ColumnHeaderTemplateSelectorProperty); }
 			set { SetValue(ColumnHeaderTemplateSelectorProperty, value); }
 		}
 		
+		/// <summary>
+		/// Binding of column visibility
+		/// </summary>
 		public BindingBase ColumnVisibilityBinding { get; set; }
 
-		public DataGridEx() 
+        private static readonly DependencyPropertyKey SelectedCellContentsPropertyKey =
+			DependencyProperty.RegisterReadOnly(
+				nameof(SelectedCellContents),
+				typeof(IList<object>),
+				typeof(DataGridEx),
+				new FrameworkPropertyMetadata(null));
+
+		/// <summary>
+		/// Selected cell contents
+		/// </summary>
+        public static readonly DependencyProperty SelectedCellContentsProperty =
+            SelectedCellContentsPropertyKey.DependencyProperty;
+
+        /// <summary>
+        /// Selected cell contents
+        /// </summary>
+        public IList<object> SelectedCellContents
+        {
+            get => (IList<object>)GetValue(SelectedCellContentsProperty);
+            protected set => SetValue(SelectedCellContentsPropertyKey, value);
+        }
+
+        private DataGridCell GetDataGridCell(DataGridCellInfo cellInfo)
+        {
+            var cellContent = cellInfo.Column.GetCellContent(cellInfo.Item);
+			if (cellContent != null)
+			{
+				return (DataGridCell)cellContent.Parent;
+			}
+			else
+			{
+				return null;
+			}
+        }
+
+		/// <summary>
+		/// Constructor
+		/// </summary>
+        public DataGridEx() 
 		{
 			SetValue(StaticColumnsProperty, new List<DataGridColumn>());
 		}
 
-		private static void OnColumnsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        protected override void OnSelectedCellsChanged(SelectedCellsChangedEventArgs e)
+        {
+            base.OnSelectedCellsChanged(e);
+
+            if (CellContentSelector != null)
+            {
+                var contents = new List<object>();
+
+                if (SelectedCells != null)
+                {
+                    foreach (DataGridCellInfo cellInfo in SelectedCells)
+                    {
+                        contents.Add(CellContentSelector.SelectContent(cellInfo.Item, cellInfo.Column, GetDataGridCell(cellInfo)));
+                    }
+                }
+
+                SelectedCellContents = contents;
+            }
+        }
+
+        private static void OnColumnsSourcePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
 		{
 			var dataGrid = (DataGridEx)d;
 			dataGrid.Dispatcher.Invoke(() =>
