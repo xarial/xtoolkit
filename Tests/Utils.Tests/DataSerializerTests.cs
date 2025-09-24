@@ -78,7 +78,7 @@ namespace Utils.Tests
             }
         }
 
-        public class SettsMock3 
+        public class SettsMock3
         {
             public ObjectType Obj { get; set; }
         }
@@ -89,12 +89,12 @@ namespace Utils.Tests
         }
 
         [DataVersion("2.0", typeof(SettsMock5Transformer))]
-        public class SettsMock5 
+        public class SettsMock5
         {
             public string Field1 { get; set; }
         }
 
-        public interface IObjectType 
+        public interface IObjectType
         {
             string Value { get; set; }
         }
@@ -109,18 +109,18 @@ namespace Utils.Tests
             public string Value { get; set; }
         }
 
-        public class SettsMock6 
+        public class SettsMock6
         {
             public ISettsChild1[] Children { get; set; }
         }
 
-        public enum Enum1_e 
+        public enum Enum1_e
         {
             Val1,
             Val2
         }
 
-        [DataSerializerOptions(EnumSerializationType_e.Text, DataFormatting_e.Indented)]
+        [DataSerializerOptions(EnumSerializationType_e.Text, DataFormatting_e.Indented, NullValueHandling_e.Include)]
         public class SettsMock7
         {
             public string Field1 { get; set; }
@@ -130,7 +130,7 @@ namespace Utils.Tests
 
         [KnownKind(typeof(SettsChild1_1), "sc1")]
         [KnownKind(typeof(SettsChild1_2), "sc2")]
-        public interface ISettsChild1 
+        public interface ISettsChild1
         {
             string Par1 { get; }
         }
@@ -145,6 +145,32 @@ namespace Utils.Tests
         {
             public string Par1 { get; set; }
             public string Par3 { get; set; }
+        }
+
+        public class SettsMock8
+        {
+            public SettsChild2[] Children { get; set; }
+        }
+
+        public class SettsChild2 
+        {
+            public string Val { get; set; }
+
+            [KnownKind(typeof(SettsSubChild1_1), "sc1")]
+            [KnownKind(typeof(SettsSubChild1_2), "sc2")]
+            public ISettsSubChild1 SubChild { get; set; }
+        }
+
+        public interface ISettsSubChild1 
+        {
+        }
+
+        public class SettsSubChild1_1 : ISettsSubChild1
+        {
+        }
+
+        public class SettsSubChild1_2 : ISettsSubChild1
+        {
         }
 
         #endregion
@@ -232,11 +258,11 @@ namespace Utils.Tests
         public void OptionsTest()
         {
             var srv1 = new NsJsonDataSerializer<SettsMock7>();
-            
+
             var setts1 = new SettsMock7()
             {
                 Field1 = "A",
-                Field2 = new SettsChild1_1() 
+                Field2 = new SettsChild1_1()
                 {
                     Par1 = "B",
                     Par2 = "C"
@@ -252,7 +278,7 @@ namespace Utils.Tests
         }
 
         [Test]
-        public void CustomConverterTest() 
+        public void CustomConverterTest()
         {
             var setts = new SettsMock3()
             {
@@ -320,7 +346,7 @@ namespace Utils.Tests
             Assert.AreEqual("XYZ", res2.Field1);
         }
 
-        private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5> 
+        private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5>
         {
             protected override IVersionsTransformer GetVersionTransformer(IVersionsTransformer src)
             {
@@ -330,25 +356,25 @@ namespace Utils.Tests
         }
 
         [Test]
-        public void TransformHandlerTest() 
+        public void TransformHandlerTest()
         {
             var srv = new UserSettingsServiceTransformHandler();
 
             var mock1 = "{\"Field1\":\"AAA\",\"$version\":\"1.0\"}";
 
             var setts1 = srv.Read(new StringReader(mock1));
-            
+
             Assert.AreEqual("BBB", setts1.Field1);
         }
 
         [Test]
-        public void KnowTypesWriteTest() 
+        public void KnowTypesWriteTest()
         {
             var srv1 = new NsJsonDataSerializer<SettsMock6>(DataSerializerExtension.GetKnownKinds<SettsMock6>());
 
             var setts1 = new SettsMock6()
             {
-                Children = new ISettsChild1[] 
+                Children = new ISettsChild1[]
                 {
                     new SettsChild1_1()
                     {
@@ -394,6 +420,52 @@ namespace Utils.Tests
             Assert.IsInstanceOf<SettsChild1_1>(setts1.Children[2]);
             Assert.AreEqual("A2", ((SettsChild1_1)setts1.Children[2]).Par1);
             Assert.AreEqual("B2", ((SettsChild1_1)setts1.Children[2]).Par2);
+        }
+
+        [Test]
+        public void KnowTypesNullTest()
+        {
+            var srv1 = new NsJsonDataSerializer<SettsMock6>(DataSerializerExtension.GetKnownKinds<SettsMock6>());
+
+            var mock1 = "{}";
+
+            var setts1 = srv1.Read(new StringReader(mock1));
+
+            var setts2 = new SettsMock6();
+
+            var res1 = new StringBuilder();
+
+            srv1.Save(setts2, new StringWriter(res1));
+            
+            var srv2 = new NsJsonDataSerializer<SettsMock8>(DataSerializerExtension.GetKnownKinds<SettsMock8>());
+
+            var setts3 = new SettsMock8()
+            {
+                Children = new SettsChild2[] 
+                {
+                    new SettsChild2()
+                    {
+                        Val = "1"
+                    }
+                }
+            };
+
+            var res2 = new StringBuilder();
+
+            srv2.Save(setts3, new StringWriter(res2));
+
+            var mock2 = "{\"Children\":[{\"Val\":\"1\"}]}";
+
+            var setts4 = srv2.Read(new StringReader(mock2));
+
+            Assert.IsNotNull(setts1);
+            Assert.IsNull(setts1.Children);
+            Assert.AreEqual("{\"Children\":null}", res1.ToString());
+            Assert.AreEqual("{\"Children\":[{\"Val\":\"1\",\"SubChild\":null}]}", res2.ToString());
+            Assert.IsNotNull(setts4);
+            Assert.AreEqual(1, setts4.Children.Length);
+            Assert.AreEqual("1", setts4.Children[0].Val);
+            Assert.IsNull(setts4.Children[0].SubChild);
         }
     }
 }

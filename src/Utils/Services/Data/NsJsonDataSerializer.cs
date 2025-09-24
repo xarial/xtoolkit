@@ -101,6 +101,20 @@ namespace Xarial.XToolkit.Services.Data
                 {
                     ser.Converters.Add(new StringEnumConverter());
                 }
+
+                switch (att.NullValueHandling) 
+                {
+                    case NullValueHandling_e.Include:
+                        ser.NullValueHandling = NullValueHandling.Include;
+                        break;
+
+                    case NullValueHandling_e.Ignore:
+                        ser.NullValueHandling = NullValueHandling.Ignore;
+                        break;
+
+                    default:
+                        throw new NotSupportedException();
+                }
             }
 
             return ser;

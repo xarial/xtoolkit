@@ -39,6 +39,22 @@ namespace Xarial.XToolkit.Services.Data.Attributes
     }
 
     /// <summary>
+    /// Null object value handling option in the <see cref="IDataSerializer"/>
+    /// </summary>
+    public enum NullValueHandling_e
+    {
+        /// <summary>
+        /// Include null objects
+        /// </summary>
+        Include,
+        
+        /// <summary>
+        /// Ignore null objects
+        /// </summary>
+        Ignore
+    }
+
+    /// <summary>
     /// Options of <see cref="IDataSerializer"/>
     /// </summary>
     /// <remarks>Decorate data class with this attribute to define options</remarks>
@@ -56,14 +72,28 @@ namespace Xarial.XToolkit.Services.Data.Attributes
         public DataFormatting_e Formatting { get; set; }
 
         /// <summary>
+        /// Null object value handling
+        /// </summary>
+        public NullValueHandling_e NullValueHandling { get; set; }
+
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        public DataSerializerOptionsAttribute() 
+        {
+        }
+
+        /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="enumSerialization">Defines how the enum should be serialized</param>
         /// <param name="formatting">Data formatting</param>
-        public DataSerializerOptionsAttribute(EnumSerializationType_e enumSerialization, DataFormatting_e formatting) 
+        /// <param name="nullValHandling">Null object value handling</param>
+        public DataSerializerOptionsAttribute(EnumSerializationType_e enumSerialization, DataFormatting_e formatting, NullValueHandling_e nullValHandling) 
         {
             EnumSerialization = enumSerialization;
             Formatting = formatting;
+            NullValueHandling = nullValHandling;
         }
     }
 }

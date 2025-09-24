@@ -46,24 +46,33 @@ namespace Xarial.XToolkit.Services.Data.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            var jObj = JObject.Load(reader);
-
-            if (jObj.TryGetValue(KIND_NODE_NAME, out var jKind))
+            switch (reader.TokenType) 
             {
-                var kind = jKind.Value<string>();
+                case JsonToken.Null:
+                    return null;
 
-                if (m_KindToKnownTypeMap.TryGetValue(kind, out var type))
-                {
-                    return jObj.ToObject(type);
-                }
-                else
-                {
-                    throw new Exception($"Unknown kind '{kind}' for {objectType?.FullName}");
-                }
-            }
-            else
-            {
-                throw new Exception($"Kind is not found for {objectType?.FullName}");
+                case JsonToken.StartObject:
+                    var jObj = JObject.Load(reader);
+
+                    if (jObj.TryGetValue(KIND_NODE_NAME, out var jKind))
+                    {
+                        var kind = jKind.Value<string>();
+
+                        if (m_KindToKnownTypeMap.TryGetValue(kind, out var type))
+                        {
+                            return jObj.ToObject(type);
+                        }
+                        else
+                        {
+                            throw new Exception($"Unknown kind '{kind}' for {objectType?.FullName}");
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception($"Kind is not found for {objectType?.FullName}");
+                    }
+                default:
+                    throw new NotSupportedException();
             }
         }
 
