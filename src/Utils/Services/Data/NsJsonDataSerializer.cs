@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ConstrainedExecution;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Services.Data.Attributes;
 using Xarial.XToolkit.Services.Data.Converters;
@@ -41,31 +42,24 @@ namespace Xarial.XToolkit.Services.Data
         /// <param name="settsType">Type of settings</param>
         /// <param name="knownKinds">Known kinds for serialization</param>
         /// <param name="serializers">Custom serializers</param>
-        public NsJsonDataSerializer(Type settsType, IReadOnlyDictionary<Type, string> knownKinds, params IValueSerializer[] serializers)
+        public NsJsonDataSerializer(Type settsType, IReadOnlyDictionary<Type, string> knownKinds, params IValueSerializer[] serializers) : this(settsType, knownKinds, new JsonSerializer(), serializers)
+        {
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="settsType">Type of settings</param>
+        /// <param name="knownKinds">Known kinds for serialization</param>
+        /// <param name="jsonSer">Json serializer</param>
+        /// <param name="serializers">Custom serializers</param>
+        public NsJsonDataSerializer(Type settsType, IReadOnlyDictionary<Type, string> knownKinds, JsonSerializer jsonSer, params IValueSerializer[] serializers)
         {
             DataType = settsType;
 
-            m_JsonSer = CreateJsonSerializer();
+            m_JsonSer = jsonSer;
 
-            if (TryGetVersionInfo(DataType, out Version vers, out IVersionsTransformer transform))
-            {
-                transform = GetVersionTransformer(transform);
-
-                m_JsonSer.Converters.Add(new SettingsJsonConverter(DataType, transform?.Transforms ?? Array.Empty<VersionTransform>(), vers));
-            }
-
-            if (serializers != null)
-            {
-                foreach (var ser in serializers)
-                {
-                    m_JsonSer.Converters.Add(new CustomSerializerJsonConverter(ser));
-                }
-            }
-
-            if (knownKinds?.Any() == true)
-            {
-                m_JsonSer.Converters.Add(new KnownKindJsonConverter(knownKinds));
-            }
+            SetupJsonSerializer(jsonSer, settsType, knownKinds, serializers);
         }
 
         /// <summary>
@@ -84,32 +78,30 @@ namespace Xarial.XToolkit.Services.Data
             => m_JsonSer.Serialize(settsWriter, setts, DataType);
 
         /// <summary>
-        /// Override to provide custom JSON serializer
+        /// Sets up json serializer
         /// </summary>
-        protected virtual JsonSerializer CreateJsonSerializer()
+        protected virtual void SetupJsonSerializer(JsonSerializer jsonSer, Type settsType, IReadOnlyDictionary<Type, string> knownKinds, IValueSerializer[] serializers)
         {
-            var ser = new JsonSerializer();
-
-            if (DataType.TryGetAttribute(out DataSerializerOptionsAttribute att, true))
+            if (settsType.TryGetAttribute(out DataSerializerOptionsAttribute att, true))
             {
-                if (att.Formatting == DataFormatting_e.Indented) 
+                if (att.Formatting == DataFormatting_e.Indented)
                 {
-                    ser.Formatting = Formatting.Indented;
+                    jsonSer.Formatting = Formatting.Indented;
                 }
 
-                if (att.EnumSerialization == EnumSerializationType_e.Text) 
+                if (att.EnumSerialization == EnumSerializationType_e.Text)
                 {
-                    ser.Converters.Add(new StringEnumConverter());
+                    jsonSer.Converters.Add(new StringEnumConverter());
                 }
 
-                switch (att.NullValueHandling) 
+                switch (att.NullValueHandling)
                 {
                     case NullValueHandling_e.Include:
-                        ser.NullValueHandling = NullValueHandling.Include;
+                        jsonSer.NullValueHandling = NullValueHandling.Include;
                         break;
 
                     case NullValueHandling_e.Ignore:
-                        ser.NullValueHandling = NullValueHandling.Ignore;
+                        jsonSer.NullValueHandling = NullValueHandling.Ignore;
                         break;
 
                     default:
@@ -117,7 +109,25 @@ namespace Xarial.XToolkit.Services.Data
                 }
             }
 
-            return ser;
+            if (TryGetVersionInfo(settsType, out Version vers, out IVersionsTransformer transform))
+            {
+                transform = GetVersionTransformer(transform);
+
+                jsonSer.Converters.Add(new SettingsJsonConverter(settsType, transform?.Transforms ?? Array.Empty<VersionTransform>(), vers));
+            }
+
+            if (serializers != null)
+            {
+                foreach (var ser in serializers)
+                {
+                    jsonSer.Converters.Add(new CustomSerializerJsonConverter(ser));
+                }
+            }
+
+            if (knownKinds?.Any() == true)
+            {
+                jsonSer.Converters.Add(new KnownKindJsonConverter(knownKinds));
+            }
         }
 
         private bool TryGetVersionInfo(Type settsType, out Version vers, out IVersionsTransformer transforms)
