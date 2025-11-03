@@ -164,6 +164,11 @@ namespace Xarial.XToolkit.Services.Data
         }
 
         /// <inheritdoc/>
+        public NsJsonDataSerializer(IReadOnlyDictionary<Type, string> knownKinds, JsonSerializer jsonSer, params IValueSerializer[] serializers) : base(typeof(T), knownKinds, jsonSer, serializers)
+        {
+        }
+
+        /// <inheritdoc/>
         public void Save(T setts, TextWriter settsWriter) => base.Save(setts, settsWriter);
     }
 }
