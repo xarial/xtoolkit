@@ -79,7 +79,7 @@ namespace Xarial.XToolkit.Services.Data.Converters
                             .Where(t => t.From >= version && t.To <= latestVersion)
                             .OrderBy(t => t.From))
                         {
-                            jObj = (JObject)tr.Transform(jObj);
+                            jObj = tr.Transform(jObj);
                         }
                     }
                 }

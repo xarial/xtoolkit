@@ -45,12 +45,12 @@ namespace Utils.Tests
                 m_Transforms.Add(new VersionTransform(
                     new Version(),
                     new Version("2.1.0"),
-                    t =>
+                    o =>
                     {
-                        var field2 = t.Children<JProperty>().First(p => p.Name == "Field2");
+                        var field2 = o.Children<JProperty>().First(p => p.Name == "Field2");
 
-                        field2.Replace(new JProperty("Field3", (field2 as JProperty).Value));
-                        return t;
+                        field2.Replace(new JProperty("Field3", field2.Value));
+                        return o;
                     }));
             }
         }
@@ -69,12 +69,12 @@ namespace Utils.Tests
                 m_Transforms.Add(new VersionTransform(
                     new Version("1.0"),
                     new Version("2.0"),
-                    t =>
+                    o =>
                     {
-                        var field1 = t.Children<JProperty>().First(p => p.Name == "Field1");
+                        var field1 = o.Children<JProperty>().First(p => p.Name == "Field1");
                         field1.Value = new JValue(NewValue);
 
-                        return t;
+                        return o;
                     }));
             }
         }
@@ -184,21 +184,21 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.0.0"), new Version("2.0.0"),
-                    t =>
+                    o =>
                     {
-                        var prp1 = ((JObject)t).Property("_Field1");
+                        var prp1 = o.Property("_Field1");
                         prp1.Replace(new JProperty("Field1", prp1.Value));
 
-                        var prp2 = ((JObject)t).Property("_Field2");
+                        var prp2 = o.Property("_Field2");
                         prp2.Replace(new JProperty("Field2", prp2.Value));
 
-                        var prp3 = ((JObject)t).Property("_Field2_1");
+                        var prp3 = o.Property("_Field2_1");
                         prp3.Replace(new JProperty("Field2_1", prp3.Value));
 
-                        var prp4 = ((JObject)t).Property("_Field3");
+                        var prp4 = o.Property("_Field3");
                         prp4.Replace(new JProperty("Field3", prp4.Value));
 
-                        return t;
+                        return o;
                     })
                 };
             }
@@ -213,12 +213,12 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version(), new Version("2.1.0"),
-                    t =>
+                    o =>
                     {
-                        var prp1 = ((JObject)t).Property("__Value");
+                        var prp1 = o.Property("__Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        return t;
+                        return o;
                     })
                 };
             }
@@ -233,15 +233,15 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.0.0"), new Version("2.2.0"),
-                    t =>
+                    o =>
                     {
-                        var prp1 = ((JObject)t).Property("__Value");
+                        var prp1 = o.Property("__Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        var prp2 = ((JObject)t).Property("_Value1");
+                        var prp2 = o.Property("_Value1");
                         prp2.Replace(new JProperty("Value1", prp2.Value));
 
-                        return t;
+                        return o;
                     })
                 };
             }
@@ -256,19 +256,19 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.1.0"), new Version("2.3.0"),
-                    t =>
+                    o =>
                     {
-                        var prp1 = ((JObject)t).Property("_Value");
+                        var prp1 = o.Property("_Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        var prp2 = ((JObject)t).Property("_Child");
+                        var prp2 = o.Property("_Child");
                         
                         if(prp2 != null)
                         {
                             prp2.Replace(new JProperty("Child", prp2.Value));
                         }
 
-                        return t;
+                        return o;
                     })
                 };
             }
@@ -283,12 +283,12 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.0.0"), new Version("2.4.0"),
-                    t =>
+                    o =>
                     {
-                        var prp1 = ((JObject)t).Property("_Value");
+                        var prp1 = o.Property("_Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        return t;
+                        return o;
                     })
                 };
             }

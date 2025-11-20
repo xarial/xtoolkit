@@ -26,7 +26,7 @@ namespace Xarial.XToolkit.Services.Data
         /// </summary>
         public Version To { get; }
 
-        private readonly Func<JToken, JToken> m_Transform;
+        private readonly Func<JObject, JObject> m_Transform;
 
         /// <summary>
         /// Constructor
@@ -35,7 +35,7 @@ namespace Xarial.XToolkit.Services.Data
         /// <param name="to">Version ot transform to</param>
         /// <param name="transform">Transfomr instruction</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public VersionTransform(Version from, Version to, Func<JToken, JToken> transform)
+        public VersionTransform(Version from, Version to, Func<JObject, JObject> transform)
         {
             if (from == null)
             {
@@ -57,6 +57,6 @@ namespace Xarial.XToolkit.Services.Data
             m_Transform = transform;
         }
 
-        internal JToken Transform(JToken input) => m_Transform.Invoke(input);
+        internal JObject Transform(JObject input) => m_Transform.Invoke(input);
     }
 }

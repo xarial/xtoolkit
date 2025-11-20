@@ -49,18 +49,18 @@ Namespace Utils.Docs
             Public Sub New()
                 Transforms = New VersionTransform() {
                     New VersionTransform(New Version("1.0.0"), New Version("2.0.0"),
-                                         Function(t)
-                                             Dim field1 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field1")
-                                             field1.Replace(New JProperty("TextField", (TryCast(field1, JProperty)).Value))
-                                             Return t
+                                         Function(o)
+                                             Dim field1 = o.Property("Field1")
+                                             field1.Replace(New JProperty("TextField", field1.Value))
+                                             Return o
                                          End Function),
                     New VersionTransform(New Version("2.0.0"), New Version("3.0.0"),
-                                         Function(t)
-                                             Dim field2 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field2")
-                                             field2.Replace(New JProperty("DoubleField", (TryCast(field2, JProperty)).Value))
-                                             Dim field3 = t.Children(Of JProperty)().First(Function(p) p.Name = "Field3")
-                                             field3.Replace(New JProperty("BoolField", (TryCast(field3, JProperty)).Value))
-                                             Return t
+                                         Function(o)
+                                             Dim field2 = o.Property("Field2")
+                                             field2.Replace(New JProperty("DoubleField", field2.Value))
+                                             Dim field3 = o.Property("Field3")
+                                             field3.Replace(New JProperty("BoolField", field3.Value))
+                                             Return o
                                          End Function)}
             End Sub
 
