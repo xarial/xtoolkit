@@ -419,7 +419,36 @@
                     <ctrls:ColorPicker Color="{Binding Path=Color}" RemoveColorButtonTooltip="Set To Default" UnsetColorTitle="&lt;Default&gt;" UnsetColorForeground="Green"/>
                 </StackPanel>
             </TabItem>
-
+            <TabItem Header="WatermarkTextBox">
+                <StackPanel DataContext="{Binding Path=WatermarkTextBox}" Orientation="Vertical">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ctrls:WatermarkTextBox Watermark="{Binding Path=Watermark}"
+                                                WatermarkForeground="{Binding Path=Foreground}"
+                                                WatermarkOpacity="{Binding Path=Opacity}"
+                                                WatermarkMargin="{Binding Path=Margin}"
+                                                WatermarkFontStyle="{Binding Path=FontStyle}"
+                                                Margin="5"/>
+                        <Button Grid.Column="1" Margin="2" Command="{Binding Path=UpdateCommand}">
+                            <TextBlock Text="Update" Margin="2"/>
+                        </Button>
+                    </Grid>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ctrls:WatermarkTextBox FontFamily="Arial Black" Watermark="Some Watermark" Visibility="{Binding Path=Visibility}" Margin="5"/>
+                        <Button Grid.Column="1" Margin="2" Command="{Binding Path=HideShowCommand}">
+                            <TextBlock Text="Hide/Show" Margin="2"/>
+                        </Button>
+                    </Grid>
+                    <ctrls:WatermarkTextBox Watermark="Default Watermark Style" Margin="5"/>
+                </StackPanel>
+            </TabItem>
         </TabControl>
         <Button Grid.Row="1" Margin="5" Width="100" Click="OnButtonClick">
             <TextBlock Text="Test" Margin="5"/>

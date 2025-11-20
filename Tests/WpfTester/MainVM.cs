@@ -22,6 +22,7 @@ namespace WpfTester
         public ExpressionBoxVM ExpressionBox { get; }
         public PasswordBoxExVM PasswordBoxEx { get; }
         public ColorPickerVM ColorPicker { get; }
+        public WatermarkTextBoxVM WatermarkTextBox { get; }
 
         public MainVM() 
         {
@@ -39,6 +40,7 @@ namespace WpfTester
             ExpressionBox = new ExpressionBoxVM();
             PasswordBoxEx = new PasswordBoxExVM();
             ColorPicker = new ColorPickerVM();
+            WatermarkTextBox = new WatermarkTextBoxVM();
         }
     }
 }
