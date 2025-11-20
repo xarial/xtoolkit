@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XToolkit.Reflection;
@@ -12,49 +13,14 @@ namespace Xarial.XToolkit.Services.Data.Converters
 {
     internal class NsJsonDataSerializerJsonConverter : JsonConverter
     {
-        private class VersionTransformInfo1
+        private readonly KnownKindManager m_KnownKindMgr;
+        private readonly VersionTransformManager m_VersionTransformsMgr;
+
+        internal NsJsonDataSerializerJsonConverter(KnownKindManager knownKindMgr, VersionTransformManager versTransMgr)
         {
-            internal Version LatestVersion { get; }
-            internal IVersionsTransformer Transformer { get; }
+            m_KnownKindMgr = knownKindMgr;
 
-            internal VersionTransformInfo1(Version latestVersion, IVersionsTransformer transformer)
-            {
-                LatestVersion = latestVersion;
-                Transformer = transformer;
-            }
-        }
-
-        protected string VERSION_NODE_NAME = "$version";
-        protected string LEGACY_VERSION_NODE_NAME = "__version";
-        private const string KIND_NODE_NAME = "$kind";
-
-        private readonly IReadOnlyDictionary<Type, string> m_KnownTypeToKindMap;
-        private readonly IReadOnlyDictionary<string, Type> m_KindToKnownTypeMap;
-
-        private readonly Dictionary<Type, VersionTransformInfo1> m_VersionTransforms;
-
-        private readonly Func<IVersionsTransformer, IVersionsTransformer> m_TransformerAdapter;
-
-        internal NsJsonDataSerializerJsonConverter(IReadOnlyDictionary<Type, string> knownKinds, Func<IVersionsTransformer, IVersionsTransformer> transformerAdapter)
-        {
-            if (knownKinds == null) 
-            {
-                knownKinds = new Dictionary<Type, string>();
-            }
-
-            m_KnownTypeToKindMap = knownKinds;
-
-            var dupKnownKinds = knownKinds.Values.GroupBy(x => x).Where(x => x.Count() > 1).Select(x => x.Key).ToArray();
-
-            if (dupKnownKinds.Any())
-            {
-                throw new Exception($"Duplicate know kinds {string.Join(", ", dupKnownKinds)}");
-            }
-
-            m_KindToKnownTypeMap = knownKinds?.ToDictionary(x => x.Value, x => x.Key);
-
-            m_TransformerAdapter = transformerAdapter;
-            m_VersionTransforms = new Dictionary<Type, VersionTransformInfo1>();
+            m_VersionTransformsMgr = versTransMgr;
         }
 
         public override bool CanWrite => false;
@@ -74,66 +40,75 @@ namespace Xarial.XToolkit.Services.Data.Converters
                 case JsonToken.StartObject:
                     var jObj = JObject.Load(reader);
 
-                    Version version;
+                    jObj = Upgrade(jObj, objectType);
 
-                    if (jObj.TryGetValue(VERSION_NODE_NAME, out var jVersion)
-                        || jObj.TryGetValue(LEGACY_VERSION_NODE_NAME, out jVersion))
+                    if (!TryGetKindType(jObj, out var type))
                     {
-                        version = Version.Parse(jVersion.Value<string>());
-                    }
-                    else
-                    {
-                        version = new Version();
+                        type = objectType;
                     }
 
-                    if (!m_VersionTransforms.TryGetValue(objectType, out var versTransInfo))
-                    {
-                        if (TryGetVersionInfo(objectType, out var vers, out var transformer))
-                        {
-                            transformer = m_TransformerAdapter.Invoke(transformer);
-                            versTransInfo = new VersionTransformInfo1(vers, transformer);
-                        }
-                        else
-                        {
-                            versTransInfo = null;
-                        }
+                    return CreateInstance(jObj, type, serializer);
 
-                        m_VersionTransforms.Add(objectType, versTransInfo);
-                    }
-
-                    if (versTransInfo.LatestVersion > version)
-                    {
-                        if (versTransInfo.Transformer?.Transforms != null)
-                        {
-                            foreach (var tr in versTransInfo.Transformer?.Transforms
-                                .Where(t => t.From >= version && t.To <= versTransInfo.LatestVersion)
-                                .OrderBy(t => t.From))
-                            {
-                                jObj = (JObject)tr.Transform(jObj);
-                            }
-                        }
-                    }
-
-                    if (jObj.TryGetValue(KIND_NODE_NAME, out var jKind))
-                    {
-                        var kind = jKind.Value<string>();
-
-                        if (m_KindToKnownTypeMap.TryGetValue(kind, out var type))
-                        {
-                            return CreateInstance(jObj, type, serializer);
-                        }
-                        else
-                        {
-                            throw new Exception($"Unknown kind '{kind}' for {objectType?.FullName}");
-                        }
-                    }
-                    else
-                    {
-                        return CreateInstance(jObj, objectType, serializer);
-                    }
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private JObject Upgrade(JObject jObj, Type objectType)
+        {
+            Version version;
+
+            if (jObj.TryGetValue(VersionTransformManager.VERSION_NODE_NAME, out var jVersion)
+                || jObj.TryGetValue(VersionTransformManager.LEGACY_VERSION_NODE_NAME, out jVersion))
+            {
+                version = Version.Parse(jVersion.Value<string>());
+            }
+            else
+            {
+                version = new Version();
+            }
+
+            if ((TryGetKindType(jObj, out var kindType) && m_VersionTransformsMgr.TryGetVersionTransformInfo(kindType, out var latestVersion, out var transformer)) 
+                || (kindType != objectType && m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out latestVersion, out transformer)))
+            {
+                if (latestVersion > version)
+                {
+                    if (transformer?.Transforms != null)
+                    {
+                        foreach (var tr in transformer?.Transforms
+                            .Where(t => t.From >= version && t.To <= latestVersion)
+                            .OrderBy(t => t.From))
+                        {
+                            jObj = (JObject)tr.Transform(jObj);
+                        }
+                    }
+                }
+            }
+
+            return jObj;
+        }
+
+        private bool TryGetKindType(JObject jObj, out Type type) 
+        {
+            if (jObj.TryGetValue(KnownKindManager.KIND_NODE_NAME, out var jKind) && (jKind.Type != JTokenType.Null))
+            {
+                var kind = jKind.Value<string>();
+
+                if (!string.IsNullOrEmpty(kind))
+                {
+                    if (m_KnownKindMgr.TryGetType(kind, out type))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        throw new Exception($"Unknown kind '{kind}'");
+                    }
+                }
+            }
+
+            type = null;
+            return false;
         }
 
         private object CreateInstance(JObject jObj, Type type, JsonSerializer serializer)
@@ -145,38 +120,7 @@ namespace Xarial.XToolkit.Services.Data.Converters
 
         public override bool CanConvert(Type objectType)
         {
-            if (!m_VersionTransforms.TryGetValue(objectType, out var versTransInfo))
-            {
-                if (TryGetVersionInfo(objectType, out var vers, out var transformer))
-                {
-                    transformer = m_TransformerAdapter.Invoke(transformer);
-                    versTransInfo = new VersionTransformInfo1(vers, transformer);
-                }
-                else
-                {
-                    versTransInfo = null;
-                }
-
-                m_VersionTransforms.Add(objectType, versTransInfo);
-            }
-
-            return versTransInfo != null || m_KnownTypeToKindMap.Keys.Any(t => objectType.IsAssignableFrom(t));
-        }
-
-        private bool TryGetVersionInfo(Type type, out Version vers, out IVersionsTransformer transforms)
-        {
-            if (type.TryGetAttribute(out DataVersionAttribute att, true))
-            {
-                vers = att.Version;
-                transforms = att.VersionTransformer;
-                return true;
-            }
-            else
-            {
-                vers = null;
-                transforms = null;
-                return false;
-            }
+            return m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out _, out _) || m_KnownKindMgr.IsOfKind(objectType);
         }
     }
 }

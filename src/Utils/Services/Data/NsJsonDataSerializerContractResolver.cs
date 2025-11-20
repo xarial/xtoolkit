@@ -10,55 +10,45 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xarial.XToolkit.Reflection;
-using Xarial.XToolkit.Services.Data.Attributes;
+using Xarial.XToolkit.Services.Data.Converters;
 
 namespace Xarial.XToolkit.Services.Data
 {
+    /// <summary>
+    /// Contract resolver of <see cref="NsJsonDataSerializer"/>
+    /// </summary>
     public class NsJsonDataSerializerContractResolver : DefaultContractResolver
     {
-        //internal class VersionTransformInfo 
-        //{
-        //    internal Version LatestVersion { get; }
-        //    internal IVersionsTransformer Transformer { get; }
-
-        //    internal VersionTransformInfo(Version latestVersion, IVersionsTransformer transformer)
-        //    {
-        //        LatestVersion = latestVersion;
-        //        Transformer = transformer;
-        //    }
-        //}
-
         private class VersionValueProvider : IValueProvider
         {
             private readonly Version m_Version;
 
-            internal VersionValueProvider(Version version) 
+            internal VersionValueProvider(Version version)
             {
                 m_Version = version;
             }
 
-            public object GetValue(object target) => m_Version.ToString();
+            public object GetValue(object target) => new NsJsonDataSerializerSpecialValue(m_Version.ToString());
 
             public void SetValue(object target, object value) => throw new NotImplementedException();
         }
 
         private class KindValueProvider : IValueProvider
         {
-            private IReadOnlyDictionary<Type, string> m_KnownKinds;
+            private readonly KnownKindManager m_KnownKindMgr;
 
-            internal KindValueProvider(IReadOnlyDictionary<Type, string> knownKinds)
+            internal KindValueProvider(KnownKindManager knownKindMgr)
             {
-                m_KnownKinds = knownKinds;
+                m_KnownKindMgr = knownKindMgr;
             }
 
             public object GetValue(object target)
             {
-                if (target != null) 
+                if (target != null)
                 {
-                    if (m_KnownKinds.TryGetValue(target.GetType(), out var kind)) 
+                    if (m_KnownKindMgr.TryGetKind(target.GetType(), out var kind))
                     {
-                        return kind;
+                        return new NsJsonDataSerializerSpecialValue(kind);
                     }
                 }
 
@@ -68,125 +58,96 @@ namespace Xarial.XToolkit.Services.Data
             public void SetValue(object target, object value) => throw new NotImplementedException();
         }
 
-        //internal IReadOnlyDictionary<Type, VersionTransformInfo> VersionTransformers => m_VersionTransformers;
-        //internal IReadOnlyDictionary<Type, IList<JsonProperty>> Properties => m_PrpsCache;
-        //internal IReadOnlyDictionary<Type, Type> CollectionItemTypes => m_CollectionItemTypes;
-
-        //private Dictionary<Type, VersionTransformInfo> m_VersionTransformers;
-
-        //private readonly Dictionary<Type, IList<JsonProperty>> m_PrpsCache;
-
-        private IReadOnlyDictionary<Type, string> m_KnownKinds;
-        //private readonly Dictionary<Type, Type> m_CollectionItemTypes;
-
-        internal NsJsonDataSerializerContractResolver(IReadOnlyDictionary<Type, string> knownKinds)
+        /// <summary>
+        /// Special value
+        /// </summary>
+        /// <remarks>This is used to avoid conflicts with other custom <see cref="IValueSerializer"/></remarks>
+        private class NsJsonDataSerializerSpecialValue
         {
-            m_KnownKinds = knownKinds;
+            internal string Value { get; }
 
-            //m_VersionTransformers = new Dictionary<Type, VersionTransformInfo>();
-            //m_PrpsCache = new Dictionary<Type, IList<JsonProperty>>();
-            //m_CollectionItemTypes = new Dictionary<Type, Type>();
+            internal NsJsonDataSerializerSpecialValue(string val) 
+            {
+                Value = val;
+            }
         }
 
-        //internal void Load(Type dataType, IReadOnlyDictionary<Type, string> knownKinds) 
-        //{
-        //    m_KnownKinds = knownKinds;
+        private class NsJsonDataSerializerSpecialValueConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType) => objectType == typeof(NsJsonDataSerializerSpecialValue);
 
-        //    var visited = new HashSet<Type>();
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                var val = reader.Value;
 
-        //    ResolveAllContracts(dataType, visited);
+                if (val != null)
+                {
+                    return new NsJsonDataSerializerSpecialValue(val.ToString());
+                }
+                else 
+                {
+                    return val;
+                }
+            }
 
-        //    if (knownKinds != null) 
-        //    {
-        //        foreach (var knownType in knownKinds.Keys) 
-        //        {
-        //            ResolveAllContracts(knownType, visited);
-        //        }
-        //    }
-        //}
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                if (value != null)
+                {
+                    var specVal = (NsJsonDataSerializerSpecialValue)value;
 
-        //private void ResolveAllContracts(Type type, HashSet<Type> visited)
-        //{
-        //    var contract = ResolveContract(type);
+                    writer.WriteValue(specVal.Value);
+                }
+            }
+        }
 
-        //    if (contract is JsonObjectContract oc)
-        //    {
-        //        foreach (var prp in oc.Properties)
-        //        {
-        //            var subType = prp.PropertyType;
+        private readonly KnownKindManager m_KnownKindMgr;
+        private readonly VersionTransformManager m_VersionTransformsMgr;
 
-        //            if (!visited.Contains(subType))
-        //            {
-        //                visited.Add(subType);
+        internal NsJsonDataSerializerContractResolver(KnownKindManager knownKindMgr, VersionTransformManager versTransMgr)
+        {
+            m_KnownKindMgr = knownKindMgr;
+            m_VersionTransformsMgr = versTransMgr;
+        }
 
-        //                ResolveAllContracts(subType, visited);
-        //            }
-        //        }
-        //    }
-        //    else if (contract is JsonArrayContract ac) 
-        //    {
-        //        m_CollectionItemTypes.Add(type, ac.CollectionItemType);
-
-        //        ResolveAllContracts(ac.CollectionItemType, visited);
-        //    }
-        //}
-
+        /// <inheritdoc/>
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
         {
-            //if (!m_PrpsCache.TryGetValue(type, out var props))
-            //{
-                var props = base.CreateProperties(type, memberSerialization);
-                
-                if (TryGetVersionInfo(type, out var vers, out var transforms))
+            var props = base.CreateProperties(type, memberSerialization);
+
+            if (m_VersionTransformsMgr.TryGetVersionTransformInfo(type, out var latestVersion, out _))
+            {
+                var versPrp = new JsonProperty
                 {
-                    var versPrp = new JsonProperty
-                    {
-                        PropertyName = "$version",
-                        PropertyType = typeof(string),
-                        ValueProvider = new VersionValueProvider(vers),
-                        Readable = true,
-                        Writable = false
-                    };
+                    PropertyName = VersionTransformManager.VERSION_NODE_NAME,
+                    PropertyType = typeof(NsJsonDataSerializerSpecialValue),
+                    ValueProvider = new VersionValueProvider(latestVersion),
+                    NullValueHandling = NullValueHandling.Ignore,
+                    Converter = new NsJsonDataSerializerSpecialValueConverter(),
+                    Readable = true,
+                    Writable = false,
+                };
 
-                    props.Add(versPrp);
+                props.Add(versPrp);
+            }
 
-                    //m_VersionTransformers.Add(type, new VersionTransformInfo(vers, transforms));
-                }
-
-                if (m_KnownKinds.Keys.Any(t => type.IsAssignableFrom(t)))
+            if (m_KnownKindMgr.IsOfKind(type))
+            {
+                var kindPrp = new JsonProperty
                 {
-                    var kindPrp = new JsonProperty
-                    {
-                        PropertyName = "$kind",
-                        PropertyType = typeof(string),
-                        ValueProvider = new KindValueProvider(m_KnownKinds),
-                        Readable = true,
-                        Writable = false
-                    };
+                    PropertyName = KnownKindManager.KIND_NODE_NAME,
+                    PropertyType = typeof(NsJsonDataSerializerSpecialValue),
+                    ValueProvider = new KindValueProvider(m_KnownKindMgr),
+                    NullValueHandling = NullValueHandling.Ignore,
+                    Converter = new NsJsonDataSerializerSpecialValueConverter(),
+                    Readable = true,
+                    Writable = false
+                };
 
-                    props.Add(kindPrp);
-                }
-
-            //    m_PrpsCache.Add(type, props);
-            //}
+                props.Add(kindPrp);
+            }
 
             return props;
-        }
-
-        private bool TryGetVersionInfo(Type type, out Version vers, out IVersionsTransformer transforms)
-        {
-            if (type.TryGetAttribute(out DataVersionAttribute att, true))
-            {
-                vers = att.Version;
-                transforms = att.VersionTransformer;
-                return true;
-            }
-            else
-            {
-                vers = null;
-                transforms = null;
-                return false;
-            }
         }
     }
 }

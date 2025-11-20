@@ -297,7 +297,6 @@ namespace Utils.Tests
         [KnownKind(typeof(Field2Mock), "f2")]
         [KnownKind(typeof(Field2_1Mock), "f2_1")]
         [DataVersion("2.0.0", typeof(SettsMock9Transformer))]
-        [DataSerializerOptions(NullValueHandling = NullValueHandling_e.Ignore)]
         public class SettsMock9
         {
             public string Field1 { get; set; }
@@ -578,7 +577,7 @@ namespace Utils.Tests
             srv.Save(setts, new StringWriter(res1));
             var res2 = srv.Read(new StringReader(d1));
 
-            Assert.AreEqual("{\"Field1\":\"A\",\"Field2\":{\"Value\":\"B\",\"$version\":\"2.1.0\",\"$kind\":\"f2\"},\"Field2_1\":{\"Value\":\"C\",\"Value1\":\"C1\",\"$version\":\"2.2.0\",\"$kind\":\"f2_1\"},\"Field2_1_1\":{\"Value\":\"C1_1\",\"$version\":\"2.1.0\",\"$kind\":\"f2\"},\"Field3\":{\"Value\":\"D\",\"Child\":{\"Value\":\"E\",\"Child\":{\"Value\":\"F\",\"$version\":\"2.3.0\"},\"$version\":\"2.3.0\"},\"$version\":\"2.3.0\"},\"Field4\":[{\"Value\":\"G\",\"$version\":\"2.4.0\"},{\"Value\":\"H\",\"$version\":\"2.4.0\"},{\"Value1\":\"I1\",\"Value\":\"I\",\"$version\":\"2.4.0\",\"$kind\":\"f4_1\"}],\"$version\":\"2.0.0\"}", res1.ToString());
+            Assert.AreEqual("{\"Field1\":\"A\",\"Field2\":{\"Value\":\"B\",\"$version\":\"2.1.0\",\"$kind\":\"f2\"},\"Field2_1\":{\"Value\":\"C\",\"Value1\":\"C1\",\"$version\":\"2.2.0\",\"$kind\":\"f2_1\"},\"Field2_1_1\":{\"Value\":\"C1_1\",\"$version\":\"2.1.0\",\"$kind\":\"f2\"},\"Field3\":{\"Value\":\"D\",\"Child\":{\"Value\":\"E\",\"Child\":{\"Value\":\"F\",\"Child\":null,\"$version\":\"2.3.0\"},\"$version\":\"2.3.0\"},\"$version\":\"2.3.0\"},\"Field4\":[{\"Value\":\"G\",\"$version\":\"2.4.0\"},{\"Value\":\"H\",\"$version\":\"2.4.0\"},{\"Value1\":\"I1\",\"Value\":\"I\",\"$version\":\"2.4.0\",\"$kind\":\"f4_1\"}],\"$version\":\"2.0.0\"}", res1.ToString());
 
             Assert.AreEqual("A", res2.Field1);
             Assert.IsNotNull(res2.Field2);
