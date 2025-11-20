@@ -11,6 +11,7 @@ using Xarial.XToolkit.Services.Data.Attributes;
 using NUnit.Framework;
 using Newtonsoft.Json;
 using Xarial.XToolkit.Services.Data;
+using System.Drawing.Printing;
 
 namespace Utils.Tests
 {
@@ -171,6 +172,179 @@ namespace Utils.Tests
 
         public class SettsSubChild1_2 : ISettsSubChild1
         {
+        }
+
+
+        public class SettsMock9Transformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock9Transformer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version("1.0.0"), new Version("2.0.0"),
+                    t =>
+                    {
+                        var prp1 = ((JObject)t).Property("_Field1");
+                        prp1.Replace(new JProperty("Field1", prp1.Value));
+
+                        var prp2 = ((JObject)t).Property("_Field2");
+                        prp2.Replace(new JProperty("Field2", prp2.Value));
+
+                        var prp3 = ((JObject)t).Property("_Field2_1");
+                        prp3.Replace(new JProperty("Field2_1", prp3.Value));
+
+                        var prp4 = ((JObject)t).Property("_Field3");
+                        prp4.Replace(new JProperty("Field3", prp4.Value));
+
+                        return t;
+                    })
+                };
+            }
+        }
+
+        public class Field2Transformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public Field2Transformer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version(), new Version("2.1.0"),
+                    t =>
+                    {
+                        var prp1 = ((JObject)t).Property("__Value");
+                        prp1.Replace(new JProperty("Value", prp1.Value));
+
+                        return t;
+                    })
+                };
+            }
+        }
+
+        public class Field2_1MockTransformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public Field2_1MockTransformer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version("1.0.0"), new Version("2.2.0"),
+                    t =>
+                    {
+                        var prp1 = ((JObject)t).Property("__Value");
+                        prp1.Replace(new JProperty("Value", prp1.Value));
+
+                        var prp2 = ((JObject)t).Property("_Value1");
+                        prp2.Replace(new JProperty("Value1", prp2.Value));
+
+                        return t;
+                    })
+                };
+            }
+        }
+
+        public class Field3Transformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public Field3Transformer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version("1.1.0"), new Version("2.3.0"),
+                    t =>
+                    {
+                        var prp1 = ((JObject)t).Property("_Value");
+                        prp1.Replace(new JProperty("Value", prp1.Value));
+
+                        var prp2 = ((JObject)t).Property("_Child");
+                        
+                        if(prp2 != null)
+                        {
+                            prp2.Replace(new JProperty("Child", prp2.Value));
+                        }
+
+                        return t;
+                    })
+                };
+            }
+        }
+
+        public class Field4Transformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public Field4Transformer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version("1.0.0"), new Version("2.4.0"),
+                    t =>
+                    {
+                        var prp1 = ((JObject)t).Property("_Value");
+                        prp1.Replace(new JProperty("Value", prp1.Value));
+
+                        return t;
+                    })
+                };
+            }
+        }
+
+        [KnownKind(typeof(Field2Mock), "f2")]
+        [KnownKind(typeof(Field2_1Mock), "f2_1")]
+        [DataVersion("2.0.0", typeof(SettsMock9Transformer))]
+        [DataSerializerOptions(NullValueHandling = NullValueHandling_e.Ignore)]
+        public class SettsMock9
+        {
+            public string Field1 { get; set; }
+            public IField2Mock Field2 { get; set; }
+            public IField2Mock Field2_1 { get; set; }
+            public Field2Mock Field2_1_1 { get; set; }
+            public Field3 Field3 { get; set; }
+
+            [KnownKind(typeof(Field4_1), "f4_1")]
+            public Field4[] Field4 { get; set; }
+        }
+
+        [DataVersion("2.1.0", typeof(Field2Transformer))]
+        public interface IField2Mock
+        {
+            string Value { get; set; }
+        }
+
+        public class Field2Mock : IField2Mock
+        {
+            public string Value { get; set; }
+        }
+
+        [DataVersion("2.2.0", typeof(Field2_1MockTransformer))]
+        public class Field2_1Mock : IField2Mock
+        {
+            public string Value { get; set; }
+            public string Value1 { get; set; }
+        }
+
+        [DataVersion("2.3.0", typeof(Field3Transformer))]
+        public class Field3
+        {
+            public string Value { get; set; }
+
+            public Field3 Child { get; set; }
+        }
+
+        [DataVersion("2.4.0", typeof(Field4Transformer))]
+        public class Field4 
+        {
+            public string Value { get; set; }
+        }
+
+        public class Field4_1 : Field4
+        {
+            public string Value1 { get; set; }
         }
 
         #endregion
@@ -344,6 +518,92 @@ namespace Utils.Tests
 
             Assert.AreEqual("{\"Field1\":\"ABC\",\"Field3\":0.0,\"Field4\":false,\"$version\":\"2.1.0\"}", res1.ToString());
             Assert.AreEqual("XYZ", res2.Field1);
+        }
+
+        [Test]
+        public void VersionTest()
+        {
+            var setts = new SettsMock9()
+            {
+                Field1 = "A",
+                Field2 = new Field2Mock() 
+                {
+                    Value = "B"
+                },
+                Field2_1 = new Field2_1Mock()
+                {
+                    Value = "C",
+                    Value1 = "C1"
+                },
+                Field2_1_1 = new Field2Mock() 
+                {
+                    Value = "C1_1"
+                },
+                Field3 = new Field3() 
+                {
+                    Value = "D",
+                    Child = new Field3() 
+                    {
+                        Value = "E",
+                        Child = new Field3() 
+                        {
+                            Value = "F"
+                        }
+                    }
+                },
+                Field4 = new Field4[] 
+                {
+                    new Field4()
+                    {
+                        Value = "G",
+                    },
+                    new Field4()
+                    {
+                        Value = "H"
+                    },
+                    new Field4_1()
+                    {
+                        Value = "I",
+                        Value1 = "I1"
+                    }
+                }
+            };
+
+            var res1 = new StringBuilder();
+
+            var srv = new NsJsonDataSerializer<SettsMock9>(DataSerializerExtension.GetKnownKinds<SettsMock9>());
+
+            var d1 = "{\"_Field1\":\"A\",\"_Field2\":{\"__Value\":\"B\",\"$kind\":\"f2\"},\"_Field2_1\":{\"__Value\":\"C\",\"_Value1\":\"C1\",\"$version\":\"1.0.0\",\"$kind\":\"f2_1\"},\"Field2_1_1\":{\"__Value\":\"C1_1\",\"$kind\":\"f2\"},\"_Field3\":{\"_Value\":\"D\",\"_Child\":{\"_Value\":\"E\",\"_Child\":{\"_Value\":\"F\",\"$version\":\"1.1.0\"},\"$version\":\"1.1.0\"},\"$version\":\"1.1.0\"},\"Field4\":[{\"_Value\":\"G\",\"$version\":\"1.0.0\"},{\"_Value\":\"H\",\"$version\":\"1.0.0\"},{\"Value1\":\"I1\",\"_Value\":\"I\",\"$version\":\"1.0.0\",\"$kind\":\"f4_1\"}],\"$version\":\"1.0.0\"}";
+
+            srv.Save(setts, new StringWriter(res1));
+            var res2 = srv.Read(new StringReader(d1));
+
+            Assert.AreEqual("{\"Field1\":\"A\",\"Field2\":{\"Value\":\"B\",\"$version\":\"2.1.0\",\"$kind\":\"f2\"},\"Field2_1\":{\"Value\":\"C\",\"Value1\":\"C1\",\"$version\":\"2.2.0\",\"$kind\":\"f2_1\"},\"Field2_1_1\":{\"Value\":\"C1_1\",\"$version\":\"2.1.0\",\"$kind\":\"f2\"},\"Field3\":{\"Value\":\"D\",\"Child\":{\"Value\":\"E\",\"Child\":{\"Value\":\"F\",\"$version\":\"2.3.0\"},\"$version\":\"2.3.0\"},\"$version\":\"2.3.0\"},\"Field4\":[{\"Value\":\"G\",\"$version\":\"2.4.0\"},{\"Value\":\"H\",\"$version\":\"2.4.0\"},{\"Value1\":\"I1\",\"Value\":\"I\",\"$version\":\"2.4.0\",\"$kind\":\"f4_1\"}],\"$version\":\"2.0.0\"}", res1.ToString());
+
+            Assert.AreEqual("A", res2.Field1);
+            Assert.IsNotNull(res2.Field2);
+            Assert.IsInstanceOf<Field2Mock>(res2.Field2);
+            Assert.AreEqual("B", res2.Field2.Value);
+            Assert.IsNotNull(res2.Field2_1);
+            Assert.IsInstanceOf<Field2_1Mock>(res2.Field2_1);
+            Assert.AreEqual("C", res2.Field2_1.Value);
+            Assert.AreEqual("C1", ((Field2_1Mock)res2.Field2_1).Value1);
+            Assert.IsNotNull(res2.Field3);
+            Assert.AreEqual("D", res2.Field3.Value);
+            Assert.IsNotNull(res2.Field3.Child);
+            Assert.AreEqual("E", res2.Field3.Child.Value);
+            Assert.IsNotNull(res2.Field3.Child.Child);
+            Assert.AreEqual("F", res2.Field3.Child.Child.Value);
+            Assert.IsNull(res2.Field3.Child.Child.Child);
+            Assert.IsNotNull(res2.Field4);
+            Assert.AreEqual(3, res2.Field4.Length);
+            Assert.IsInstanceOf<Field4>(res2.Field4[0]);
+            Assert.AreEqual("G", res2.Field4[0].Value);
+            Assert.IsInstanceOf<Field4>(res2.Field4[1]);
+            Assert.AreEqual("H", res2.Field4[1].Value);
+            Assert.IsInstanceOf<Field4_1>(res2.Field4[2]);
+            Assert.AreEqual("I", res2.Field4[2].Value);
+            Assert.AreEqual("I1", ((Field4_1)res2.Field4[2]).Value1);
         }
 
         private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5>

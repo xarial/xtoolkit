@@ -7,8 +7,11 @@
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,9 +19,11 @@ using System.Runtime.ConstrainedExecution;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Services.Data.Attributes;
 using Xarial.XToolkit.Services.Data.Converters;
+using static Xarial.XToolkit.Services.Data.NsJsonDataSerializerContractResolver;
 
 namespace Xarial.XToolkit.Services.Data
 {
+
     /// <summary>
     /// Newtonsoft.Json based <see cref="IDataSerializer"/>
     /// </summary>
@@ -29,37 +34,49 @@ namespace Xarial.XToolkit.Services.Data
 
         private readonly JsonSerializer m_JsonSer;
 
+        private readonly NsJsonDataSerializerContractResolver m_ContractResolver;
+
         /// <summary>Constuctor</summary>
-        /// <param name="settsType">Type of settings</param>
+        /// <param name="dataType">Type of data</param>
         /// <param name="serializers">Custom serializers</param>
-        public NsJsonDataSerializer(Type settsType, params IValueSerializer[] serializers) : this(settsType, null, serializers)
+        public NsJsonDataSerializer(Type dataType, params IValueSerializer[] serializers) : this(dataType, null, serializers)
         {
         }
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="settsType">Type of settings</param>
+        /// <param name="dataType">Type of data</param>
         /// <param name="knownKinds">Known kinds for serialization</param>
         /// <param name="serializers">Custom serializers</param>
-        public NsJsonDataSerializer(Type settsType, IReadOnlyDictionary<Type, string> knownKinds, params IValueSerializer[] serializers) : this(settsType, knownKinds, new JsonSerializer(), serializers)
+        public NsJsonDataSerializer(Type dataType, IReadOnlyDictionary<Type, string> knownKinds, params IValueSerializer[] serializers) : this(dataType, knownKinds, new JsonSerializer(), serializers)
         {
         }
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="settsType">Type of settings</param>
+        /// <param name="dataType">Type of data</param>
         /// <param name="knownKinds">Known kinds for serialization</param>
         /// <param name="jsonSer">Json serializer</param>
         /// <param name="serializers">Custom serializers</param>
-        public NsJsonDataSerializer(Type settsType, IReadOnlyDictionary<Type, string> knownKinds, JsonSerializer jsonSer, params IValueSerializer[] serializers)
+        public NsJsonDataSerializer(Type dataType, IReadOnlyDictionary<Type, string> knownKinds, JsonSerializer jsonSer, params IValueSerializer[] serializers)
         {
-            DataType = settsType;
+            DataType = dataType;
 
             m_JsonSer = jsonSer;
+            
+            SetupJsonSerializer(jsonSer, dataType, knownKinds, serializers);
 
-            SetupJsonSerializer(jsonSer, settsType, knownKinds, serializers);
+            if (jsonSer.ContractResolver is NsJsonDataSerializerContractResolver cr)
+            {
+                //cr.Load(dataType, knownKinds);
+                //m_ContractResolver = cr;
+            }
+            else 
+            {
+                throw new InvalidCastException($"Contract resolver must inherit {nameof(NsJsonDataSerializerContractResolver)}");
+            }
         }
 
         /// <summary>
@@ -71,7 +88,101 @@ namespace Xarial.XToolkit.Services.Data
 
         /// <inheritdoc/>
         public object Read(TextReader settsReader)
-            => m_JsonSer.Deserialize(settsReader, DataType);
+        {
+            using (var jsonReader = new JsonTextReader(settsReader))
+            {
+                return m_JsonSer.Deserialize(jsonReader, DataType);
+                //var jToken = JToken.Load(jsonReader);
+                
+                //var contractResolver = (NsJsonDataSerializerContractResolver)m_JsonSer.ContractResolver;
+
+                //var transforms = contractResolver.VersionTransformers;
+
+                //Upgrade(jToken, DataType);
+
+                //return jToken.ToObject(DataType, m_JsonSer);
+            }
+        }
+
+        //private void Upgrade(JToken jToken, Type type)
+        //{
+        //    if (jToken.Type != JTokenType.Null)
+        //    {
+        //        if (m_ContractResolver.VersionTransformers.TryGetValue(type, out var typeVersTransf))
+        //        {
+        //            Version objVers;
+
+        //            var versToken = jToken.SelectToken("$version");
+
+        //            if (versToken == null)
+        //            {
+        //                versToken = jToken.SelectToken("__version");
+        //            }
+
+        //            if (versToken == null)
+        //            {
+        //                objVers = new Version();
+        //            }
+        //            else
+        //            {
+        //                objVers = Version.Parse(versToken.Value<string>());
+        //            }
+
+        //            if (typeVersTransf.LatestVersion > objVers)
+        //            {
+        //                if (typeVersTransf.Transformer?.Transforms != null)
+        //                {
+        //                    foreach (var tr in typeVersTransf.Transformer?.Transforms
+        //                        .Where(t => t.From >= objVers && t.To <= typeVersTransf.LatestVersion)
+        //                        .OrderBy(t => t.From))
+        //                    {
+        //                        jToken = tr.Transform(jToken);
+        //                    }
+        //                }
+
+        //                if (versToken == null)
+        //                {
+        //                    if (jToken.Type == JTokenType.Object)
+        //                    {
+        //                        ((JObject)jToken).Add("$version", typeVersTransf.LatestVersion.ToString());
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    ((JValue)versToken).Value = typeVersTransf.LatestVersion.ToString();
+        //                }
+        //            }
+        //        }
+
+        //        if (m_ContractResolver.Properties.TryGetValue(type, out var prps))
+        //        {
+        //            switch (jToken.Type)
+        //            {
+        //                case JTokenType.Object:
+        //                    foreach (var jPrp in ((JObject)jToken).Properties())
+        //                    {
+        //                        var prp = prps.FirstOrDefault(p => p.PropertyName == jPrp.Name);
+
+        //                        if (prp != null)
+        //                        {
+        //                            Upgrade(jPrp.Value, prp.PropertyType);
+        //                        }
+        //                    }
+        //                    break;
+
+        //                case JTokenType.Array:
+
+        //                    var itemType = m_ContractResolver.CollectionItemTypes[type];
+
+        //                    foreach (var item in (JArray)jToken)
+        //                    {
+        //                        Upgrade(item, itemType);
+        //                    }
+        //                    break;
+        //            }
+        //        }
+        //    }
+        //}
 
         /// <inheritdoc/>
         public void Save(object setts, TextWriter settsWriter)
@@ -82,7 +193,12 @@ namespace Xarial.XToolkit.Services.Data
         /// </summary>
         protected virtual void SetupJsonSerializer(JsonSerializer jsonSer, Type settsType, IReadOnlyDictionary<Type, string> knownKinds, IValueSerializer[] serializers)
         {
-            if (settsType.TryGetAttribute(out DataSerializerOptionsAttribute att, true))
+            if (!settsType.TryGetAttribute(out DataSerializerOptionsAttribute att, true)) 
+            {
+                this.GetType().TryGetAttribute(out att, true);
+            }
+
+            if (att != null)
             {
                 if (att.Formatting == DataFormatting_e.Indented)
                 {
@@ -109,12 +225,7 @@ namespace Xarial.XToolkit.Services.Data
                 }
             }
 
-            if (TryGetVersionInfo(settsType, out Version vers, out IVersionsTransformer transform))
-            {
-                transform = GetVersionTransformer(transform);
-
-                jsonSer.Converters.Add(new SettingsJsonConverter(settsType, transform?.Transforms ?? Array.Empty<VersionTransform>(), vers));
-            }
+            //jsonSer.Converters.Add(new VersionJsonConverter(GetVersionTransformer));
 
             if (serializers != null)
             {
@@ -124,26 +235,14 @@ namespace Xarial.XToolkit.Services.Data
                 }
             }
 
-            if (knownKinds?.Any() == true)
-            {
-                jsonSer.Converters.Add(new KnownKindJsonConverter(knownKinds));
-            }
-        }
+            //if (knownKinds?.Any() == true)
+            //{
+            //    jsonSer.Converters.Add(new KnownKindJsonConverter(knownKinds));
+            //}
 
-        private bool TryGetVersionInfo(Type settsType, out Version vers, out IVersionsTransformer transforms)
-        {
-            if (settsType.TryGetAttribute(out DataVersionAttribute att, true))
-            {
-                vers = att.Version;
-                transforms = att.VersionTransformer;
-                return true;
-            }
-            else
-            {
-                vers = null;
-                transforms = null;
-                return false;
-            }
+            jsonSer.Converters.Add(new NsJsonDataSerializerJsonConverter(knownKinds, GetVersionTransformer));
+
+            jsonSer.ContractResolver = new NsJsonDataSerializerContractResolver(knownKinds);
         }
     }
 

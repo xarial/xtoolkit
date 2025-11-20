@@ -65,11 +65,11 @@ namespace Xarial.XToolkit.Services.Data
         /// <remarks>Known kinds are found based on <see cref="KnownKindAttribute"/> attribute</remarks>
         public static IReadOnlyDictionary<Type, string> GetKnownKinds(Type type)
         {
-            var knownTypes = new Dictionary<Type, string>();
+            var knownKinds = new Dictionary<Type, string>();
 
-            FindKnownTypes(type, knownTypes, new List<Type>());
+            FindKnownKinds(type, knownKinds, new List<Type>());
 
-            return knownTypes;
+            return knownKinds;
         }
 
         /// <inheritdoc/>
@@ -77,13 +77,13 @@ namespace Xarial.XToolkit.Services.Data
         public static IReadOnlyDictionary<Type, string> GetKnownKinds<T>() 
             => GetKnownKinds(typeof(T));
 
-        private static void FindKnownTypes(Type type, Dictionary<Type, string> knownTypes, List<Type> processedTypes)
+        private static void FindKnownKinds(Type type, Dictionary<Type, string> knownKinds, List<Type> processedTypes)
         {
             foreach (var att in type.GetCustomAttributes<KnownKindAttribute>(true))
             {
-                if (!knownTypes.ContainsKey(att.Type))
+                if (!knownKinds.ContainsKey(att.Type))
                 {
-                    knownTypes.Add(att.Type, att.Kind);
+                    knownKinds.Add(att.Type, att.Kind);
                 }
             }
 
@@ -97,21 +97,21 @@ namespace Xarial.XToolkit.Services.Data
                     {
                         foreach (KnownKindAttribute att in prp.GetCustomAttributes(typeof(KnownKindAttribute))) 
                         {
-                            if (!knownTypes.ContainsKey(att.Type))
+                            if (!knownKinds.ContainsKey(att.Type))
                             {
-                                knownTypes.Add(att.Type, att.Kind);
+                                knownKinds.Add(att.Type, att.Kind);
                             }
                         }
 
                         var prpType = prp.PropertyType;
 
-                        FindKnownTypes(prpType, knownTypes, processedTypes);
+                        FindKnownKinds(prpType, knownKinds, processedTypes);
 
                         if (prpType.IsArray)
                         {
                             if (prpType.HasElementType)
                             {
-                                FindKnownTypes(prpType.GetElementType(), knownTypes, processedTypes);
+                                FindKnownKinds(prpType.GetElementType(), knownKinds, processedTypes);
                             }
                         }
                     }

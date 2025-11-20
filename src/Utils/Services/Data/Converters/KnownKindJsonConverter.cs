@@ -24,25 +24,23 @@ namespace Xarial.XToolkit.Services.Data.Converters
         internal KnownKindJsonConverter(IReadOnlyDictionary<Type, string> knownKinds) 
         {
             m_KnownTypeToKindMap = knownKinds;
+
+            var dupKnownKinds = knownKinds.Values.GroupBy(x => x).Where(x => x.Count() > 1).Select(x => x.Key).ToArray();
+
+            if (dupKnownKinds.Any()) 
+            {
+                throw new Exception($"Duplicate know kinds {string.Join(", ", dupKnownKinds)}");
+            }
+
             m_KindToKnownTypeMap = knownKinds?.ToDictionary(x => x.Value, x => x.Key);
         }
 
+        public override bool CanWrite => false;
+
+        public override bool CanRead => true;
+
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            var type = value?.GetType();
-
-            if (m_KnownTypeToKindMap.TryGetValue(type, out var kind))
-            {
-                using (var jsonSerProv = new JsonSerializerExcludeConverterProvider(serializer, this))
-                {
-                    var jObject = JObject.FromObject(value, jsonSerProv.Serializer);
-
-                    jObject.Add(KIND_NODE_NAME, kind);
-
-                    jObject.WriteTo(writer);
-                }
-            }
-        }
+            => throw new NotImplementedException();
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
@@ -60,7 +58,7 @@ namespace Xarial.XToolkit.Services.Data.Converters
 
                         if (m_KindToKnownTypeMap.TryGetValue(kind, out var type))
                         {
-                            return jObj.ToObject(type);
+                            return CreateInstance(jObj, type, serializer);
                         }
                         else
                         {
@@ -69,11 +67,18 @@ namespace Xarial.XToolkit.Services.Data.Converters
                     }
                     else
                     {
-                        throw new Exception($"Kind is not found for {objectType?.FullName}");
+                        return CreateInstance(jObj, objectType, serializer);
                     }
                 default:
                     throw new NotSupportedException();
             }
+        }
+
+        private object CreateInstance(JObject jObj, Type type, JsonSerializer serializer)
+        {
+            var inst = Activator.CreateInstance(type);
+            serializer.Populate(jObj.CreateReader(), inst);
+            return inst;
         }
 
         public override bool CanConvert(Type objectType) => m_KnownTypeToKindMap.Keys.Any(t => objectType.IsAssignableFrom(t));
