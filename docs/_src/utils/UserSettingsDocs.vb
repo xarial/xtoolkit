@@ -49,18 +49,18 @@ Namespace Utils.Docs
             Public Sub New()
                 Transforms = New VersionTransform() {
                     New VersionTransform(New Version("1.0.0"), New Version("2.0.0"),
-                                         Function(o)
-                                             Dim field1 = o.Property("Field1")
+                                         Function(t)
+                                             Dim field1 = TryCast(t, JObject).Property("Field1")
                                              field1.Replace(New JProperty("TextField", field1.Value))
-                                             Return o
+                                             Return t
                                          End Function),
                     New VersionTransform(New Version("2.0.0"), New Version("3.0.0"),
-                                         Function(o)
-                                             Dim field2 = o.Property("Field2")
+                                         Function(t)
+                                             Dim field2 = TryCast(t, JObject).Property("Field2")
                                              field2.Replace(New JProperty("DoubleField", field2.Value))
-                                             Dim field3 = o.Property("Field3")
+                                             Dim field3 = TryCast(t, JObject).Property("Field3")
                                              field3.Replace(New JProperty("BoolField", field3.Value))
-                                             Return o
+                                             Return t
                                          End Function)}
             End Sub
 

@@ -58,19 +58,19 @@ namespace Utils.Docs
                 {
                     new VersionTransform(new Version("1.0.0"), new Version("2.0.0"), t =>
                     {
-                        var field1 = t.Property("Field1");
+                        var field1 = ((JObject)t).Property("Field1");
                         field1.Replace(new JProperty("TextField", field1.Value));
                         return t;
                     }),
-                    new VersionTransform(new Version("2.0.0"), new Version("3.0.0"), o =>
+                    new VersionTransform(new Version("2.0.0"), new Version("3.0.0"), t =>
                     {
-                        var field2 = o.Property("Field2");
+                        var field2 = ((JObject)t).Property("Field2");
                         field2.Replace(new JProperty("DoubleField", field2.Value));
 
-                        var field3 = o.Property("Field3");
+                        var field3 = ((JObject)t).Property("Field3");
                         field3.Replace(new JProperty("BoolField", field3.Value));
 
-                        return o;
+                        return t;
                     })
                 };
             }

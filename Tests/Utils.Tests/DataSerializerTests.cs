@@ -1,17 +1,18 @@
-﻿using System;
+﻿using CoreTests;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NUnit.Framework;
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Drawing.Printing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CoreTests;
-using System.IO;
-using System.Collections;
-using Newtonsoft.Json.Linq;
-using Xarial.XToolkit.Services.Data.Attributes;
-using NUnit.Framework;
-using Newtonsoft.Json;
 using Xarial.XToolkit.Services.Data;
-using System.Drawing.Printing;
+using Xarial.XToolkit.Services.Data.Attributes;
+using static Utils.Tests.DataSerializerTests;
 
 namespace Utils.Tests
 {
@@ -184,21 +185,21 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.0.0"), new Version("2.0.0"),
-                    o =>
+                    t =>
                     {
-                        var prp1 = o.Property("_Field1");
+                        var prp1 = ((JObject)t).Property("_Field1");
                         prp1.Replace(new JProperty("Field1", prp1.Value));
 
-                        var prp2 = o.Property("_Field2");
+                        var prp2 = ((JObject)t).Property("_Field2");
                         prp2.Replace(new JProperty("Field2", prp2.Value));
 
-                        var prp3 = o.Property("_Field2_1");
+                        var prp3 = ((JObject)t).Property("_Field2_1");
                         prp3.Replace(new JProperty("Field2_1", prp3.Value));
 
-                        var prp4 = o.Property("_Field3");
+                        var prp4 = ((JObject)t).Property("_Field3");
                         prp4.Replace(new JProperty("Field3", prp4.Value));
 
-                        return o;
+                        return t;
                     })
                 };
             }
@@ -213,12 +214,12 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version(), new Version("2.1.0"),
-                    o =>
+                    t =>
                     {
-                        var prp1 = o.Property("__Value");
+                        var prp1 = ((JObject)t).Property("__Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        return o;
+                        return t;
                     })
                 };
             }
@@ -233,15 +234,15 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.0.0"), new Version("2.2.0"),
-                    o =>
+                    t =>
                     {
-                        var prp1 = o.Property("__Value");
+                        var prp1 = ((JObject)t).Property("__Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        var prp2 = o.Property("_Value1");
+                        var prp2 = ((JObject)t).Property("_Value1");
                         prp2.Replace(new JProperty("Value1", prp2.Value));
 
-                        return o;
+                        return t;
                     })
                 };
             }
@@ -256,19 +257,19 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.1.0"), new Version("2.3.0"),
-                    o =>
+                    t =>
                     {
-                        var prp1 = o.Property("_Value");
+                        var prp1 = ((JObject)t).Property("_Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        var prp2 = o.Property("_Child");
+                        var prp2 = ((JObject)t).Property("_Child");
                         
                         if(prp2 != null)
                         {
                             prp2.Replace(new JProperty("Child", prp2.Value));
                         }
 
-                        return o;
+                        return t;
                     })
                 };
             }
@@ -283,12 +284,12 @@ namespace Utils.Tests
                 Transforms = new VersionTransform[]
                 {
                     new VersionTransform(new Version("1.0.0"), new Version("2.4.0"),
-                    o =>
+                    t =>
                     {
-                        var prp1 = o.Property("_Value");
+                        var prp1 = ((JObject)t).Property("_Value");
                         prp1.Replace(new JProperty("Value", prp1.Value));
 
-                        return o;
+                        return t;
                     })
                 };
             }
@@ -344,6 +345,88 @@ namespace Utils.Tests
         public class Field4_1 : Field4
         {
             public string Value1 { get; set; }
+        }
+
+        public class SettsMock10ArrayTransfomer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock10ArrayTransfomer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version(), new Version("1.0.0"),
+                    t =>
+                    {
+                        var jObj = new JObject();
+
+                        var items = ((JArray)t).Select(i => i.Value<string>()).ToArray();
+
+                        var jPrp = new JProperty("Data", items);
+
+                        jObj.Add(jPrp);
+
+                        if(t.Parent != null)
+                        {
+                            t.Replace(jObj);
+                        }
+                        else
+                        {
+                            t = jObj;
+                        }
+
+                        return t;
+                    })
+                };
+            }
+        }
+
+        public class SettsMock10ObjectTransfomer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock10ObjectTransfomer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version(), new Version("1.0.0"),
+                    t =>
+                    {
+                        var jObj = new JObject();
+                        jObj.Add("Value", "X");
+
+                        if(t.Parent != null)
+                        {
+                            t.Replace(jObj);
+                        }
+                        else
+                        {
+                            t = jObj;
+                        }
+
+                        return t;
+                    })
+                };
+            }
+        }
+
+        public class SettsMock10 
+        {
+            public SettsMock10Array Array { get; set; }
+
+            public SettsMock10Object Object { get; set; }
+        }
+
+        [DataVersion("1.0.0", typeof(SettsMock10ArrayTransfomer))]
+        public class SettsMock10Array 
+        {
+            public string[] Data { get; set; }
+        }
+
+        [DataVersion("1.0.0", typeof(SettsMock10ObjectTransfomer))]
+        public class SettsMock10Object 
+        {
+            public string Value { get; set; }
         }
 
         #endregion
@@ -603,6 +686,30 @@ namespace Utils.Tests
             Assert.IsInstanceOf<Field4_1>(res2.Field4[2]);
             Assert.AreEqual("I", res2.Field4[2].Value);
             Assert.AreEqual("I1", ((Field4_1)res2.Field4[2]).Value1);
+        }
+
+        [Test]
+        public void VersionNonObjectTest()
+        {
+            var srv1 = new NsJsonDataSerializer<SettsMock10>();
+
+            var d1 = "{ \"Array\" : [ \"A\", \"B\", \"C\" ], \"Object\": null }";
+
+            var res1 = srv1.Read(new StringReader(d1));
+
+            Assert.IsNotNull(res1.Array);
+            Assert.IsNotNull(res1.Array.Data);
+            CollectionAssert.AreEqual(new string[] { "A", "B", "C" }, res1.Array.Data);
+            Assert.IsNotNull(res1.Object);
+            Assert.AreEqual("X", res1.Object.Value);
+
+            var srv2 = new NsJsonDataSerializer<SettsMock10Array>();
+
+            var d2 = "[ \"A\", \"B\", \"C\" ]";
+
+            var res2 = srv2.Read(new StringReader(d2));
+
+            CollectionAssert.AreEqual(new string[] { "A", "B", "C" }, res2.Data);
         }
 
         private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5>

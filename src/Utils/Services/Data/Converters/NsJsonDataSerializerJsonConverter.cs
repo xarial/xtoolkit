@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.Xml;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,34 +33,47 @@ namespace Xarial.XToolkit.Services.Data.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
+            JToken jToken;
+            Type targetType;
+
             switch (reader.TokenType)
             {
-                case JsonToken.Null:
-                    return null;
-
                 case JsonToken.StartObject:
-                    var jObj = JObject.Load(reader);
 
-                    jObj = Upgrade(jObj, objectType);
+                    //NOTE: need to use JObject::Load to load wgole object without EndObject
+                    jToken = JObject.Load(reader);
 
-                    if (!TryGetKindType(jObj, out var type))
+                    jToken = Upgrade(jToken, objectType);
+                    
+                    if (jToken is JObject)
                     {
-                        type = objectType;
+                        if (!TryGetKindType((JObject)jToken, out targetType))
+                        {
+                            targetType = objectType;
+                        }
                     }
-
-                    return CreateInstance(jObj, type, serializer);
+                    else 
+                    {
+                        targetType = null;
+                    }
+                    break;
 
                 default:
-                    throw new NotSupportedException();
+                    jToken = JToken.Load(reader);
+                    jToken = Upgrade(jToken, objectType);
+                    targetType = objectType;
+                    break;
             }
+
+            return CreateInstance(jToken, targetType, serializer);
         }
 
-        private JObject Upgrade(JObject jObj, Type objectType)
+        private JToken Upgrade(JToken jToken, Type objectType)
         {
             Version version;
 
-            if (jObj.TryGetValue(VersionTransformManager.VERSION_NODE_NAME, out var jVersion)
-                || jObj.TryGetValue(VersionTransformManager.LEGACY_VERSION_NODE_NAME, out jVersion))
+            if (jToken.Type == JTokenType.Object && (((JObject)jToken).TryGetValue(VersionTransformManager.VERSION_NODE_NAME, out var jVersion)
+                || (((JObject)jToken).TryGetValue(VersionTransformManager.LEGACY_VERSION_NODE_NAME, out jVersion))))
             {
                 version = Version.Parse(jVersion.Value<string>());
             }
@@ -68,7 +82,9 @@ namespace Xarial.XToolkit.Services.Data.Converters
                 version = new Version();
             }
 
-            if ((TryGetKindType(jObj, out var kindType) && m_VersionTransformsMgr.TryGetVersionTransformInfo(kindType, out var latestVersion, out var transformer)) 
+            Type kindType = null;
+
+            if ((jToken.Type == JTokenType.Object && TryGetKindType((JObject)jToken, out kindType) && m_VersionTransformsMgr.TryGetVersionTransformInfo(kindType, out var latestVersion, out var transformer))
                 || (kindType != objectType && m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out latestVersion, out transformer)))
             {
                 if (latestVersion > version)
@@ -79,13 +95,13 @@ namespace Xarial.XToolkit.Services.Data.Converters
                             .Where(t => t.From >= version && t.To <= latestVersion)
                             .OrderBy(t => t.From))
                         {
-                            jObj = tr.Transform(jObj);
+                            jToken = tr.Transform(jToken);
                         }
                     }
                 }
             }
 
-            return jObj;
+            return jToken;
         }
 
         private bool TryGetKindType(JObject jObj, out Type type) 
@@ -111,10 +127,10 @@ namespace Xarial.XToolkit.Services.Data.Converters
             return false;
         }
 
-        private object CreateInstance(JObject jObj, Type type, JsonSerializer serializer)
+        private object CreateInstance(JToken jToken, Type type, JsonSerializer serializer)
         {
             var inst = Activator.CreateInstance(type);
-            serializer.Populate(jObj.CreateReader(), inst);
+            serializer.Populate(jToken.CreateReader(), inst);
             return inst;
         }
 
