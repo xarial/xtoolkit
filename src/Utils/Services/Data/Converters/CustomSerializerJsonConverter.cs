@@ -6,8 +6,10 @@
 //*********************************************************************
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 namespace Xarial.XToolkit.Services.Data.Converters
@@ -28,9 +30,41 @@ namespace Xarial.XToolkit.Services.Data.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            return m_Serializer.DeserializeValue((string)reader.Value);
+            string value;
+
+            if (IsValue(reader.TokenType))
+            {
+                value = reader.Value?.ToString();
+            }
+            else
+            {
+                var jToken = JToken.Load(reader);
+
+                var content = new StringBuilder();
+
+                using (var stringWriter = new StringWriter(content))
+                {
+                    using (var jsonTextWriter = new JsonTextWriter(stringWriter))
+                    {
+                        jToken.WriteTo(jsonTextWriter);
+                    }
+                }
+
+                value = content.ToString();
+            }
+
+            return m_Serializer.DeserializeValue(value);
         }
 
         public override bool CanConvert(Type objectType) => m_Serializer.Type.IsAssignableFrom(objectType);
+
+        private bool IsValue(JsonToken token) =>
+            token == JsonToken.String ||
+            token == JsonToken.Integer ||
+            token == JsonToken.Float ||
+            token == JsonToken.Boolean ||
+            token == JsonToken.Null ||
+            token == JsonToken.Date ||
+            token == JsonToken.Bytes;
     }
 }

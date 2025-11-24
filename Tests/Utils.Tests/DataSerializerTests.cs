@@ -429,6 +429,120 @@ namespace Utils.Tests
             public string Value { get; set; }
         }
 
+        private class SettsMock11SubObject1VersionTransformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock11SubObject1VersionTransformer() 
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version("1.0.0"), new Version("2.0.0"), 
+                    j =>
+                    {
+                        var prp = ((JObject)j).Property("Number1");
+
+                        prp.Replace(new JProperty("Number", prp.Value));
+
+                        return j;
+                    })
+                };
+            }
+        }
+
+        private class SettsMock11SubObject2VersionTransformer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock11SubObject2VersionTransformer()
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version(), new Version("2.0.0"),
+                    j =>
+                    {
+                        var prp = ((JObject)j).Property("Text1");
+
+                        prp.Replace(new JProperty("Text", prp.Value));
+
+                        return j;
+                    })
+                };
+            }
+        }
+
+        private class SettsMock11SubObject1VersionValueSerializer : IValueSerializer
+        {
+            public Type Type => typeof(SettsMock11SubObject1);
+
+            public object DeserializeValue(string val)
+            {
+                var jObj = JObject.Parse(val);
+
+                return new SettsMock11SubObject1()
+                {
+                    Number = jObj.Property("Number").Value.Value<int>() + 1
+                };
+            }
+
+            public string SerializeValue(object val)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SettsMock11SubObject2JsonConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType) => objectType == typeof(SettsMock11SubObject2);
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                var jObj = JObject.Load(reader);
+
+                return new SettsMock11SubObject2()
+                {
+                    Text = jObj.Property("Text").Value.Value<string>() + "_"
+                };
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        [DataVersion("2.0.0", typeof(SettsMock11SubObject1VersionTransformer))]
+        public class SettsMock11SubObject1 
+        {
+            public int Number { get; set; }
+        }
+
+        [DataVersion("2.0.0", typeof(SettsMock11SubObject2VersionTransformer))]
+        public class SettsMock11SubObject2
+        {
+            public string Text { get; set; }
+        }
+
+        public class SettsMock11Object 
+        {
+            public SettsMock11SubObject1 Field1 { get; set; }
+            public SettsMock11SubObject2 Field2 { get; set; }
+        }
+
+        private class SettsMock11DataSerializer : NsJsonDataSerializer<SettsMock11Object> 
+        {
+            public SettsMock11DataSerializer() : base(new SettsMock11SubObject1VersionValueSerializer()) 
+            {
+            }
+
+            protected override void SetupJsonSerializer(JsonSerializer jsonSer, Type settsType, IReadOnlyDictionary<Type, string> knownKinds, IValueSerializer[] serializers)
+            {
+                jsonSer.Converters.Add(new SettsMock11SubObject2JsonConverter());
+
+                base.SetupJsonSerializer(jsonSer, settsType, knownKinds, serializers);
+            }
+        }
+
         #endregion
 
         [Test]
@@ -832,6 +946,19 @@ namespace Utils.Tests
             Assert.AreEqual(1, setts4.Children.Length);
             Assert.AreEqual("1", setts4.Children[0].Val);
             Assert.IsNull(setts4.Children[0].SubChild);
+        }
+
+        [Test]
+        public void CustomConflictingConvertersTest() 
+        {
+            var srv1 = new SettsMock11DataSerializer();
+
+            var d1 = "{ \"Field1\" : { \"Number1\" : 5, \"$version\" : \"1.0.0\" }, \"Field2\" : { \"Text1\" : \"ABC\" } }";
+
+            var r1 = srv1.Read(new StringReader(d1));
+
+            Assert.AreEqual(6, r1.Field1.Number);
+            Assert.AreEqual("ABC_", r1.Field2.Text);
         }
     }
 }

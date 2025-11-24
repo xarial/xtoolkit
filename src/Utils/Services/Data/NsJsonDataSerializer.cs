@@ -68,6 +68,31 @@ namespace Xarial.XToolkit.Services.Data
             {
                 throw new InvalidCastException($"Contract resolver must inherit {nameof(NsJsonDataSerializerContractResolver)}");
             }
+
+            var convIndex = -1;
+
+            for (int i = 0; i < jsonSer.Converters.Count; i++) 
+            {
+                if (jsonSer.Converters[i] is NsJsonDataSerializerJsonConverter) 
+                {
+                    convIndex = i;
+                    break;
+                }
+            }
+
+            if (convIndex != -1)
+            {
+                if (convIndex != 0) 
+                {
+                    var conv = jsonSer.Converters[convIndex];
+                    jsonSer.Converters.RemoveAt(convIndex);
+                    jsonSer.Converters.Insert(0, conv);
+                }
+            }
+            else 
+            {
+                throw new Exception($"Missing the {nameof(NsJsonDataSerializerJsonConverter)} converter");
+            }
         }
 
         /// <summary>

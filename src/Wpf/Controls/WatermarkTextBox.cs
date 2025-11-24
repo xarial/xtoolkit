@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
+using Xarial.XToolkit.Wpf.Extensions;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -21,20 +22,17 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             private readonly WatermarkTextBox m_WatermarkTextBox;
 
-            public WatermarkAdorner(WatermarkTextBox watermarkTextBox, string text, Brush foreground, double opacity, Thickness margin, FontStyle style)
+            public WatermarkAdorner(WatermarkTextBox watermarkTextBox, string text, Style style)
                 : base(watermarkTextBox)
             {
-                m_WatermarkTextBox = watermarkTextBox;
+               m_WatermarkTextBox = watermarkTextBox;
 
                 m_Watermark = new TextBlock
                 {
                     FontSize = watermarkTextBox.FontSize,
                     FontFamily = watermarkTextBox.FontFamily,
                     Text = text,
-                    FontStyle = style,
-                    Foreground = foreground,
-                    Opacity = opacity,
-                    Margin = margin,
+                    Style = style,
                     VerticalAlignment = VerticalAlignment.Center,
                     IsHitTestVisible = false
                 };
@@ -97,75 +95,21 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
 
         /// <summary>
-        /// Watermark foreground
+        /// Watermark style
         /// </summary>
-        public static readonly DependencyProperty WatermarkForegroundProperty =
+        public static readonly DependencyProperty WatermarkStyleProperty =
             DependencyProperty.Register(
-            nameof(WatermarkForeground), typeof(Brush),
+            nameof(WatermarkStyle), typeof(Style),
             typeof(WatermarkTextBox),
-            new PropertyMetadata(Brushes.Gray, OnWatermarkChanged));
+            new PropertyMetadata(typeof(WatermarkTextBox).Assembly.LoadFromResources<Style>("Themes/WatermarkTextBox.xaml", "WatermarkDefaultStyle"), OnWatermarkChanged));
 
         /// <summary>
-        /// Watermark foreground
+        /// Watermark style
         /// </summary>
-        public Brush WatermarkForeground
+        public Style WatermarkStyle
         {
-            get { return (Brush)GetValue(WatermarkForegroundProperty); }
-            set { SetValue(WatermarkForegroundProperty, value); }
-        }
-
-        /// <summary>
-        /// Watermark opacity
-        /// </summary>
-        public static readonly DependencyProperty WatermarkOpacityProperty =
-            DependencyProperty.Register(
-            nameof(WatermarkOpacity), typeof(double),
-            typeof(WatermarkTextBox),
-            new PropertyMetadata(0.5, OnWatermarkChanged));
-
-        /// <summary>
-        /// Watermark opacity
-        /// </summary>
-        public double WatermarkOpacity
-        {
-            get { return (double)GetValue(WatermarkOpacityProperty); }
-            set { SetValue(WatermarkOpacityProperty, value); }
-        }
-
-        /// <summary>
-        /// Watermark margin
-        /// </summary>
-        public static readonly DependencyProperty WatermarkMarginProperty =
-            DependencyProperty.Register(
-            nameof(WatermarkMargin), typeof(Thickness),
-            typeof(WatermarkTextBox),
-            new PropertyMetadata(new Thickness(2), OnWatermarkChanged));
-
-        /// <summary>
-        /// Watermark margin
-        /// </summary>
-        public Thickness WatermarkMargin
-        {
-            get { return (Thickness)GetValue(WatermarkMarginProperty); }
-            set { SetValue(WatermarkMarginProperty, value); }
-        }
-
-        /// <summary>
-        /// Watermark font style
-        /// </summary>
-        public static readonly DependencyProperty WatermarkFontStyleProperty =
-            DependencyProperty.Register(
-            nameof(WatermarkFontStyle), typeof(FontStyle),
-            typeof(WatermarkTextBox),
-            new PropertyMetadata(FontStyles.Italic, OnWatermarkChanged));
-
-        /// <summary>
-        /// Watermark font style
-        /// </summary>
-        public FontStyle WatermarkFontStyle
-        {
-            get { return (FontStyle)GetValue(WatermarkFontStyleProperty); }
-            set { SetValue(WatermarkFontStyleProperty, value); }
+            get { return (Style)GetValue(WatermarkStyleProperty); }
+            set { SetValue(WatermarkStyleProperty, value); }
         }
 
         protected override void OnTextChanged(TextChangedEventArgs e)
@@ -198,7 +142,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                 if (string.IsNullOrEmpty(Text) && !string.IsNullOrEmpty(Watermark))
                 {
-                    layer.Add(new WatermarkAdorner(this, Watermark, WatermarkForeground, WatermarkOpacity, WatermarkMargin, WatermarkFontStyle));
+                    layer.Add(new WatermarkAdorner(this, Watermark, WatermarkStyle));
                 }
             }
         }

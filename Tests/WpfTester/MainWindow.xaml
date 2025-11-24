@@ -426,12 +426,17 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <ctrls:WatermarkTextBox Watermark="{Binding Path=Watermark}"
-                                                WatermarkForeground="{Binding Path=Foreground}"
-                                                WatermarkOpacity="{Binding Path=Opacity}"
-                                                WatermarkMargin="{Binding Path=Margin}"
-                                                WatermarkFontStyle="{Binding Path=FontStyle}"
-                                                Margin="5"/>
+                        <ctrls:WatermarkTextBox Watermark="{Binding Path=Watermark}" Margin="5">
+                            <ctrls:WatermarkTextBox.WatermarkStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Foreground" Value="Green"/>
+                                    <Setter Property="Opacity" Value="0.75"/>
+                                    <Setter Property="Margin" Value="3"/>
+                                    <Setter Property="FontStyle" Value="Italic"/>
+                                    <Setter Property="HorizontalAlignment" Value="Center"/>
+                                </Style>
+                            </ctrls:WatermarkTextBox.WatermarkStyle>
+                        </ctrls:WatermarkTextBox>
                         <Button Grid.Column="1" Margin="2" Command="{Binding Path=UpdateCommand}">
                             <TextBlock Text="Update" Margin="2"/>
                         </Button>

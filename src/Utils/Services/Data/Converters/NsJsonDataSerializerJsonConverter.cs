@@ -65,6 +65,17 @@ namespace Xarial.XToolkit.Services.Data.Converters
                     break;
             }
 
+            foreach (var conv in serializer.Converters) 
+            {
+                if (conv != this) 
+                {
+                    if (conv.CanConvert(objectType)) 
+                    {
+                        return conv.ReadJson(jToken.CreateReader(), objectType, existingValue, serializer);
+                    }
+                }
+            }
+
             return CreateInstance(jToken, targetType, serializer);
         }
 
