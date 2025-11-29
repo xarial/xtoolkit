@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Xarial.XToolkit.Reflection;
-
-using Xarial.XToolkit.Services;
-using Xarial.XToolkit.Services.Data;
 using Xarial.XToolkit.Services.Data.Attributes;
 
 namespace Xarial.XToolkit.Services.Data

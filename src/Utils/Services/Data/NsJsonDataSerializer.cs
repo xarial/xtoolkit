@@ -32,6 +32,9 @@ namespace Xarial.XToolkit.Services.Data
 
         private readonly JsonSerializer m_JsonSer;
 
+        private readonly VersionTransformManager m_VersionTransformsMgr;
+        private readonly KnownKindManager m_KnownKindMgr;
+
         /// <summary>Constuctor</summary>
         /// <param name="dataType">Type of data</param>
         /// <param name="serializers">Custom serializers</param>
@@ -61,8 +64,12 @@ namespace Xarial.XToolkit.Services.Data
             DataType = dataType;
 
             m_JsonSer = jsonSer;
-            
-            SetupJsonSerializer(jsonSer, dataType, knownKinds, serializers);
+
+            m_VersionTransformsMgr = new VersionTransformManager(GetVersionTransformer);
+
+            m_KnownKindMgr = new KnownKindManager(knownKinds);
+
+            SetupJsonSerializer(jsonSer, dataType, serializers);
 
             if (!(jsonSer.ContractResolver is NsJsonDataSerializerContractResolver))
             {
@@ -118,7 +125,7 @@ namespace Xarial.XToolkit.Services.Data
         /// <summary>
         /// Sets up json serializer
         /// </summary>
-        protected virtual void SetupJsonSerializer(JsonSerializer jsonSer, Type settsType, IReadOnlyDictionary<Type, string> knownKinds, IValueSerializer[] serializers)
+        protected virtual void SetupJsonSerializer(JsonSerializer jsonSer, Type settsType, IValueSerializer[] serializers)
         {
             if (!settsType.TryGetAttribute(out DataSerializerOptionsAttribute att, true)) 
             {
@@ -151,11 +158,8 @@ namespace Xarial.XToolkit.Services.Data
                         throw new NotSupportedException();
                 }
             }
-
-            var kindMgr = new KnownKindManager(knownKinds);
-            var versTransformMgr = new VersionTransformManager(GetVersionTransformer);
-
-            jsonSer.Converters.Add(new NsJsonDataSerializerJsonConverter(kindMgr, versTransformMgr));
+            
+            jsonSer.Converters.Add(new NsJsonDataSerializerJsonConverter(m_KnownKindMgr, TryGetVersionTransformInfo, SupportsVersioning, CreateInstance));
 
             if (serializers != null)
             {
@@ -165,7 +169,60 @@ namespace Xarial.XToolkit.Services.Data
                 }
             }
 
-            jsonSer.ContractResolver = new NsJsonDataSerializerContractResolver(kindMgr, versTransformMgr);
+            jsonSer.ContractResolver = new NsJsonDataSerializerContractResolver(m_KnownKindMgr, m_VersionTransformsMgr);
+        }
+
+        /// <summary>
+        /// Override to ptovide version information for the type while deserializing
+        /// </summary>
+        /// <param name="jToken">Current JSON token</param>
+        /// <param name="objectType">Property type to serialize to</param>
+        /// <param name="existingValue">Current value (initiated via the parent class in the constructor)</param>
+        /// <param name="latestVersion">Latest version for this data type</param>
+        /// <param name="transformer">Version transfomer</param>
+        /// <returns>False if there is no version information for this type</returns>
+        protected virtual bool TryGetVersionTransformInfo(JToken jToken, Type objectType, object existingValue, out Version latestVersion, out IVersionsTransformer transformer)
+        {
+            Type kindType = null;
+
+            if (jToken.Type == JTokenType.Object && m_KnownKindMgr.TryGetKindType((JObject)jToken, out kindType) && m_VersionTransformsMgr.TryGetVersionTransformInfo(kindType, out latestVersion, out transformer))
+            {
+                return true;
+            }
+            else if (kindType != objectType && m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out latestVersion, out transformer))
+            {
+                return true;
+            }
+            else
+            {
+                latestVersion = null;
+                transformer = null;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Override to indicate if the version property should be added to json serialization
+        /// </summary>
+        /// <param name="objectType">Type of the object</param>
+        /// <returns>True if versioning is supported/returns>
+        protected virtual bool SupportsVersioning(Type objectType) => m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out _, out _);
+
+
+        /// <summary>
+        /// Creates new instance of the JSON token
+        /// </summary>
+        /// <param name="jToken">JSON token</param>
+        /// <param name="type">Target type</param>
+        /// <param name="existingValue">Current value</param>
+        /// <param name="serializer">Serializer</param>
+        /// <returns>new instance</returns>
+        /// <remarks>This method is only called for types which support versioning or known kinds</remarks>
+        protected virtual object CreateInstance(JToken jToken, Type type, object existingValue, JsonSerializer serializer)
+        {
+            var inst = Activator.CreateInstance(type);
+            serializer.Populate(jToken.CreateReader(), inst);
+            return inst;
         }
     }
 

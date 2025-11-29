@@ -14,14 +14,25 @@ namespace Xarial.XToolkit.Services.Data.Converters
 {
     internal class NsJsonDataSerializerJsonConverter : JsonConverter
     {
-        private readonly KnownKindManager m_KnownKindMgr;
-        private readonly VersionTransformManager m_VersionTransformsMgr;
+        internal delegate bool TryGetVersionTransformInfoDelegate(JToken jToken, Type objectType, object existingValue, out Version latestVersion, out IVersionsTransformer transformer);
 
-        internal NsJsonDataSerializerJsonConverter(KnownKindManager knownKindMgr, VersionTransformManager versTransMgr)
+        private readonly KnownKindManager m_KnownKindMgr;
+
+        private readonly TryGetVersionTransformInfoDelegate m_TryGetVersionTransformInfoFunc;
+
+        private readonly Func<Type, bool> m_SupportsVersioningFunc;
+
+        private readonly Func<JToken, Type, object, JsonSerializer, object> m_CreateInstanceFunc;
+
+        internal NsJsonDataSerializerJsonConverter(KnownKindManager knownKindMgr,
+            TryGetVersionTransformInfoDelegate tryGetVersionTransformInfoFunc, Func<Type, bool> supportsVersioningFunc,
+            Func<JToken, Type, object, JsonSerializer, object> createInstanceFunc)
         {
             m_KnownKindMgr = knownKindMgr;
 
-            m_VersionTransformsMgr = versTransMgr;
+            m_TryGetVersionTransformInfoFunc = tryGetVersionTransformInfoFunc;
+            m_SupportsVersioningFunc = supportsVersioningFunc;
+            m_CreateInstanceFunc = createInstanceFunc;
         }
 
         public override bool CanWrite => false;
@@ -40,14 +51,14 @@ namespace Xarial.XToolkit.Services.Data.Converters
             {
                 case JsonToken.StartObject:
 
-                    //NOTE: need to use JObject::Load to load wgole object without EndObject
+                    //NOTE: need to use JObject::Load to load whole object without EndObject
                     jToken = JObject.Load(reader);
 
-                    jToken = Upgrade(jToken, objectType);
+                    jToken = Upgrade(jToken, objectType, existingValue, serializer);
                     
                     if (jToken is JObject)
                     {
-                        if (!TryGetKindType((JObject)jToken, out targetType))
+                        if (!m_KnownKindMgr.TryGetKindType((JObject)jToken, out targetType))
                         {
                             targetType = objectType;
                         }
@@ -60,7 +71,7 @@ namespace Xarial.XToolkit.Services.Data.Converters
 
                 default:
                     jToken = JToken.Load(reader);
-                    jToken = Upgrade(jToken, objectType);
+                    jToken = Upgrade(jToken, objectType, existingValue, serializer);
                     targetType = objectType;
                     break;
             }
@@ -76,10 +87,10 @@ namespace Xarial.XToolkit.Services.Data.Converters
                 }
             }
 
-            return CreateInstance(jToken, targetType, serializer);
+            return m_CreateInstanceFunc.Invoke(jToken, targetType, existingValue, serializer);
         }
 
-        private JToken Upgrade(JToken jToken, Type objectType)
+        private JToken Upgrade(JToken jToken, Type objectType, object existingValue, JsonSerializer serializer)
         {
             Version version;
 
@@ -93,10 +104,7 @@ namespace Xarial.XToolkit.Services.Data.Converters
                 version = new Version();
             }
 
-            Type kindType = null;
-
-            if ((jToken.Type == JTokenType.Object && TryGetKindType((JObject)jToken, out kindType) && m_VersionTransformsMgr.TryGetVersionTransformInfo(kindType, out var latestVersion, out var transformer))
-                || (kindType != objectType && m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out latestVersion, out transformer)))
+            if (m_TryGetVersionTransformInfoFunc.Invoke(jToken, objectType, existingValue, out var latestVersion, out var transformer))
             {
                 if (latestVersion > version)
                 {
@@ -115,39 +123,7 @@ namespace Xarial.XToolkit.Services.Data.Converters
             return jToken;
         }
 
-        private bool TryGetKindType(JObject jObj, out Type type) 
-        {
-            if (jObj.TryGetValue(KnownKindManager.KIND_NODE_NAME, out var jKind) && (jKind.Type != JTokenType.Null))
-            {
-                var kind = jKind.Value<string>();
-
-                if (!string.IsNullOrEmpty(kind))
-                {
-                    if (m_KnownKindMgr.TryGetType(kind, out type))
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        throw new Exception($"Unknown kind '{kind}'");
-                    }
-                }
-            }
-
-            type = null;
-            return false;
-        }
-
-        private object CreateInstance(JToken jToken, Type type, JsonSerializer serializer)
-        {
-            var inst = Activator.CreateInstance(type);
-            serializer.Populate(jToken.CreateReader(), inst);
-            return inst;
-        }
-
         public override bool CanConvert(Type objectType)
-        {
-            return m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out _, out _) || m_KnownKindMgr.IsOfKind(objectType);
-        }
+            => m_SupportsVersioningFunc.Invoke(objectType) || m_KnownKindMgr.IsOfKind(objectType);
     }
 }

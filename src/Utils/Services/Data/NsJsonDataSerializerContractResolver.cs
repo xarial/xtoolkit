@@ -21,14 +21,43 @@ namespace Xarial.XToolkit.Services.Data
     {
         private class VersionValueProvider : IValueProvider
         {
-            private readonly Version m_Version;
+            private Type m_PrpType;
+            private VersionTransformManager m_VersTransformsMgr;
 
-            internal VersionValueProvider(Version version)
+            public VersionValueProvider(Type prpType, VersionTransformManager versTransformsMgr)
             {
-                m_Version = version;
+                m_PrpType = prpType;
+                m_VersTransformsMgr = versTransformsMgr;
             }
 
-            public object GetValue(object target) => new NsJsonDataSerializerSpecialValue(m_Version.ToString());
+            public object GetValue(object target)
+            {
+                if (target != null)
+                {
+                    var type = target.GetType();
+
+                    if (!m_VersTransformsMgr.TryGetVersionTransformInfo(type, out var latestVersion, out _))
+                    {
+                        if (type != m_PrpType)
+                        {
+                            m_VersTransformsMgr.TryGetVersionTransformInfo(m_PrpType, out latestVersion, out _);
+                        }
+                    }
+
+                    if (latestVersion != null)
+                    {
+                        return new NsJsonDataSerializerSpecialValue(latestVersion.ToString());
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+                else 
+                {
+                    return null;
+                }
+            }
 
             public void SetValue(object target, object value) => throw new NotImplementedException();
         }
@@ -115,21 +144,18 @@ namespace Xarial.XToolkit.Services.Data
         {
             var props = base.CreateProperties(type, memberSerialization);
 
-            if (m_VersionTransformsMgr.TryGetVersionTransformInfo(type, out var latestVersion, out _))
+            var versPrp = new JsonProperty
             {
-                var versPrp = new JsonProperty
-                {
-                    PropertyName = VersionTransformManager.VERSION_NODE_NAME,
-                    PropertyType = typeof(NsJsonDataSerializerSpecialValue),
-                    ValueProvider = new VersionValueProvider(latestVersion),
-                    NullValueHandling = NullValueHandling.Ignore,
-                    Converter = new NsJsonDataSerializerSpecialValueConverter(),
-                    Readable = true,
-                    Writable = false,
-                };
+                PropertyName = VersionTransformManager.VERSION_NODE_NAME,
+                PropertyType = typeof(NsJsonDataSerializerSpecialValue),
+                ValueProvider = new VersionValueProvider(type, m_VersionTransformsMgr),
+                NullValueHandling = NullValueHandling.Ignore,
+                Converter = new NsJsonDataSerializerSpecialValueConverter(),
+                Readable = true,
+                Writable = false,
+            };
 
-                props.Add(versPrp);
-            }
+            props.Add(versPrp);
 
             if (m_KnownKindMgr.IsOfKind(type))
             {

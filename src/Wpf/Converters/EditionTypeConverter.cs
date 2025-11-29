@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using System.Windows.Data;
@@ -14,6 +15,7 @@ using Xarial.XToolkit.Wpf.Dialogs;
 
 namespace Xarial.XToolkit.Wpf.Converters
 {
+    [Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
     public class EditionTypeConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

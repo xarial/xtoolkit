@@ -535,11 +535,166 @@ namespace Utils.Tests
             {
             }
 
-            protected override void SetupJsonSerializer(JsonSerializer jsonSer, Type settsType, IReadOnlyDictionary<Type, string> knownKinds, IValueSerializer[] serializers)
+            protected override void SetupJsonSerializer(JsonSerializer jsonSer, Type settsType, IValueSerializer[] serializers)
             {
                 jsonSer.Converters.Add(new SettsMock11SubObject2JsonConverter());
 
-                base.SetupJsonSerializer(jsonSer, settsType, knownKinds, serializers);
+                base.SetupJsonSerializer(jsonSer, settsType, serializers);
+            }
+        }
+
+        public class SettsMock12ObjectVersionsTransfomer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock12ObjectVersionsTransfomer() 
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(
+                        new Version("1.0.0"), 
+                        new Version("1.1.0"), 
+                        t =>
+                        {
+                            var prp = ((JObject)t).Property("Text");
+                            prp.Replace(new JProperty("_Value_", prp.Value));
+                            return t;
+                        }),
+                    new VersionTransform(
+                        new Version("1.1.0"),
+                        new Version("2.0.1"),
+                        t =>
+                        {
+                            var prp = ((JObject)t).Property("_Value_");
+                            prp.Replace(new JProperty("_Value", prp.Value));
+                            return t;
+                        }),
+                    new VersionTransform(
+                        new Version("2.0.1"),
+                        new Version("3.0.0"),
+                        t =>
+                        {
+                            var prp = ((JObject)t).Property("_Value");
+                            prp.Replace(new JProperty("Value", prp.Value));
+                            return t;
+                        })
+                };
+            }
+        }
+
+        [DataVersion("3.0.0", typeof(SettsMock12ObjectVersionsTransfomer))]
+        public class SettsMock12Object 
+        {
+            public string Value { get; set; }
+        }
+
+        public interface ISettsMock13SubClass
+        {
+            string Value { get; set; }
+        }
+
+        public class SettsMock13SubClass1VersionTransfomer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock13SubClass1VersionTransfomer() 
+            {
+                Transforms = new VersionTransform[]
+                {
+                    new VersionTransform(new Version("1.0.0"), new Version("2.0.0"), 
+                        j => 
+                        {
+                            var p1 = ((JObject)j).Property("_Value");
+                            p1.Replace(new JProperty("Value", p1.Value));
+
+                            var p2 = ((JObject)j).Property("_Number");
+                            p2.Replace(new JProperty("Number", p2.Value));
+
+                            return j;
+                        })
+                };
+            }
+        }
+
+        [DataVersion("2.0.0", typeof(SettsMock13SubClass1VersionTransfomer))]
+        public class SettsMock13SubClass1 : ISettsMock13SubClass
+        {
+            public string Value { get; set; }
+            public int Number { get; set; }
+        }
+
+        public class SettsMock13SubClass2VersionTransfomer : IVersionsTransformer
+        {
+            public IReadOnlyList<VersionTransform> Transforms { get; }
+
+            public SettsMock13SubClass2VersionTransfomer()
+            {
+                Transforms = new VersionTransform[]
+                                {
+                    new VersionTransform(new Version("1.0.0"), new Version("2.0.0"),
+                        j =>
+                        {
+                            var p1 = ((JObject)j).Property("_Value");
+                            p1.Replace(new JProperty("Value", p1.Value));
+
+                            var p2 = ((JObject)j).Property("_Text");
+                            p2.Replace(new JProperty("Text", p2.Value));
+
+                            return j;
+                        })};
+            }
+        }
+
+        [DataVersion("2.0.0", typeof(SettsMock13SubClass2VersionTransfomer))]
+        public class SettsMock13SubClass2 : ISettsMock13SubClass
+        {
+            public string Value { get; set; }
+            public string Text { get; set; }
+        }
+
+        public class SettsMock13Object 
+        {
+            public ISettsMock13SubClass Field1 { get; set; }
+            public ISettsMock13SubClass Field2 { get; set; }
+            public ISettsMock13SubClass[] Array { get; set; }
+        }
+
+        public class SettsMock13ObjectDataSerializer : NsJsonDataSerializer<SettsMock13Object> 
+        {
+            protected override bool TryGetVersionTransformInfo(JToken jToken, Type objectType, object existingValue, out Version latestVersion, out IVersionsTransformer transformer)
+            {
+                if (objectType == typeof(ISettsMock13SubClass))
+                {
+                    if (jToken.SelectTokens("_Number").Any()) 
+                    {
+                        objectType = typeof(SettsMock13SubClass1);
+                    }
+                    else if (jToken.SelectTokens("_Text").Any())
+                    {
+                        objectType = typeof(SettsMock13SubClass2);
+                    }
+                }
+
+                return base.TryGetVersionTransformInfo(jToken, objectType, existingValue, out latestVersion, out transformer);
+            }
+
+            protected override bool SupportsVersioning(Type objectType) => objectType == typeof(ISettsMock13SubClass);
+
+            protected override object CreateInstance(JToken jToken, Type type, object existingValue, JsonSerializer serializer)
+            {
+                if (type == typeof(ISettsMock13SubClass))
+                {
+                    if (jToken.SelectTokens("Number").Any())
+                    {
+                        type = typeof(SettsMock13SubClass1);
+                    }
+                    else if (jToken.SelectTokens("Text").Any())
+                    {
+                        type = typeof(SettsMock13SubClass2);
+                    }
+                }
+
+                return base.CreateInstance(jToken, type, existingValue, serializer);
             }
         }
 
@@ -959,6 +1114,77 @@ namespace Utils.Tests
 
             Assert.AreEqual(6, r1.Field1.Number);
             Assert.AreEqual("ABC_", r1.Field2.Text);
+        }
+
+        [Test]
+        public void MultiVersionTest() 
+        {
+            var srv1 = new NsJsonDataSerializer<SettsMock12Object>();
+
+            var d1 = "{ \"Text\" : \"ABC\", \"$version\" : \"1.0.0\" }";
+
+            var r1 = srv1.Read(new StringReader(d1));
+
+            Assert.AreEqual("ABC", r1.Value);
+        }
+
+        [Test]
+        public void UnknownTypeVersionTest()
+        {
+            var c1 = new SettsMock13Object()
+            {
+                Field1 = new SettsMock13SubClass1()
+                {
+                    Value = "A",
+                    Number = 10
+                },
+                Field2 = new SettsMock13SubClass2()
+                {
+                    Value = "B",
+                    Text = "C"
+                },
+                Array = new ISettsMock13SubClass[]
+                {
+                    new SettsMock13SubClass1()
+                    {
+                        Value = "D",
+                        Number = 20
+                    },
+                    new SettsMock13SubClass2()
+                    {
+                        Value = "E",
+                        Text = "F"
+                    }
+                }
+            };
+
+            var srv1 = new SettsMock13ObjectDataSerializer();
+
+            var r1 = new StringBuilder();
+
+            srv1.Save(c1, new StringWriter(r1));
+
+            var srv2 = new SettsMock13ObjectDataSerializer();
+
+            var d1 = "{\"Field1\":{\"_Value\":\"A\",\"_Number\":10,\"$version\":\"1.0.0\"},\"Field2\":{\"_Value\":\"B\",\"_Text\":\"C\",\"$version\":\"1.0.0\"},\"Array\":[{\"_Value\":\"D\",\"_Number\":20,\"$version\":\"1.0.0\"},{\"_Value\":\"E\",\"_Text\":\"F\",\"$version\":\"1.0.0\"}]}";
+
+            var r2 = srv2.Read(new StringReader(d1));
+
+            Assert.AreEqual("{\"Field1\":{\"Value\":\"A\",\"Number\":10,\"$version\":\"2.0.0\"},\"Field2\":{\"Value\":\"B\",\"Text\":\"C\",\"$version\":\"2.0.0\"},\"Array\":[{\"Value\":\"D\",\"Number\":20,\"$version\":\"2.0.0\"},{\"Value\":\"E\",\"Text\":\"F\",\"$version\":\"2.0.0\"}]}", r1.ToString());
+
+            Assert.IsInstanceOf<SettsMock13SubClass1>(r2.Field1);
+            Assert.AreEqual("A", r2.Field1.Value);
+            Assert.AreEqual(10, ((SettsMock13SubClass1)r2.Field1).Number);
+            Assert.IsInstanceOf<SettsMock13SubClass2>(r2.Field2);
+            Assert.AreEqual("B", r2.Field2.Value);
+            Assert.AreEqual("C", ((SettsMock13SubClass2)r2.Field2).Text);
+            Assert.AreEqual(2, r2.Array.Length);
+            Assert.IsInstanceOf<SettsMock13SubClass1>(r2.Array[0]);
+            Assert.AreEqual("D", r2.Array[0].Value);
+            Assert.AreEqual(20, ((SettsMock13SubClass1)r2.Array[0]).Number);
+            Assert.IsInstanceOf<SettsMock13SubClass2>(r2.Array[1]);
+            Assert.AreEqual("E", r2.Array[1].Value);
+            Assert.AreEqual("F", ((SettsMock13SubClass2)r2.Array[1]).Text);
         }
     }
 }
