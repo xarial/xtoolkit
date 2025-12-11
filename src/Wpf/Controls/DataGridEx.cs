@@ -10,6 +10,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows;
@@ -210,23 +211,29 @@ namespace Xarial.XToolkit.Wpf.Controls
         /// Selected cell contents
         /// </summary>
         public IList<object> SelectedCellContents
-        {
-            get => (IList<object>)GetValue(SelectedCellContentsProperty);
-            protected set => SetValue(SelectedCellContentsPropertyKey, value);
-        }
+		{
+			get
+			{
+				var contents = new List<object>();
 
-        private DataGridCell GetDataGridCell(DataGridCellInfo cellInfo)
-        {
-            var cellContent = cellInfo.Column.GetCellContent(cellInfo.Item);
-			if (cellContent != null)
-			{
-				return (DataGridCell)cellContent.Parent;
+				if (SelectedCells != null)
+				{
+					foreach (DataGridCellInfo cellInfo in SelectedCells)
+					{
+						if (cellInfo.Column is DataGridColumnEx)
+						{
+							contents.Add(CellContentSelector?.SelectContent(cellInfo.Item, cellInfo.Column, GetDataGridCell(cellInfo)));
+						}
+						else
+						{
+							contents.Add(GetCellValue(cellInfo));
+						}
+					}
+				}
+
+				return contents;
 			}
-			else
-			{
-				return null;
-			}
-        }
+		}
 
 		/// <summary>
 		/// Constructor
@@ -236,23 +243,84 @@ namespace Xarial.XToolkit.Wpf.Controls
 			SetValue(StaticColumnsProperty, new List<DataGridColumn>());
 		}
 
-        protected override void OnSelectedCellsChanged(SelectedCellsChangedEventArgs e)
+        private object GetCellValue(DataGridCellInfo cellInfo)
         {
-            base.OnSelectedCellsChanged(e);
-
-            if (CellContentSelector != null)
+            if (cellInfo.Column is DataGridBoundColumn boundColumn)
             {
-                var contents = new List<object>();
+                var binding = (Binding)boundColumn.Binding;
 
-                if (SelectedCells != null)
+                if (binding != null)
                 {
-                    foreach (DataGridCellInfo cellInfo in SelectedCells)
-                    {
-                        contents.Add(CellContentSelector.SelectContent(cellInfo.Item, cellInfo.Column, GetDataGridCell(cellInfo)));
-                    }
+					return ResolvePropertyPath(cellInfo.Item, binding.Path);
                 }
+            }
 
-                SelectedCellContents = contents;
+            var content = cellInfo.Column.GetCellContent(cellInfo.Item);
+
+			switch (content) 
+			{
+				case TextBlock tb:
+					return tb.Text;
+
+				case CheckBox cb:
+					return cb.IsChecked;
+			}
+
+            return null;
+        }
+
+        private object ResolvePropertyPath(object item, PropertyPath path)
+        {
+			if (item != null && !string.IsNullOrWhiteSpace(path.Path))
+			{
+				object current = item;
+
+				foreach (var part in path.Path.Split('.'))
+				{
+					if (current != null)
+					{
+						if (current is DataRowView drv)
+						{
+							current = drv[part];
+						}
+						else
+						{
+							var prop = current.GetType().GetProperty(part);
+
+							if (prop != null)
+							{
+								current = prop.GetValue(current);
+							}
+							else
+							{
+								return null;
+							}
+						}
+					}
+					else
+					{
+						return null;
+					}
+				}
+
+                return current;
+            }
+			else 
+			{
+				return null;
+			}
+        }
+
+        private DataGridCell GetDataGridCell(DataGridCellInfo cellInfo)
+        {
+            var cellContent = cellInfo.Column.GetCellContent(cellInfo.Item);
+            if (cellContent != null)
+            {
+                return (DataGridCell)cellContent.Parent;
+            }
+            else
+            {
+                return null;
             }
         }
 
@@ -375,7 +443,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 		object SelectContent(object dataItem, DataGridColumn column, DataGridCell cell);
 	}
 
-	public class DataGridColumnEx : DataGridColumn
+	internal class DataGridColumnEx : DataGridColumn
 	{
 		public static readonly DependencyProperty CellTemplateProperty =
 			DependencyProperty.Register(

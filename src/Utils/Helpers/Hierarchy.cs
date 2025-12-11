@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Xarial.XToolkit.Exceptions;
@@ -38,6 +39,18 @@ namespace Xarial.XToolkit.Helpers
             return FlattenChildren(source, childrenSelector, comparer, new HashSet<T>());
         }
 
+        /// <inheritdoc/>
+        public static IEnumerable<T> Flatten<T>(IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector)
+            => Flatten(source, childrenSelector, EqualityComparer<T>.Default);
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> Flatten<T>(T source, Func<T, IEnumerable<T>> childrenSelector, IEqualityComparer<T> comparer)
+            => Flatten(ToEnumerable(source), childrenSelector, comparer);
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> Flatten<T>(T source, Func<T, IEnumerable<T>> childrenSelector)
+            => Flatten(ToEnumerable(source), childrenSelector);
+
         /// <summary>
         /// Iterates root elements from the source enumerable
         /// </summary>
@@ -56,6 +69,18 @@ namespace Xarial.XToolkit.Helpers
             var allChildren = new HashSet<T>(source.SelectMany(item => childrenSelector.Invoke(item) ?? Enumerable.Empty<T>()));
             return source.Where(item => !allChildren.Contains(item, comparer)).ToArray();
         }
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> IterateRootElements<T>(IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector)
+            => IterateRootElements<T>(source, childrenSelector, EqualityComparer<T>.Default);
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> IterateRootElements<T>(T source, Func<T, IEnumerable<T>> childrenSelector)
+            => IterateRootElements<T>(ToEnumerable(source), childrenSelector);
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> IterateRootElements<T>(T source, Func<T, IEnumerable<T>> childrenSelector, IEqualityComparer<T> comparer)
+            => IterateRootElements<T>(ToEnumerable(source), childrenSelector, comparer);
 
         /// <summary>
         /// Orders elements in the hierarchical order based on the dependencies (from children to parents)
@@ -92,6 +117,18 @@ namespace Xarial.XToolkit.Helpers
                 throw new RootElementsMissingException();
             }
         }
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> Order<T>(IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector)
+            => Order(source, childrenSelector, EqualityComparer<T>.Default);
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> Order<T>(T source, Func<T, IEnumerable<T>> childrenSelector)
+            => Order(ToEnumerable(source), childrenSelector, EqualityComparer<T>.Default);
+
+        /// <inheritdoc/>
+        public static IEnumerable<T> Order<T>(T source, Func<T, IEnumerable<T>> childrenSelector, IEqualityComparer<T> comparer)
+            => Order(ToEnumerable(source), childrenSelector, comparer);
 
         private static IEnumerable<T> OrderChildren<T>(T item, HashSet<T> visited, Func<T, IEnumerable<T>> childrenSelector, IEqualityComparer<T> comparer)
         {
@@ -131,6 +168,11 @@ namespace Xarial.XToolkit.Helpers
                     }
                 }
             }
+        }
+
+        private static IEnumerable<T> ToEnumerable<T>(T item)
+        {
+            yield return item;
         }
     }
 }
