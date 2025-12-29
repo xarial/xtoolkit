@@ -16,6 +16,11 @@ namespace Xarial.XToolkit.Services
     public enum MessageServiceIcon_e
     {
         /// <summary>
+        /// No icon
+        /// </summary>
+        None,
+
+        /// <summary>
         /// Information icon
         /// </summary>
         Information,
