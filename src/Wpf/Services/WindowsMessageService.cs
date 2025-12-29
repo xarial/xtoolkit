@@ -68,7 +68,7 @@ namespace Xarial.XToolkit.Wpf.Services
             switch (icon)
             {
                 case MessageServiceIcon_e.None:
-                    msgBoxImg = MessageBoxImage.None:
+                    msgBoxImg = MessageBoxImage.None;
                     break;
 
                 case MessageServiceIcon_e.Information:

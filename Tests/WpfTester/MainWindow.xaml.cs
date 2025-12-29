@@ -105,22 +105,25 @@ namespace WpfTester
         {
             columns.Sort((c1, c2) => 
             {
-                if (c1 is DataGridColumnEx && c2 is DataGridColumnEx)
+                var h1 = c1.Header;
+                var h2 = c2.Header;
+
+                if (h1 is ColumnVM && h2 is ColumnVM)
                 {
                     return 0;
                 }
 
-                if (!(c1 is DataGridColumnEx) && !(c2 is DataGridColumnEx))
+                if (!(h1 is ColumnVM) && !(h2 is ColumnVM))
                 {
                     return 0;
                 }
 
-                if (c1 is DataGridColumnEx && !(c2 is DataGridColumnEx))
+                if (h1 is ColumnVM && !(h2 is ColumnVM))
                 {
                     return -1;
                 }
 
-                if (!(c1 is DataGridColumnEx) && c2 is DataGridColumnEx)
+                if (!(h1 is ColumnVM) && h2 is ColumnVM)
                 {
                     return 1;
                 }
