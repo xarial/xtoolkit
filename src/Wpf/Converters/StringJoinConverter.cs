@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -11,7 +13,7 @@ namespace Xarial.XToolkit.Wpf.Converters
     /// <summary>
     /// Joins all binding values with specified separator
     /// </summary>
-    public class StringJoinConverter : IMultiValueConverter
+    public class StringJoinConverter : IMultiValueConverter, IValueConverter
     {
         /// <summary>
         /// Join separator
@@ -19,6 +21,21 @@ namespace Xarial.XToolkit.Wpf.Converters
         public string Separator { get; set; }
 
         public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+            => string.Join(GetSeparator(parameter), values);
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is IEnumerable)
+            {
+                return string.Join(GetSeparator(parameter), ((IEnumerable)value).Cast<object>());
+            }
+            else 
+            {
+                return value;
+            }
+        }
+
+        private string GetSeparator(object parameter)
         {
             string separator;
 
@@ -31,10 +48,15 @@ namespace Xarial.XToolkit.Wpf.Converters
                 separator = Separator;
             }
 
-            return string.Join(separator, values);
+            return separator;
         }
 
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotImplementedException();
         }
