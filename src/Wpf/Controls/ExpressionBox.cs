@@ -6,8 +6,13 @@
 //*********************************************************************
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,17 +23,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Reporting;
+using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Services.Expressions.Exceptions;
-using Xarial.XToolkit.Wpf.Extensions;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Collections;
-using System.Globalization;
 using Xarial.XToolkit.Wpf.Dialogs;
+using Xarial.XToolkit.Wpf.Extensions;
+using Xarial.XToolkit.Wpf.Themes;
 using static System.Windows.Forms.LinkLabel;
-using System.Linq.Expressions;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -79,6 +80,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionVariableTokenControl),
                 new FrameworkPropertyMetadata(typeof(ExpressionVariableTokenControl)));
+
+            StyleProperty.OverrideMetadata(typeof(ExpressionVariableTokenControl),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<ExpressionVariableTokenControl>("ExpressionBox.xaml")));
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -481,6 +485,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ExpressionBox),
                 new FrameworkPropertyMetadata(typeof(ExpressionBox)));
+
+            StyleProperty.OverrideMetadata(typeof(ExpressionBox),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<ExpressionBox>("ExpressionBox.xaml")));
 
             BorderThicknessProperty.OverrideMetadata(
                 typeof(ExpressionBox), new FrameworkPropertyMetadata(new Thickness(1)));

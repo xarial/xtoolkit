@@ -13,6 +13,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -141,6 +142,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(NumberBoxDouble),
                 new FrameworkPropertyMetadata(typeof(NumberBoxDouble)));
+
+            StyleProperty.OverrideMetadata(typeof(NumberBoxDouble),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<NumberBoxDouble>("NumberBox.xaml")));
         }
 
         public static readonly DependencyProperty MinimumValueProperty =
@@ -233,6 +237,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(NumberBoxInteger),
                 new FrameworkPropertyMetadata(typeof(NumberBoxInteger)));
+
+            StyleProperty.OverrideMetadata(typeof(NumberBoxInteger),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<NumberBoxInteger>("NumberBox.xaml")));
         }
 
         public static readonly DependencyProperty MinimumValueProperty =

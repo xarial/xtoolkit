@@ -11,12 +11,13 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using Xarial.XToolkit.Wpf.Extensions;
 using Xarial.XToolkit.Reflection;
-using System.Text;
+using Xarial.XToolkit.Wpf.Extensions;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -199,6 +200,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(CheckableComboBox),
                 new FrameworkPropertyMetadata(typeof(CheckableComboBox)));
+
+            StyleProperty.OverrideMetadata(typeof(CheckableComboBox),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<CheckableComboBox>("CheckableComboBox.xaml")));
         }
 
         public static readonly DependencyProperty ItemsSourceProperty =

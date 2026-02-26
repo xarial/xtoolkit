@@ -19,6 +19,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit.Wpf.Extensions;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -29,6 +30,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ProgressPanel),
                 new FrameworkPropertyMetadata(typeof(ProgressPanel)));
+
+            StyleProperty.OverrideMetadata(typeof(ProgressPanel),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<ProgressPanel>("ProgressPanel.xaml")));
         }
 
         public static readonly DependencyProperty ContentProperty =

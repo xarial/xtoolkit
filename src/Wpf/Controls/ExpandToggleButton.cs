@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls.Primitives;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -20,6 +21,9 @@ namespace Xarial.XToolkit.Wpf.Controls
             DefaultStyleKeyProperty.OverrideMetadata(
                 typeof(ExpandToggleButton),
                 new FrameworkPropertyMetadata(typeof(ExpandToggleButton)));
+
+            StyleProperty.OverrideMetadata(typeof(ExpandToggleButton),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<ExpandToggleButton>("ExpandToggleButton.xaml")));
         }
     }
 }

@@ -19,6 +19,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -28,6 +29,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(LoadingWheel), 
                 new FrameworkPropertyMetadata(typeof(LoadingWheel)));
+
+            StyleProperty.OverrideMetadata(typeof(LoadingWheel),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<LoadingWheel>("LoadingWheel.xaml")));
         }
 
         public static readonly DependencyProperty StrokeThicknessProperty =

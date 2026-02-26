@@ -15,17 +15,27 @@ namespace Xarial.XToolkit.Wpf.Extensions
 {
     public static class AssemblyExtension
     {
+        /// <summary>
+        /// Loads specific resource from dictionary
+        /// </summary>
+        /// <typeparam name="T">Type of resource to load</typeparam>
+        /// <param name="assm">Assembly</param>
+        /// <param name="path">Path to resource file</param>
+        /// <param name="name">Name of the resource</param>
+        /// <returns>Instance of the resource</returns>
         public static T LoadFromResources<T>(this Assembly assm, string path, string name)
-        {
-            var dllName = assm.GetName();
+            => (T)LoadFromResources(assm, path, name);
 
-            var resDict = new ResourceDictionary()
+        internal static object LoadFromResources(this Assembly assm, string path, object key)
+        {
+            var assmName = assm.GetName();
+
+            var dictionary = new ResourceDictionary
             {
-                Source = new Uri($"/{dllName};component/{path}",
-                        UriKind.RelativeOrAbsolute)
+                Source = new Uri($"pack://application:,,,/{assmName.Name};v{assmName.Version};component/{path}", UriKind.Absolute)
             };
 
-            return (T)resDict[name];
+            return dictionary[key];
         }
     }
 }

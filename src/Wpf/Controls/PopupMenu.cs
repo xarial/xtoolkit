@@ -14,6 +14,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Markup;
 using Xarial.XToolkit.Wpf.Extensions;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -80,6 +81,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(PopupMenu),
                 new FrameworkPropertyMetadata(typeof(PopupMenu)));
+
+            StyleProperty.OverrideMetadata(typeof(PopupMenu),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<PopupMenu>("PopupMenu.xaml")));
         }
 
         private Action<PopupMenu> m_Opened;

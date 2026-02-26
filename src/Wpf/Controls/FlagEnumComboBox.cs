@@ -10,15 +10,16 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Media;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Wpf.Extensions;
-using System.Windows.Media;
-using System.Reflection;
+using Xarial.XToolkit.Wpf.Themes;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -264,6 +265,9 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             DefaultStyleKeyProperty.OverrideMetadata(typeof(FlagEnumComboBox),
                 new FrameworkPropertyMetadata(typeof(FlagEnumComboBox)));
+
+            StyleProperty.OverrideMetadata(typeof(FlagEnumComboBox),
+                new FrameworkPropertyMetadata(StyleLoader.LoadStyle<FlagEnumComboBox>("FlagEnumComboBox.xaml")));
         }
 
         public override void OnApplyTemplate()
