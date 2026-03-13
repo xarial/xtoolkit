@@ -208,7 +208,6 @@ namespace Xarial.XToolkit.Services.Data
         /// <returns>True if versioning is supported/returns>
         protected virtual bool SupportsVersioning(Type objectType) => m_VersionTransformsMgr.TryGetVersionTransformInfo(objectType, out _, out _);
 
-
         /// <summary>
         /// Creates new instance of the JSON token
         /// </summary>
@@ -220,9 +219,16 @@ namespace Xarial.XToolkit.Services.Data
         /// <remarks>This method is only called for types which support versioning or known kinds</remarks>
         protected virtual object CreateInstance(JToken jToken, Type type, object existingValue, JsonSerializer serializer)
         {
-            var inst = Activator.CreateInstance(type);
-            serializer.Populate(jToken.CreateReader(), inst);
-            return inst;
+            if (jToken.Type != JTokenType.Null)
+            {
+                var inst = Activator.CreateInstance(type);
+                serializer.Populate(jToken.CreateReader(), inst);
+                return inst;
+            }
+            else 
+            {
+                return null;
+            }
         }
     }
 
