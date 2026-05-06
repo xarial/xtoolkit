@@ -1,4 +1,11 @@
-﻿using NUnit.Framework;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2026 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;

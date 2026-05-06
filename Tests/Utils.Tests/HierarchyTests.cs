@@ -1,4 +1,11 @@
-﻿using NUnit.Framework;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2026 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -130,7 +137,7 @@ namespace Utils.Tests
 
             var e3 = new Elem(3, new Elem[] { e1, e2 });
 
-            Assert.Throws<RootElementsMissingException>(() => Hierarchy.Order(new Elem[] { e1, e2, e3 }, x => x.Children, new ElemEqualityComparer()).ToArray());
+            Assert.Throws<UnprocessedElementsException<Elem>>(() => Hierarchy.Order(new Elem[] { e1, e2, e3 }, x => x.Children, new ElemEqualityComparer()).ToArray());
         }
 
         [Test]
@@ -149,7 +156,7 @@ namespace Utils.Tests
 
             var e5 = new Elem(5, new Elem[] { e4 });
 
-            Assert.Throws<RootElementsMissingException>(() => Hierarchy.Order(new Elem[] { e1, e2, e3, e4, e5 }, x => x.Children, new ElemEqualityComparer()).ToArray());
+            Assert.Throws<UnprocessedElementsException<Elem>>(() => Hierarchy.Order(new Elem[] { e1, e2, e3, e4, e5 }, x => x.Children, new ElemEqualityComparer()).ToArray());
         }
 
         [Test]

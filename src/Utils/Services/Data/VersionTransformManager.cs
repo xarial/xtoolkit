@@ -1,4 +1,11 @@
-﻿using System;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2026 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using System;
 using System.Collections.Generic;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Services.Data.Attributes;

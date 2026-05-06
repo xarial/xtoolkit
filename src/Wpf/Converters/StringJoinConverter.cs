@@ -1,4 +1,11 @@
-﻿using Newtonsoft.Json.Linq;
+﻿//*********************************************************************
+//xToolkit
+//Copyright(C) 2026 Xarial Pty Limited
+//Product URL: https://xtoolkit.xarial.com
+//License: https://xtoolkit.xarial.com/license/
+//*********************************************************************
+
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;

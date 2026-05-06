@@ -1,6 +1,6 @@
 ﻿//*********************************************************************
 //xToolkit
-//Copyright(C) 2025 Xarial Pty Limited
+//Copyright(C) 2026 Xarial Pty Limited
 //Product URL: https://xtoolkit.xarial.com
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
@@ -90,7 +90,7 @@ namespace Xarial.XToolkit.Helpers
         /// <param name="childrenSelector">Function to retrieve children of an element</param>
         /// <param name="comparer">Elements comparer</param>
         /// <returns>Elements in the order based on dependency</returns>
-        /// <exception cref="RootElementsMissingException">No root elements found</exception>
+        /// <exception cref="UnprocessedElementsException{T}">No root elements found</exception>
         /// <exception cref="ArgumentNullException"></exception>
         public static IEnumerable<T> Order<T>(IEnumerable<T> source, Func<T, IEnumerable<T>> childrenSelector, IEqualityComparer<T> comparer)
         {
@@ -112,9 +112,11 @@ namespace Xarial.XToolkit.Helpers
                 }
             }
 
-            if (source.Except(visited, comparer).Any())
+            var unprocessed = source.Except(visited, comparer).ToArray();
+
+            if (unprocessed.Any())
             {
-                throw new RootElementsMissingException();
+                throw new UnprocessedElementsException<T>(unprocessed);
             }
         }
 
