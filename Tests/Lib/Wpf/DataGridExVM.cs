@@ -21,7 +21,7 @@ using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Controls;
 using Xarial.XToolkit.Wpf.Extensions;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
     public class CellVM
     {

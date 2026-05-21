@@ -10,12 +10,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
-    public class ColorPickerVM
+    public class NumberBoxVM
     {
-        public Color? Color { get; set; }
+        public double DoubleVal { get; set; }
+        public int IntVal { get; set; }
+
+        public NumberBoxVM() 
+        {
+            DoubleVal = 10.0;
+            IntVal = 2;
+        }
     }
 }

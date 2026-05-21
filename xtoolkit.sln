@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils.Tests", "Tests\Utils.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wpf", "src\Wpf\Wpf.csproj", "{C367F6FC-C616-4E19-B076-AA65EDBA89B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WpfTester", "Tests\WpfTester\WpfTester.csproj", "{9E3FBBF6-0E02-4FD8-9D9C-CD620CB16584}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WpfTester", "Tests\WpfTester\WpfTester.csproj", "{9E3FBBF6-0E02-4FD8-9D9C-CD620CB16584}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Wpf.Tests", "Tests\Wpf.Tests\Wpf.Tests.csproj", "{02A7808C-4C87-456C-92FD-39BF1CE7D9D3}"
 EndProject
@@ -25,9 +25,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utils.Docs", "docs\_src\uti
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "Utils.Docs.VB", "docs\_src\utils.vb\Utils.Docs.VB.vbproj", "{B3D72728-35CD-4089-A0A4-A149089CB994}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lib", "Lib\Lib.csproj", "{1DD5F208-BADC-469F-B3ED-0D4B0A0206FF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Lib", "Tests\Lib\Lib.csproj", "{1DD5F208-BADC-469F-B3ED-0D4B0A0206FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTester", "ConsoleTester\ConsoleTester.csproj", "{F577E56B-EAA2-41CA-A827-32EAAFE7A84D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleTester", "Tests\ConsoleTester\ConsoleTester.csproj", "{F577E56B-EAA2-41CA-A827-32EAAFE7A84D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

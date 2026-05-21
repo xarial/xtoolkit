@@ -15,7 +15,7 @@ using System.Windows.Input;
 using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Controls;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
     [Flags]
     public enum FlagEnum1 

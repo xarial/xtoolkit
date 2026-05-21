@@ -5,6 +5,7 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
+using Lib.Properties;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,13 +16,12 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using WpfTester.Properties;
 using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Controls;
 using Xarial.XToolkit.Wpf.Extensions;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
     public enum Options_e 
     {

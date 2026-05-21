@@ -10,11 +10,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
-    public class LabeledControlVM
+    public class ColorPickerVM
     {
-        public string Text1 { get; set; } = "Text 1";
+        public Color? Color { get; set; }
     }
 }

@@ -15,9 +15,6 @@ using System.Windows;
 
 namespace WpfTester
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
     public partial class App : Application
     {
     }

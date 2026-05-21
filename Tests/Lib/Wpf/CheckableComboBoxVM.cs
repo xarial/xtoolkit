@@ -12,7 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
     [Description("Custom Item")]
     public class Item 

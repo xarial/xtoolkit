@@ -11,17 +11,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
-    public class NumberBoxVM
+    public class LabeledControlVM
     {
-        public double DoubleVal { get; set; }
-        public int IntVal { get; set; }
-
-        public NumberBoxVM() 
-        {
-            DoubleVal = 10.0;
-            IntVal = 2;
-        }
+        public string Text1 { get; set; } = "Text 1";
     }
 }

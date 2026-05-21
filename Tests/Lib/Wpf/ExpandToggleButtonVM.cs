@@ -5,15 +5,15 @@
 //License: https://xtoolkit.xarial.com/license/
 //*********************************************************************
 
-namespace WpfTester
+namespace Lib.Wpf
 {
-    public class PopupMenuVM 
+    public class ExpandToggleButtonVM
     {
-        public string Text { get; set; }
+        public bool IsExpanded { get; set; }
 
-        public PopupMenuVM() 
+        public ExpandToggleButtonVM() 
         {
-            Text = "Hello World";
+            IsExpanded = true;
         }
     }
 }

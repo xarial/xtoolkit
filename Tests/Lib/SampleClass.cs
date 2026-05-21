@@ -15,7 +15,7 @@ namespace Lib
     {
         public void Foo(string param)
         {
-            Console.WriteLine($"Foo 1.0.0: '{param}'. Domain: {AppDomain.CurrentDomain.FriendlyName}");
+            Console.WriteLine($"Foo 1.0.0.0: '{param}'. Domain: {AppDomain.CurrentDomain.FriendlyName}");
         }
     }
 }

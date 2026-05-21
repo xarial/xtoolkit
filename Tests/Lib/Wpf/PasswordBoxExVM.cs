@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xarial.XToolkit.Wpf.Extensions;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
     public class PasswordBoxExVM : INotifyPropertyChanged
     {

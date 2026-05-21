@@ -17,7 +17,7 @@ using System.Windows.Input;
 using Xarial.XToolkit.Wpf;
 using Xarial.XToolkit.Wpf.Extensions;
 
-namespace WpfTester
+namespace Lib.Wpf
 {
     public class ProgressPanelVM : INotifyPropertyChanged
     {

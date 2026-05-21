@@ -1,6 +1,21 @@
-# How To Test AssemblyResolver
+# xToolkit Test & Debug
 
-## CustomAppConfigBindingRedirectReferenceResolver
+## Signing Assembly
+
+Add **Directory.Build.targets** file into the **src** folder. Ensure the file is added to **.gitignore**
+
+~~~ xml
+<Project>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)..\Tests\sample-key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+</Project>
+~~~
+
+## Test AssemblyResolver
+
+### CustomAppConfigBindingRedirectReferenceResolver
 
 * Compile the **ConsoleTester** project. This project is referencing **Lib** dll with version 1.0.0.0
 * Copy and overwrite the files from the **!** folder into the build folder
@@ -25,8 +40,13 @@
 * Run the **ConsoleTester.exe** from the Windows File Explorer and attach to the process to debug
     * This is done so the default build process is not overriding the target files
 
-## LocalFolderReferencesResolver
+### LocalFolderReferencesResolver
 
 * Compile the **ConsoleTester** project. This project is referencing **Lib** dll with version 1.0.0.0
 * Start the project
 * Delete the **Lib.dll** from the compile folder when program start (within static method or on the **Debugger.Launch**)
+
+## Test WPF Controls Version Compatibility
+
+* Compile previous version of **Lib** project with reference to toolkit libraries
+* Click **Load From File** and select previous version of dll. New popup window is opened with controls loaded dynamically
