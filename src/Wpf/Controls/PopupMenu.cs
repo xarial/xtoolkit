@@ -142,7 +142,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(ToggleButtonStyle), typeof(Style),
             typeof(PopupMenu),
-            new PropertyMetadata(typeof(PopupMenu).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "ExpandToggleButtonStyle")));
+            new PropertyMetadata(typeof(PopupMenu).Assembly.LoadFromResources<Style>("Themes/ExpandToggleButton.xaml", "ExpandToggleButtonStyle")));
 
         public Style ToggleButtonStyle
         {
