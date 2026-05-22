@@ -3,7 +3,7 @@
     <OutputPath>..\..\_build\</OutputPath>
     <Product>xToolkit</Product>
     <BuildNumber></BuildNumber>
-    <VersionPrefix>0.4.3$(BuildNumber)</VersionPrefix>
+    <VersionPrefix>0.4.4$(BuildNumber)</VersionPrefix>
     <Company>Xarial Pty Limited</Company>
     <Copyright>Copyright © Xarial Pty Limited 2026</Copyright>
     <Authors>Xarial</Authors>

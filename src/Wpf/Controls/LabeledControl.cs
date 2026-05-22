@@ -72,7 +72,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 			DependencyProperty.Register(
 			nameof(LabelStyle), typeof(Style),
 			typeof(LabeledControl),
-			new PropertyMetadata(typeof(LabeledControl).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "DefaultLabeledControlTextBlockStyle")));
+			new PropertyMetadata(typeof(LabeledControl).Assembly.LoadFromResources<Style>("Themes/LabeledControl.xaml", "DefaultLabeledControlTextBlockStyle")));
 
 		public Style LabelStyle
 		{

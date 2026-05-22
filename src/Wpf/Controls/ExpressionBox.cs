@@ -672,7 +672,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(VariableLinksBoxDecorationTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "VariableLinksBoxDecorationTemplate")));
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksBoxDecorationTemplate")));
 
         public DataTemplate VariableLinksBoxDecorationTemplate
         {
@@ -684,7 +684,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(VariableLinksMenuTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "VariableLinksMenuTemplate")));
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksMenuTemplate")));
 
         public DataTemplate VariableLinksMenuTemplate
         {
@@ -696,7 +696,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(VariableLinksMenuItemTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "VariableLinksMenuItemTemplate")));
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksMenuItemTemplate")));
 
         public DataTemplate VariableLinksMenuItemTemplate
         {
@@ -708,7 +708,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(NewArgumentItemTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "NewArgumentItemTemplate")));
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "NewArgumentItemTemplate")));
 
         public DataTemplate NewArgumentItemTemplate
         {
@@ -720,7 +720,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(ArgumentLabelTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ArgumentLabelTemplate")));
+            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ArgumentLabelTemplate")));
 
         public DataTemplate ArgumentLabelTemplate
         {

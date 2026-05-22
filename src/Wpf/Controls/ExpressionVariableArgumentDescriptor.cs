@@ -171,7 +171,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         public ExpressionVariableArgumentDescriptor()
         {
             m_AdvancedEditorTemplate = new Lazy<DataTemplate>(() => typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>(
-                "Themes/Generic.xaml", "ExpressionVariableArgumentExpressionTemplate"));
+                "Themes/ExpressionBox.xaml", "ExpressionVariableArgumentExpressionTemplate"));
         }
 
         protected ExpressionVariableArgumentDescriptor(string title, string desc, ImageSource icon, DataTemplate template) : this()
@@ -241,7 +241,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionVariableArgumentExpressionDescriptor(string title, string tooltip, ImageSource icon)
             : base(title, tooltip, icon,
-                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentExpressionTemplate"))
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentExpressionTemplate"))
         {
         }
 
@@ -263,7 +263,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionVariableArgumentTextDescriptor(string title, string tooltip, ImageSource icon)
             : base(title, tooltip, icon,
-                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentTextTemplate"))
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentTextTemplate"))
         {
         }
 
@@ -286,7 +286,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionVariableArgumentNumericDescriptor(string title, string tooltip, ImageSource icon)
             : base(title, tooltip, icon,
-                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericTemplate"))
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentNumericTemplate"))
         {
         }
 
@@ -309,7 +309,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionVariableArgumentNumericDoubleDescriptor(string title, string tooltip, ImageSource icon)
             : base(title, tooltip, icon,
-                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentNumericDoubleTemplate"))
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentNumericDoubleTemplate"))
         {
         }
 
@@ -332,7 +332,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionVariableArgumentToggleDescriptor(string title, string tooltip, ImageSource icon)
             : base(title, tooltip, icon,
-                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentToggleTemplate"))
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentToggleTemplate"))
         {
         }
 
@@ -355,7 +355,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionVariableArgumentOptionsDescriptor(string title, string tooltip, ImageSource icon, params string[] items)
             : base(title, tooltip, icon,
-                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentOptionsTemplate"))
+                  typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentOptionsTemplate"))
         {
             Items = new Collection<string>();
 
@@ -414,11 +414,11 @@ namespace Xarial.XToolkit.Wpf.Controls
 
                 if (m_EnumType.GetCustomAttribute<FlagsAttribute>() != null)
                 {
-                    Template = typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumFlagOptionsTemplate");
+                    Template = typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentEnumFlagOptionsTemplate");
                 }
                 else 
                 {
-                    Template = typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/Generic.xaml", "ExpressionVariableArgumentEnumOptionsTemplate");
+                    Template = typeof(ExpressionVariableArgumentTextDescriptor).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ExpressionVariableArgumentEnumOptionsTemplate");
                 }
             }
         }

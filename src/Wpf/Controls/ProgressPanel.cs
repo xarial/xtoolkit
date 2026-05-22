@@ -83,7 +83,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(ProgressBarStyle), typeof(Style),
             typeof(ProgressPanel),
-            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "ProgressBarDefaultStyle")));
+            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/ProgressPanel.xaml", "ProgressBarDefaultStyle")));
 
         public Style ProgressBarStyle
         {
@@ -95,7 +95,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(MessageTextBlockStyle), typeof(Style),
             typeof(ProgressPanel),
-            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/Generic.xaml", "MessageTextBlockDefaultStyle")));
+            new PropertyMetadata(typeof(ProgressPanel).Assembly.LoadFromResources<Style>("Themes/ProgressPanel.xaml", "MessageTextBlockDefaultStyle")));
 
         public Style MessageTextBlockStyle
         {
