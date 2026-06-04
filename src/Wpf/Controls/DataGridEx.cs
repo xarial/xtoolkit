@@ -30,11 +30,64 @@ namespace Xarial.XToolkit.Wpf.Controls
 	/// </summary>
 	public class DataGridEx : DataGrid
     {
-		/// <summary>
-		/// Event is raised when columns are pre-created
-		/// </summary>
-		/// <remarks>Use this event to change columns (e.g. reorder)</remarks>
-		public event ColumnsPreCreatedDelegate ColumnsPreCreated;
+        private class CellContentsList : IList<object>
+        {
+            #region NotSupported
+            public void Add(object item) => throw new NotSupportedException();
+            public void Clear() => throw new NotSupportedException();
+            public bool Contains(object item) => m_CellContents.Contains(item);
+            public void Insert(int index, object item) => throw new NotSupportedException();
+            public bool Remove(object item) => throw new NotSupportedException();
+            public void RemoveAt(int index) => throw new NotSupportedException();
+            #endregion
+
+            public object this[int index] 
+			{
+				get => m_CellContents.ElementAt(index);
+				set => throw new NotSupportedException(); 
+			}
+
+            public int Count { get; }
+
+            public bool IsReadOnly => true;
+
+            private readonly IEnumerable<object> m_CellContents;
+
+            internal CellContentsList(IEnumerable<object> cellContents, int count)
+            {
+                m_CellContents = cellContents;
+                Count = count;
+            }
+
+            public void CopyTo(object[] array, int arrayIndex) => m_CellContents.ToArray().CopyTo(array, arrayIndex);
+
+            public IEnumerator<object> GetEnumerator() => m_CellContents.GetEnumerator();
+
+            public int IndexOf(object item)
+            {
+                var index = -1;
+
+                foreach (var content in m_CellContents)
+                {
+                    index++;
+
+                    if (object.Equals(content, item))
+                    {
+                        break;
+                    }
+                }
+
+                return index;
+            }
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        /// <summary>
+        /// Event is raised when columns are pre-created
+        /// </summary>
+        /// <remarks>Use this event to change columns (e.g. reorder)</remarks>
+        public event ColumnsPreCreatedDelegate ColumnsPreCreated;
 
         /// <summary>
         /// Generic template for cell
@@ -211,37 +264,84 @@ namespace Xarial.XToolkit.Wpf.Controls
         /// Selected cell contents
         /// </summary>
         public IList<object> SelectedCellContents
+        {
+            get => (IList<object>)GetValue(SelectedCellContentsProperty);
+            private set => SetValue(SelectedCellContentsPropertyKey, value);
+        }
+
+        private IEnumerable<object> IterateSelectedCellContents()
 		{
-			get
-			{
-				var contents = new List<object>();
+            if (SelectedCells != null)
+            {
+                foreach (DataGridCellInfo cellInfo in SelectedCells)
+                {
+                    if (cellInfo.Column is DataGridColumnEx)
+                    {
+						yield return CellContentSelector?.SelectContent(cellInfo.Item, cellInfo.Column, GetDataGridCell(cellInfo));
+                    }
+                    else
+                    {
+						yield return GetCellValue(cellInfo);
+                    }
+                }
+            }
+        }
 
-				if (SelectedCells != null)
-				{
-					foreach (DataGridCellInfo cellInfo in SelectedCells)
-					{
-						if (cellInfo.Column is DataGridColumnEx)
-						{
-							contents.Add(CellContentSelector?.SelectContent(cellInfo.Item, cellInfo.Column, GetDataGridCell(cellInfo)));
-						}
-						else
-						{
-							contents.Add(GetCellValue(cellInfo));
-						}
-					}
-				}
-
-				return contents;
-			}
-		}
+        /// <summary>
+        /// Automatically commit row when cell value is changed
+        /// </summary>
+        /// <remarks>This allows to avoid the need of pressing Enter button to commit row</remarks>
+        public static readonly DependencyProperty AutoCommitRowProperty =
+			DependencyProperty.Register(
+			nameof(AutoCommitRow), typeof(bool),
+			typeof(DataGridEx), new PropertyMetadata(false));
 
 		/// <summary>
-		/// Constructor
+		/// Automatically commit row when cell value is changed
 		/// </summary>
+		/// <remarks>This allows to avoid the need of pressing Enter button to commit row</remarks>
+		public bool AutoCommitRow
+		{
+			get { return (bool)GetValue(AutoCommitRowProperty); }
+			set { SetValue(AutoCommitRowProperty, value); }
+		}
+
+        private bool m_IsCommitting;
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public DataGridEx() 
 		{
 			SetValue(StaticColumnsProperty, new List<DataGridColumn>());
 		}
+
+        /// <inheritdoc/>
+        protected override void OnCellEditEnding(DataGridCellEditEndingEventArgs e)
+        {
+            base.OnCellEditEnding(e);
+
+			if (AutoCommitRow)
+			{
+				if (!m_IsCommitting && e.EditAction == DataGridEditAction.Commit)
+				{
+					m_IsCommitting = true;
+					Dispatcher.BeginInvoke(new Action(() =>
+					{
+						CommitEdit(DataGridEditingUnit.Row, true);
+						m_IsCommitting = false;
+					}), System.Windows.Threading.DispatcherPriority.Background);
+				}
+			}
+		}
+
+        /// <inheritdoc/>
+        protected override void OnSelectedCellsChanged(SelectedCellsChangedEventArgs e)
+        {
+            base.OnSelectedCellsChanged(e);
+
+			SelectedCellContents = new CellContentsList(IterateSelectedCellContents(), SelectedCells.Count);
+        }
 
         private object GetCellValue(DataGridCellInfo cellInfo)
         {

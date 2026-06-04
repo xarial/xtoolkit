@@ -198,6 +198,12 @@
                             </local:MyCellEditingTemplateSelector>
                         </ctrls:DataGridEx.CellEditingTemplateSelector>
                     </ctrls:DataGridEx>
+                    <ctrls:DataGridEx ItemsSource="{Binding Path=Items}" EnableColumnVirtualization="False" EnableRowVirtualization="False" AutoCommitRow="True">
+                        <ctrls:DataGridEx.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Path=Name, UpdateSourceTrigger=PropertyChanged}"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
+                        </ctrls:DataGridEx.Columns>
+                    </ctrls:DataGridEx>
                 </StackPanel>
             </TabItem>
             <TabItem Header="ListViewEx">

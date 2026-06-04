@@ -123,7 +123,13 @@ namespace Lib.Wpf
             }
         }
     }
-    
+
+    public class RowItemVM
+    {
+        public string Name { get; set; }
+        public string Value { get; set; }
+    }
+
     public class DataGridExVM : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
@@ -134,6 +140,8 @@ namespace Lib.Wpf
         public ColumnVM[] ColumnsSource { get; set; }
 
         public ObservableCollection<ColumnVM> DynamicColumnsSource { get; set; }
+
+        public ObservableCollection<RowItemVM> Items { get; }
 
         private bool m_ShowColumns;
 
@@ -222,15 +230,20 @@ namespace Lib.Wpf
                 new ColumnVM("B")
             });
 
+            Items = new ObservableCollection<RowItemVM>();
+
             m_ShowColumns = true;
 
             AddColumnCommand = new RelayCommand(AddColumn);
             AddColumnAsyncCommand = new RelayCommand(AddColumnAsync);
-            GetSelectedCellsCommand = new RelayCommand<IList<object>>(GetSelectedCells, c => c?.Any() == true);
+            GetSelectedCellsCommand = new RelayCommand<IList<object>>(GetSelectedCells, c => c?.Count > 0);
         }
 
         private void GetSelectedCells(IList<object> cells)
         {
+            foreach (var cell in cells) 
+            {
+            }
         }
 
         private async void AddColumnAsync()

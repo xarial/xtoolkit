@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using Xarial.XToolkit.Services;
@@ -39,17 +40,35 @@ namespace Xarial.XToolkit.Wpf.Services
         /// Constructor
         /// </summary>
         /// <param name="title">Title of the mesage box</param>
-        public WindowsMessageService(string title)
+        public WindowsMessageService(string title) : this(title, Dispatcher.CurrentDispatcher)
         {
             m_Title = title;
-            m_Dispatcher = Dispatcher.CurrentDispatcher;
         }
 
-        private MessageBoxResult ShowMessage(string msg, MessageBoxImage img, MessageBoxButton btn)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="title">Title of the mesage box</param>
+        /// <param name="dispatcher">dispatcher for thread safety</param>
+        protected WindowsMessageService(string title, Dispatcher dispatcher)
         {
-            MessageBoxResult Show() => MessageBox.Show(msg, m_Title, btn, img);
+            m_Title = title;
+            m_Dispatcher = dispatcher;
+        }
 
-            if (m_Dispatcher != null)
+        /// <summary>
+        /// Display the message box
+        /// </summary>
+        /// <param name="msg">Message</param>
+        /// <param name="title">Title of the message box</param>
+        /// <param name="img">Image</param>
+        /// <param name="btn">Buttons</param>
+        /// <returns>Message box result</returns>
+        protected virtual MessageBoxResult DisplayMessageBox(string msg, string title, MessageBoxImage img, MessageBoxButton btn)
+        {
+            MessageBoxResult Show() => MessageBox.Show(msg, title, btn, img);
+
+            if (m_Dispatcher != null && m_Dispatcher.Thread != Thread.CurrentThread)
             {
                 return m_Dispatcher.Invoke(Show);
             }
@@ -113,7 +132,7 @@ namespace Xarial.XToolkit.Wpf.Services
                     throw new NotSupportedException();
             }
 
-            switch (ShowMessage(msg, msgBoxImg, msgBoxBtns))
+            switch (DisplayMessageBox(msg, m_Title, msgBoxImg, msgBoxBtns))
             {
                 case MessageBoxResult.Yes:
                 case MessageBoxResult.OK:
