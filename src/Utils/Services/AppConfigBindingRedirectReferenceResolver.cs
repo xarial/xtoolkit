@@ -12,21 +12,21 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using Xarial.XToolkit.Reporting;
+using Xarial.XToolkit.Services;
 
-namespace Xarial.XToolkit.Reflection
+namespace Xarial.XToolkit.Services
 {
     /// <summary>
-    /// Resolver for <see cref="Helpers.AssemblyResolver"/> allowing to redirect assembly binding based on the .config files
+    /// Resolver allowing to redirect assembly binding based on the .config files
     /// </summary>
     /// <remarks>This resolver can be useful for the plugin applications (.dlls) when the app.config files will not be considered for binding redirects
     /// It can also be useful when the binding redirects specified in the separate file which is not named after the application name (e.g. custom binding redirect without an automatic option)</remarks>
-    public class AppConfigBindingRedirectReferenceResolver : AssemblyNameReferenceResolver
+    public class AppConfigBindingRedirectReferenceResolver : AssemblyReferenceResolver
     {
-        public AppConfigBindingRedirectReferenceResolver() : this("")
-        {
-        }
-
-        public AppConfigBindingRedirectReferenceResolver(string name, string[] filterDirs = null) : base(name, filterDirs, null) 
+        /// <inheritdoc/>
+        public AppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogger logger) 
+            : base(appDomain, parameters, logger) 
         {
         }
 
@@ -38,7 +38,7 @@ namespace Xarial.XToolkit.Reflection
             }
             else 
             {
-                return new Assembly[0];
+                return Array.Empty<Assembly>();
             }
         }
 
