@@ -43,23 +43,17 @@ namespace Xarial.XToolkit.Reporting
         }
 
         /// <inheritdoc/>
-        public void Log(string msg)
+        public virtual void Log(string msg)
         {
             if (!string.IsNullOrEmpty(msg))
             {
                 if (m_SingleLine)
                 {
-                    foreach (var line in m_SplitLineRegex.Split(msg))
-                    {
-                        if (!string.IsNullOrEmpty(line))
-                        {
-                            WriteLine(line);
-                        }
-                    }
+                    WriteLines(m_SplitLineRegex.Split(msg));
                 }
                 else
                 {
-                    WriteLine(msg);
+                    WriteLines(msg);
                 }
             }
         }
@@ -67,8 +61,20 @@ namespace Xarial.XToolkit.Reporting
         /// <summary>
         /// Write line to trace
         /// </summary>
-        /// <param name="line">Line to write</param>
-        protected virtual void WriteLine(string line) => System.Diagnostics.Trace.WriteLine(line, m_Category);
+        /// <param name="lines">Lines to write</param>
+        protected virtual void WriteLines(params string[] lines)
+        {
+            if (lines != null) 
+            {
+                foreach (var line in lines)
+                {
+                    if (!string.IsNullOrEmpty(line))
+                    {
+                        System.Diagnostics.Trace.WriteLine(line, m_Category);
+                    }
+                }
+            }
+        }
     }
 
     /// <summary>

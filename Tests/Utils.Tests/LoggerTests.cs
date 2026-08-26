@@ -20,7 +20,7 @@ namespace Utils.Tests
                 m_Msgs = msgs;
             }
 
-            protected override void WriteLine(string line) => m_Msgs.Add(line);
+            protected override void WriteLines(params string[] lines) => m_Msgs.AddRange(lines.Where(l => !string.IsNullOrEmpty(l)));
         }
 
         [Test]
