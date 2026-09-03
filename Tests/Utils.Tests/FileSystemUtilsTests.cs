@@ -63,11 +63,13 @@ namespace Utils.Tests
             var r2 = FileSystemUtils.GetRelativePath(@"D:\a\b\c\d", @"D:\a\b\");
             var r3 = FileSystemUtils.GetRelativePath(@"D:\x\y\z\", @"D:\x\");
             var r4 = FileSystemUtils.GetRelativePath(@"a\b\c\1.txt", @"a\b\");
+            var r5 = FileSystemUtils.GetRelativePath(@"C:\a\b\c\..\1.txt", @"C:\a\b");
 
             Assert.AreEqual(@"c\1.txt", r1);
             Assert.AreEqual(@"c\d", r2);
             Assert.AreEqual(@"y\z\", r3);
             Assert.AreEqual(@"c\1.txt", r4);
+            Assert.AreEqual(@"1.txt", r5);
             Assert.Throws<Exception>(() => FileSystemUtils.GetRelativePath(@"D:\a\b\c\1.txt", @"D:\a\b\c\d"));
         }
 

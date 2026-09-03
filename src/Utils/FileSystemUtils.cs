@@ -10,13 +10,40 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Xarial.XToolkit
 {
+    /// <summary>
+    /// Utilities for files
+    /// </summary>
     public static class FileSystemUtils
     {
+        private const uint FO_DELETE = 0x0003;
+
+        private const ushort FOF_SILENT = 0x0004;
+        private const ushort FOF_NOCONFIRMATION = 0x0010;
+        private const ushort FOF_ALLOWUNDO = 0x0040;
+        private const ushort FOF_NOERRORUI = 0x0400;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        private struct SHFILEOPSTRUCT
+        {
+            public IntPtr hwnd;
+            public uint wFunc;
+            public string pFrom;
+            public string pTo;
+            public ushort fFlags;
+            public int fAnyOperationsAborted;
+            public IntPtr hNameMappings;
+            public string lpszProgressTitle;
+        }
+
+        [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
+        private static extern int SHFileOperation(ref SHFILEOPSTRUCT lpFileOp);
+
         private static readonly Lazy<char[]> m_IllegalChars = new Lazy<char[]>(() => Path.GetInvalidFileNameChars().Union(Path.GetInvalidPathChars()).ToArray());
 
         /// <summary>
@@ -89,8 +116,58 @@ namespace Xarial.XToolkit
         /// <returns>True of directory is within another directory</returns>
         public static bool IsInDirectory(string thisPath, string parentDir)
         {
-            return thisPath.StartsWith(NormalizeDirectoryPath(parentDir),
-                    StringComparison.CurrentCultureIgnoreCase);
+            if (string.IsNullOrEmpty(thisPath) || string.IsNullOrEmpty(parentDir))
+            {
+                return false;
+            }
+
+            try
+            {
+                string full;
+
+                if (Path.IsPathRooted(thisPath))
+                {
+                    full = Path.GetFullPath(thisPath);
+                }
+                else 
+                {
+                    full = thisPath;
+                }
+
+                var root = NormalizeDirectoryPath(parentDir);
+
+                return full.StartsWith(root, StringComparison.OrdinalIgnoreCase);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Unable to compare '{thisPath}' against '{parentDir}': {ex.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Deletes the specified files to the recycle bin without displaying any UI
+        /// </summary>
+        /// <param name="filePaths">Full paths of the files to delete</param>
+        /// <returns>True if the operation succeeded</returns>
+        public static bool DeleteToRecycleBin(params string[] filePaths)
+        {
+            if (filePaths?.Any() == true)
+            {
+                var op = new SHFILEOPSTRUCT
+                {
+                    wFunc = FO_DELETE,
+
+                    pFrom = string.Join("\0", filePaths) + "\0\0",
+                    fFlags = FOF_ALLOWUNDO | FOF_NOCONFIRMATION | FOF_NOERRORUI | FOF_SILENT
+                };
+
+                return SHFileOperation(ref op) == 0;
+            }
+            else 
+            {
+                return true;
+            }
         }
 
         /// <summary>
@@ -106,6 +183,11 @@ namespace Xarial.XToolkit
 
             if (IsInDirectory(thisPath, relativeToDir))
             {
+                if (Path.IsPathRooted(thisPath))
+                {
+                    thisPath = Path.GetFullPath(thisPath);
+                }
+
                 return thisPath.Substring(relativeToDir.Length);
             }
             else 
@@ -174,14 +256,12 @@ namespace Xarial.XToolkit
 
         private static string NormalizeDirectoryPath(string path)
         {
-            if (!path.EndsWith("\\"))
+            if (Path.IsPathRooted(path))
             {
-                return path + "\\";
+                path = Path.GetFullPath(path);
             }
-            else
-            {
-                return path;
-            }
+
+            return path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
         }
     }
 }

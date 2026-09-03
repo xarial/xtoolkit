@@ -51,6 +51,23 @@ namespace ConsoleTester
 
         static void Main(string[] args)
         {
+            TestFileLogger();
+            //TestIsolatedInstance();
+        }
+
+        private static void TestFileLogger()
+        {
+            var appGuid = new Guid("{1CA4640E-FC18-454E-93A5-3D815FF8686A}");
+
+            var fileLogger = new FileLogger(
+                $@"%appdata%\Xarial\xToolkit\Logs\testlog_{Guid.NewGuid().ToString()}.log", "test", appGuid,
+                new FileLoggerRetentionPolicy("testlog_*.log", 3, TimeSpan.FromDays(30)));
+
+            fileLogger.Log("Message 1");
+        }
+
+        private static void TestIsolatedInstance()
+        {
             var localPath = Path.GetDirectoryName(typeof(Program).Assembly.Location);
 
             using (var isoInst = new IsolatedInstance(FileSystemUtils.CombinePaths(localPath, @"..\..\..\Lib\bin\Debug\Lib.dll"), "Lib.SampleClass"))
@@ -60,7 +77,7 @@ namespace ConsoleTester
 
             Foo();
         }
-        
+
         static void Foo() 
         {
             var f = new Lib.SampleClass();
