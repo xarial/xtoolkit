@@ -13,7 +13,63 @@ namespace Xarial.XToolkit.Reporting
     public class FileLogger : TraceLogger
     {
         internal static string GetSignature(Guid appId)
-            => string.Format(SIGNATURE, appId);
+        {
+            if (appId.Equals(Guid.Empty))
+            {
+                throw new ArgumentException("AppId is not specified");
+            }
+
+            return string.Format(SIGNATURE, appId);
+        }
+
+        internal static void ValidatePath(string path)
+        {
+            if (!IsValidPath(path))
+            {
+                throw new ArgumentException(
+                    $@"Path '{path}' must be a full (rooted) path, e.g. 'C:\Logs\app.log'. Relative paths, drive-relative paths ('\Logs\app.log') and unresolved environment variables are not supported");
+            }
+        }
+
+        private static bool IsValidPath(string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return false;
+            }
+
+            if (path.IndexOf('%') != -1)
+            {
+                return false;
+            }
+
+            if (path.IndexOfAny(Path.GetInvalidPathChars()) != -1)
+            {
+                return false;
+            }
+
+            if (!Path.IsPathRooted(path))
+            {
+                return false;
+            }
+
+            if (Path.DirectorySeparatorChar == '\\')
+            {
+                var root = Path.GetPathRoot(path);
+
+                if (root == "\\" || root == "/")
+                {
+                    return false;
+                }
+
+                if (root.Length == 2 && root[1] == ':')
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
 
         internal const string SIGNATURE = "###!!!LOG:{0}!!!###";
 
@@ -24,11 +80,18 @@ namespace Xarial.XToolkit.Reporting
         /// </summary>
         public string FilePath { get; }
 
-        private readonly StreamWriter m_Writer;
         private readonly object m_Lock;
 
         private readonly bool m_AddTimeStamp;
         private readonly string m_TimeStampFormat;
+
+        private readonly bool m_Append;
+        private readonly string m_Signature;
+        private readonly string m_DirPath;
+
+        private StreamWriter m_Writer;
+
+        private bool m_WriterInitFailed;
 
         private bool m_IsDisposed;
 
@@ -45,49 +108,73 @@ namespace Xarial.XToolkit.Reporting
         public FileLogger(string filePath, string category, Guid appId, bool addTimeStamp = true,
             string timeStampFormat = DEFAULT_TIMESTAMP_FORMAT, bool append = false, FileLoggerRetentionPolicy retentionPolicy = null) : base(category, true)
         {
-            if (string.IsNullOrEmpty(filePath))
+            if (string.IsNullOrWhiteSpace(filePath))
             {
                 throw new ArgumentNullException(nameof(filePath));
             }
+
+            filePath = Environment.ExpandEnvironmentVariables(filePath);
+
+            ValidatePath(filePath);
 
             m_AddTimeStamp = addTimeStamp;
             m_TimeStampFormat = timeStampFormat;
 
             m_Lock = new object();
 
-            FilePath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(filePath));
+            FilePath = filePath;
 
-            var dir = Path.GetDirectoryName(FilePath);
+            m_DirPath = Path.GetDirectoryName(FilePath);
 
-            if (!string.IsNullOrEmpty(dir))
+            if (string.IsNullOrEmpty(m_DirPath))
             {
-                var signature = GetSignature(appId);
+                throw new ArgumentException("Log file path must include a directory", nameof(filePath));
+            }
 
-                if (retentionPolicy != null)
-                {
-                    var logCleaner = new FileLoggerCleaner(dir, signature, category);
-                    logCleaner.TryClear(retentionPolicy);
-                }
+            m_Append = append;
+            m_Signature = GetSignature(appId);
 
-                Directory.CreateDirectory(dir);
+            if (retentionPolicy != null)
+            {
+                var logCleaner = new FileLoggerCleaner(m_DirPath, m_Signature, category);
+                logCleaner.TryClear(retentionPolicy);
+            }
+        }
+
+        private void EnsureWriter()
+        {
+            if (m_Writer != null || m_WriterInitFailed)
+            {
+                return;
+            }
+
+            StreamWriter writer = null;
+
+            try
+            {
+                Directory.CreateDirectory(m_DirPath);
 
                 var stream = new FileStream(FilePath,
-                    append ? FileMode.Append : FileMode.Create,
+                    m_Append ? FileMode.Append : FileMode.Create,
                     FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
 
-                m_Writer = new StreamWriter(stream, new UTF8Encoding(false))
+                writer = new StreamWriter(stream, new UTF8Encoding(false))
                 {
                     AutoFlush = true
                 };
 
                 if (stream.Length == 0)
                 {
-                    m_Writer.WriteLine(signature);
+                    writer.WriteLine(m_Signature);
                 }
+
+                m_Writer = writer;
             }
-            else
+            catch
             {
-                throw new ArgumentNullException("No directory for log file");
+                m_WriterInitFailed = true;
+                writer?.Dispose();
+                throw;
             }
         }
 
@@ -109,12 +196,17 @@ namespace Xarial.XToolkit.Reporting
                 {
                     try
                     {
-                        if (m_AddTimeStamp)
-                        {
-                            msg = $"[{DateTime.Now.ToString(m_TimeStampFormat, CultureInfo.InvariantCulture)}] {msg}";
-                        }
+                        EnsureWriter();
 
-                        m_Writer.WriteLine(msg);
+                        if (m_Writer != null)
+                        {
+                            if (m_AddTimeStamp)
+                            {
+                                msg = $"[{DateTime.Now.ToString(m_TimeStampFormat, CultureInfo.InvariantCulture)}] {msg}";
+                            }
+
+                            m_Writer.WriteLine(msg);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -134,7 +226,7 @@ namespace Xarial.XToolkit.Reporting
                 if (!m_IsDisposed)
                 {
                     m_IsDisposed = true;
-                    m_Writer.Dispose();
+                    m_Writer?.Dispose();
                 }
             }
         }

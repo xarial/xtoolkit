@@ -40,6 +40,11 @@ namespace Xarial.XToolkit.Reporting
         public TimeSpan? ExpiryPeriod { get; set; }
 
         /// <summary>
+        /// Maximum aggregate size (in bytes) of the kept files (null - unlimited).
+        /// </summary>
+        public long? MaxFilesSize { get; set; }
+
+        /// <summary>
         /// Default constructor
         /// </summary>
         public FileLoggerRetentionPolicy()
@@ -52,11 +57,13 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="searchPattern">Search pattern of the log files</param>
         /// <param name="maxFilesCount">Maximum number of files to keep (null - unlimited)</param>
         /// <param name="expiryPeriod">Delete files older than this (null - unlimited)</param>
-        public FileLoggerRetentionPolicy(string searchPattern, int? maxFilesCount = 10, TimeSpan? expiryPeriod = null)
+        /// <param name="maxFilesSize">Maximum aggregate size (in bytes) of the kept files (null - unlimited)</param>
+        public FileLoggerRetentionPolicy(string searchPattern, int? maxFilesCount = 10, TimeSpan? expiryPeriod = null, long? maxFilesSize = null)
         {
             SearchPattern = searchPattern;
             MaxFileCount = maxFilesCount;
             ExpiryPeriod = expiryPeriod;
+            MaxFilesSize = maxFilesSize;
         }
     }
 
@@ -86,7 +93,17 @@ namespace Xarial.XToolkit.Reporting
                 throw new ArgumentNullException(nameof(appSignature));
             }
 
-            m_DirPath = Path.GetFullPath(Environment.ExpandEnvironmentVariables(dirPath));
+            if (string.IsNullOrWhiteSpace(dirPath))
+            {
+                throw new ArgumentNullException(nameof(dirPath));
+            }
+
+            dirPath = Environment.ExpandEnvironmentVariables(dirPath);
+
+            FileLogger.ValidatePath(dirPath);
+
+            m_DirPath = dirPath;
+
             m_CategoryName = categoryName;
 
             m_Signature = Encoding.ASCII.GetBytes(appSignature);
@@ -95,14 +112,36 @@ namespace Xarial.XToolkit.Reporting
         /// <inheritdoc/>
         public void TryClear(FileLoggerRetentionPolicy policy)
         {
-            if (!policy.MaxFileCount.HasValue && !policy.ExpiryPeriod.HasValue)
+            if (policy == null)
             {
-                throw new ArgumentException("Specify maximum log files count and/or maximum age");
+                throw new ArgumentNullException(nameof(policy));
+            }
+
+            if (!policy.MaxFileCount.HasValue && !policy.ExpiryPeriod.HasValue && !policy.MaxFilesSize.HasValue)
+            {
+                throw new ArgumentException("Specify maximum log files count, maximum age and/or maximum aggregate size");
+            }
+
+            if (policy.MaxFileCount.HasValue && policy.MaxFileCount.Value < 0)
+            {
+                throw new ArgumentException("Maximum log files count must not be negative");
+            }
+
+            if (policy.MaxFilesSize.HasValue && policy.MaxFilesSize.Value < 0)
+            {
+                throw new ArgumentException("Maximum aggregate size must not be negative");
+            }
+
+            if (string.IsNullOrWhiteSpace(policy.SearchPattern))
+            {
+                throw new ArgumentException("Empty search pattern is not supported");
             }
 
             try
             {
-                if (!string.IsNullOrEmpty(m_DirPath) && Directory.Exists(m_DirPath))
+                Trace($"Clearing log folder: '{m_DirPath}'");
+
+                if (Directory.Exists(m_DirPath))
                 {
                     var files = new DirectoryInfo(m_DirPath).EnumerateFiles(policy.SearchPattern)
                         .OrderByDescending(f => f.LastWriteTimeUtc)
@@ -110,39 +149,60 @@ namespace Xarial.XToolkit.Reporting
 
                     var expiryDate = policy.ExpiryPeriod.HasValue ? DateTime.UtcNow - policy.ExpiryPeriod.Value : (DateTime?)null;
 
+                    long retainedSize = 0;
+
                     for (int i = 0; i < files.Length; i++)
                     {
                         var file = files[i];
 
                         var filePath = file.FullName;
 
+                        long fileSize;
+
+                        try
+                        {
+                            fileSize = file.Length;
+                        }
+                        catch
+                        {
+                            fileSize = 0;
+                        }
+
                         var isExcessive = policy.MaxFileCount.HasValue && i >= policy.MaxFileCount.Value;
                         var isExpired = expiryDate.HasValue && file.LastWriteTimeUtc < expiryDate.Value;
+                        var isOversized = policy.MaxFilesSize.HasValue && retainedSize + fileSize > policy.MaxFilesSize.Value;
 
-                        if (isExcessive || isExpired)
+                        if (isExcessive || isExpired || isOversized)
                         {
                             try
                             {
                                 if (HasSignature(filePath))
                                 {
-                                    Trace($"Deleting log file '{filePath}' [excessive: {isExcessive}, expired: {isExpired}]");
+                                    Trace($"Deleting log file '{filePath}' [excessive: {isExcessive}, expired: {isExpired}, oversized: {isOversized}]");
                                     DeleteFile(file);
                                 }
                                 else
                                 {
-                                    Trace($"Retaining log file '{filePath}' [excessive: {isExcessive}, expired: {isExpired}] - signature mismatch");
+                                    retainedSize += fileSize;
+                                    Trace($"Retaining log file '{filePath}' [excessive: {isExcessive}, expired: {isExpired}, oversized: {isOversized}] - signature mismatch");
                                 }
                             }
                             catch (Exception ex)
                             {
+                                retainedSize += fileSize;
                                 Trace($"Failed to delete file '{filePath}': {ex.Message}");
                             }
                         }
                         else
                         {
+                            retainedSize += fileSize;
                             Trace($"Retaining log file '{filePath}'");
                         }
                     }
+                }
+                else
+                {
+                    Trace($"Log folder '{m_DirPath}' does not exist - nothing to clean");
                 }
             }
             catch (Exception ex)
