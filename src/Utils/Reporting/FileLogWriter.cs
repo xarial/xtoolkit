@@ -199,7 +199,7 @@ namespace Xarial.XToolkit.Reporting
 
                 var stream = new FileStream(FilePath,
                     m_Append ? FileMode.Append : FileMode.Create,
-                    FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                    FileAccess.Write, FileShare.ReadWrite);
 
                 writer = new StreamWriter(stream, new UTF8Encoding(false))
                 {

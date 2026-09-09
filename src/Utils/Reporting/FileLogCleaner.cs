@@ -106,7 +106,7 @@ namespace Xarial.XToolkit.Reporting
 
             m_CategoryName = categoryName;
 
-            m_Signature = Encoding.ASCII.GetBytes(appSignature);
+            m_Signature = Encoding.UTF8.GetBytes(appSignature);
         }
 
         /// <inheritdoc/>
@@ -178,8 +178,12 @@ namespace Xarial.XToolkit.Reporting
                             {
                                 if (HasSignature(filePath))
                                 {
-                                    Trace($"Deleting log file '{filePath}' [excessive: {isExcessive}, expired: {isExpired}, oversized: {isOversized}]");
-                                    DeleteFile(file);
+                                    Trace($"Marking for deletion '{filePath}': [excessive: {isExcessive}, expired: {isExpired}, oversized: {isOversized}]");
+                                    
+                                    if (!DeleteFile(file, policy.SearchPattern)) 
+                                    {
+                                        retainedSize += fileSize;
+                                    }
                                 }
                                 else
                                 {
@@ -215,8 +219,29 @@ namespace Xarial.XToolkit.Reporting
         /// Delete log file
         /// </summary>
         /// <param name="file">File</param>
-        protected virtual void DeleteFile(FileInfo file)
-            => file.Delete();
+        /// <param name="filter">File name filter</param>
+        protected virtual bool DeleteFile(FileInfo file, string filter)
+        {
+            if (FileSystemUtils.IsInDirectory(file.FullName, m_DirPath))
+            {
+                if (TextUtils.MatchesAnyFilter(file.Name, filter))
+                {
+                    Trace($"Deleting '{file.Name}'");
+                    file.Delete();
+                    return true;
+                }
+                else
+                {
+                    Trace($"'{file.Name}' does not match '{filter}'");
+                    return false;
+                }
+            }
+            else 
+            {
+                Trace($"'{file.FullName}' is not in the '{m_DirPath}'");
+                return false;
+            }
+        }
 
         private bool HasSignature(string filePath)
         {
