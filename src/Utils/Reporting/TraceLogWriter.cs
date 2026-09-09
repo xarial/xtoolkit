@@ -36,7 +36,7 @@ namespace Xarial.XToolkit.Reporting
         }
 
         /// <inheritdoc/>
-        public virtual void Log(string msg, LogMessageSeverity_e severity = LogMessageSeverity_e.Information)
+        public virtual void Log(string msg, LogMessageSeverity_e severity)
         {
             if (IsEnabled(severity))
             {

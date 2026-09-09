@@ -229,7 +229,7 @@ namespace Xarial.XToolkit.Reporting
         }
 
         /// <inheritdoc/>
-        public override void Log(string msg, LogMessageSeverity_e severity = LogMessageSeverity_e.Information)
+        public override void Log(string msg, LogMessageSeverity_e severity)
         {
             if (IsEnabled(severity))
             {
@@ -255,7 +255,7 @@ namespace Xarial.XToolkit.Reporting
                         }
                         catch (Exception ex)
                         {
-                            base.Log(LogWriterExtension.GetExceptionContent(ex, false));
+                            base.Log(LogWriterExtension.GetExceptionContent(ex, false), LogMessageSeverity_e.Error);
                         }
                     }
                 }

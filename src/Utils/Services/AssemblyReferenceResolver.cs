@@ -168,18 +168,18 @@ namespace Xarial.XToolkit.Services
             {
                 var requestingAssm = args.RequestingAssembly ?? Assembly.GetCallingAssembly();
 
-                m_Logger.Log($"Resolving '{args.Name}' for requesting assembly '{requestingAssm?.FullName}'");
+                m_Logger.LogTrace($"Resolving '{args.Name}' for requesting assembly '{requestingAssm?.FullName}'");
 
                 var assm = Resolve(m_AppDomain, assmName, requestingAssm);
 
                 if (assm != null)
                 {
-                    m_Logger.Log($"Assembly '{args.Name}' is resolved to '{assm.FullName}' in '{assm.Location}'");
+                    m_Logger.LogInformation($"Assembly '{args.Name}' is resolved to '{assm.FullName}' in '{assm.Location}'");
                     return assm;
                 }
                 else
                 {
-                    m_Logger.Log($"Assembly '{args.Name}' is not resolved");
+                    m_Logger.LogInformation($"Assembly '{args.Name}' is not resolved");
                 }
             }
 
@@ -210,7 +210,7 @@ namespace Xarial.XToolkit.Services
 
                     if (exactMatch != null)
                     {
-                        m_Logger.Log($"Assembly '{searchAssmName}' is resolved to '{exactMatch.Location}' as exact match");
+                        m_Logger.LogInformation($"Assembly '{searchAssmName}' is resolved to '{exactMatch.Location}' as exact match");
 
                         return exactMatch;
                     }
@@ -223,7 +223,7 @@ namespace Xarial.XToolkit.Services
                     {
                         if (CompareAssemblyNames(name.Name, searchAssmName))
                         {
-                            m_Logger.Log($"Loading '{searchAssmName}' from '{name.FilePath}' as exact match");
+                            m_Logger.LogTrace($"Loading '{searchAssmName}' from '{name.FilePath}' as exact match");
 
                             return LoadAssembly(AssemblyInfo.FromFile(name.FilePath));
                         }
@@ -287,7 +287,7 @@ namespace Xarial.XToolkit.Services
         /// <returns>Loaded assembly</returns>
         protected Assembly LoadAssembly(AssemblyInfo assmInfo)
         {
-            m_Logger.Log($"Loading '{assmInfo.Name}' from file '{assmInfo.FilePath}' [Loaded={assmInfo.IsLoaded}]");
+            m_Logger.LogTrace($"Loading '{assmInfo.Name}' from file '{assmInfo.FilePath}' [Loaded={assmInfo.IsLoaded}]");
 
             return Assembly.Load(assmInfo.Name);
         }
@@ -364,13 +364,13 @@ namespace Xarial.XToolkit.Services
         protected virtual AssemblyInfo ResolveAmbiguity(
             IReadOnlyList<AssemblyInfo> assmNames, AssemblyName searchAssmName)
         {
-            m_Logger.Log($"Resolving ambiguity for '{searchAssmName}'");
+            m_Logger.LogTrace($"Resolving ambiguity for '{searchAssmName}'");
 
             var assmInfo = assmNames.FirstOrDefault(a => CompareAssemblyNames(a.Name, searchAssmName));
 
             if (assmInfo == null)
             {
-                m_Logger.Log($"Ambiguity for '{searchAssmName}' is not resolved via exact match");
+                m_Logger.LogTrace($"Ambiguity for '{searchAssmName}' is not resolved via exact match");
 
                 assmInfo = assmNames.FirstOrDefault(a => a.IsLoaded);
 
@@ -380,16 +380,16 @@ namespace Xarial.XToolkit.Services
 
                     if (assmInfo != null)
                     {
-                        m_Logger.Log($"Ambiguity for '{searchAssmName}' is resolved by first assembly");
+                        m_Logger.LogInformation($"Ambiguity for '{searchAssmName}' is resolved by first assembly");
                     }
                     else
                     {
-                        m_Logger.Log($"Ambiguity for '{searchAssmName}' is not resolved");
+                        m_Logger.LogInformation($"Ambiguity for '{searchAssmName}' is not resolved");
                     }
                 }
                 else
                 {
-                    m_Logger.Log($"Ambiguity for '{searchAssmName}' is resolved by first loaded assembly");
+                    m_Logger.LogInformation($"Ambiguity for '{searchAssmName}' is resolved by first loaded assembly");
                 }
             }
 

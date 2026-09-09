@@ -51,7 +51,7 @@ namespace Xarial.XToolkit.Reporting
         /// </summary>
         /// <param name="msg">Content to log</param>
         /// <param name="severity">Message severity</param>
-        void Log(string msg, LogMessageSeverity_e severity = LogMessageSeverity_e.Information);
+        void Log(string msg, LogMessageSeverity_e severity);
     }
 
     /// <summary>
@@ -93,6 +93,14 @@ namespace Xarial.XToolkit.Reporting
             => logger.Log(GetExceptionContent(ex, logCallStack), LogMessageSeverity_e.Error);
 
         /// <summary>
+        /// Logs error to log
+        /// </summary>
+        /// <param name="logger">Logger</param>
+        /// <param name="message">Message</param>
+        public static void LogError(this ILogWriter logger, string message)
+            => logger.Log(message, LogMessageSeverity_e.Error);
+
+        /// <summary>
         /// Logs critical exception to log
         /// </summary>
         /// <param name="logger">Logger</param>
@@ -100,6 +108,14 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="logCallStack">True to log stack trace</param>
         public static void LogCritical(this ILogWriter logger, Exception ex, bool logCallStack = true)
             => logger.Log(GetExceptionContent(ex, logCallStack), LogMessageSeverity_e.Critical);
+
+        /// <summary>
+        /// Logs critical error to log
+        /// </summary>
+        /// <param name="logger">Logger</param>
+        /// <param name="message">Message</param>
+        public static void LogCritical(this ILogWriter logger, string message)
+            => logger.Log(message, LogMessageSeverity_e.Critical);
 
         /// <summary>
         /// Logs debug message
