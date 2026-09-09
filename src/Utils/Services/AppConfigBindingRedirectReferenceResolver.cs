@@ -25,7 +25,7 @@ namespace Xarial.XToolkit.Services
     public class AppConfigBindingRedirectReferenceResolver : AssemblyReferenceResolver
     {
         /// <inheritdoc/>
-        public AppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogger logger) 
+        public AppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogWriter logger) 
             : base(appDomain, parameters, logger) 
         {
         }

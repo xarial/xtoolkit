@@ -37,7 +37,7 @@ namespace Xarial.XToolkit.Services
     {
         /// <inheritdoc/>
         /// <param name="bindingFileName">Name of bidning file</param>
-        public static BindingMapReferencesResolver FromType<T>(AssemblyNamePart_e filter, string bindingFileName, ILogger logger)
+        public static BindingMapReferencesResolver FromType<T>(AssemblyNamePart_e filter, string bindingFileName, ILogWriter logger)
         {
             var workDir = Path.GetDirectoryName(typeof(T).Assembly.Location);
 
@@ -73,7 +73,7 @@ namespace Xarial.XToolkit.Services
         private readonly BindingMapReferenceResolverParameters m_Parameters;
 
         /// <inheritdoc/>
-        public BindingMapReferencesResolver(AppDomain appDomain, BindingMapReferenceResolverParameters parameters, ILogger logger) : base(appDomain, parameters, logger)
+        public BindingMapReferencesResolver(AppDomain appDomain, BindingMapReferenceResolverParameters parameters, ILogWriter logger) : base(appDomain, parameters, logger)
         {
             m_Parameters = parameters;
         }

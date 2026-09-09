@@ -51,7 +51,7 @@ namespace Xarial.XToolkit.Services
         /// <param name="filter">Filter</param>
         /// <param name="logger">Logger</param>
         /// <returns>References resolvedr</returns>
-        public static LocalFolderReferencesResolver FromType<T>(AssemblyNamePart_e filter, ILogger logger)
+        public static LocalFolderReferencesResolver FromType<T>(AssemblyNamePart_e filter, ILogWriter logger)
         {
             var workDir = Path.GetDirectoryName(typeof(T).Assembly.Location);
 
@@ -66,7 +66,7 @@ namespace Xarial.XToolkit.Services
         private readonly LocalFolderReferenceResolverParameters m_Parameters;
 
         /// <inheritdoc/>
-        public LocalFolderReferencesResolver(AppDomain appDomain, LocalFolderReferenceResolverParameters parameters, ILogger logger)
+        public LocalFolderReferencesResolver(AppDomain appDomain, LocalFolderReferenceResolverParameters parameters, ILogWriter logger)
             : base(appDomain, parameters, logger)
         {
             m_Parameters = parameters;

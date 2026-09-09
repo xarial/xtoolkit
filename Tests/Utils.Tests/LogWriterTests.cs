@@ -9,18 +9,19 @@ using Xarial.XToolkit.Reporting;
 
 namespace Utils.Tests
 {
-    public class LoggerTests
+    public class LogWriterTests
     {
-        private class LoggerMock : TraceLogger
+        private class LogWriterMock : TraceLogWriter
         {
             private readonly List<string> m_Msgs;
 
-            public LoggerMock(List<string> msgs, string category, bool singleLine = true) : base(category, singleLine)
+            public LogWriterMock(List<string> msgs, string category, bool singleLine = true) : base(category, singleLine)
             {
                 m_Msgs = msgs;
             }
 
-            protected override void WriteLines(params string[] lines) => m_Msgs.AddRange(lines.Where(l => !string.IsNullOrEmpty(l)));
+            protected override void WriteLines(LogMessageSeverity_e severity, params string[] lines)
+                => m_Msgs.AddRange(lines.Where(l => !string.IsNullOrEmpty(l)));
         }
 
         [Test]
@@ -30,9 +31,9 @@ namespace Utils.Tests
             
             var msgs = new List<string>();
 
-            var logger = new LoggerMock(msgs, "Test");
+            var logger = new LogWriterMock(msgs, "Test");
 
-            logger.Log(ex, false);
+            logger.LogError(ex, false);
 
             Assert.AreEqual(3, msgs.Count);
             Assert.AreEqual("Test1", msgs[0]);
@@ -56,9 +57,9 @@ namespace Utils.Tests
 
             var msgs = new List<string>();
 
-            var logger = new LoggerMock(msgs, "Test");
+            var logger = new LogWriterMock(msgs, "Test");
 
-            logger.Log(ex, true);
+            logger.LogError(ex, true);
 
             var frame = new StackFrame(0, true);
             var method = frame.GetMethod();
@@ -88,9 +89,9 @@ namespace Utils.Tests
 
             var msgs = new List<string>();
 
-            var logger = new LoggerMock(msgs, "Test", false);
+            var logger = new LogWriterMock(msgs, "Test", false);
 
-            logger.Log(ex, true);
+            logger.LogError(ex, true);
 
             var frame = new StackFrame(0, true);
             var method = frame.GetMethod();

@@ -24,7 +24,7 @@ namespace ConsoleTester
 
         private class CustomAppConfigBindingRedirectReferenceResolver : AppConfigBindingRedirectReferenceResolver 
         {
-            public CustomAppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogger logger) 
+            public CustomAppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogWriter logger) 
                 : base(appDomain, parameters, logger)
             {
             }
@@ -45,7 +45,7 @@ namespace ConsoleTester
                     SearchDirectory = FileSystemUtils.CombinePaths(localPath, @"..\..\..\Lib\bin\Debug"),
                     MatchFilter = AssemblyNamePart_e.PublicKeyToken | AssemblyNamePart_e.Culture,
                     RequestingAssemblyDirectories = new string[] { localPath }
-                }, new TraceLogger("Test"));
+                }, new TraceLogWriter("Test"));
                 ;
         }
 
@@ -59,11 +59,13 @@ namespace ConsoleTester
         {
             var appGuid = new Guid("{1CA4640E-FC18-454E-93A5-3D815FF8686A}");
 
-            var fileLogger = new FileLogger(
+            var fileLogger = new FileLogWriter(
                 $@"%appdata%\Xarial\xToolkit\Logs\testlog_{Guid.NewGuid().ToString()}.log", "test", appGuid,
-                new FileLoggerRetentionPolicy("testlog_*.log", 3, TimeSpan.FromDays(30)));
+                new FileLogRetentionPolicy("testlog_*.log", 3, TimeSpan.FromDays(30)));
 
-            fileLogger.Log("Message 1");
+            fileLogger.LogInformation("Message 1");
+
+            fileLogger.LogDebug("Debug Message");
         }
 
         private static void TestIsolatedInstance()

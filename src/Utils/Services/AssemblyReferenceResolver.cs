@@ -141,7 +141,7 @@ namespace Xarial.XToolkit.Services
     {
         private readonly AppDomain m_AppDomain;
         private readonly AssemblyReferenceResolverParameters m_Parameters;
-        private readonly ILogger m_Logger;
+        private readonly ILogWriter m_Logger;
 
         /// <summary>
         /// Default constructor
@@ -149,7 +149,7 @@ namespace Xarial.XToolkit.Services
         /// <param name="appDomain">Application domain</param>
         /// <param name="parameters">Parameters</param>
         /// <param name="logger">Logger</param>
-        protected AssemblyReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogger logger)
+        protected AssemblyReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogWriter logger)
         {
             m_AppDomain = appDomain;
 

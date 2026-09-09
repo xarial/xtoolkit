@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -8,9 +9,57 @@ using System.Text;
 namespace Xarial.XToolkit.Reporting
 {
     /// <summary>
+    /// Options for <see cref="FileLogWriter"/>
+    /// </summary>
+    public class FileLogOptions 
+    {
+        internal const string DEFAULT_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.fff";
+
+        /// <summary>
+        /// Fitler for messages (null to filter all)
+        /// </summary>
+        public LogMessageSeverity_e[] Filter { get; set; }
+
+        /// <summary>
+        /// Add time stamp to log message
+        /// </summary>
+        public bool AddTimeStamp { get; set; }
+
+        /// <summary>
+        /// Format of time stamp
+        /// </summary>
+        public string TimeStampFormat { get; set; }
+
+        /// <summary>
+        /// Append to a log file or create new
+        /// </summary>
+        public bool Append { get; set; }
+
+        /// <summary>
+        /// Retention policy for log files
+        /// </summary>
+        public FileLogRetentionPolicy RetentionPolicy { get; set; }
+
+        /// <param name="addTimeStamp">Add time stamp to log message</param>
+        /// <param name="timeStampFormat">Format of time stamp</param>
+        /// <param name="append">Append to a log file or create new</param>
+        /// <param name="retentionPolicy">Retention policy for log files</param>
+        /// <param name="filter">Fitler for messages (null to filter all)</param>
+        public FileLogOptions(bool addTimeStamp = true,
+            string timeStampFormat = DEFAULT_TIMESTAMP_FORMAT, bool append = false, FileLogRetentionPolicy retentionPolicy = null, LogMessageSeverity_e[] filter = null)
+        { 
+            AddTimeStamp = addTimeStamp;
+            TimeStampFormat = timeStampFormat;
+            Append = append;
+            RetentionPolicy = retentionPolicy;
+            Filter = filter;
+        }
+    }
+
+    /// <summary>
     /// File-based logger
     /// </summary>
-    public class FileLogger : TraceLogger
+    public class FileLogWriter : TraceLogWriter
     {
         internal static string GetSignature(Guid appId)
         {
@@ -73,8 +122,6 @@ namespace Xarial.XToolkit.Reporting
 
         internal const string SIGNATURE = "###!!!LOG:{0}!!!###";
 
-        private const string DEFAULT_TIMESTAMP_FORMAT = "yyyy-MM-dd HH:mm:ss.fff";
-
         /// <summary>
         /// Path to log file
         /// </summary>
@@ -101,12 +148,8 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="filePath">Path to log file</param>
         /// <param name="category">Log category</param>
         /// <param name="appId">Application id</param>
-        /// <param name="addTimeStamp">Add time stamp to log message</param>
-        /// <param name="timeStampFormat">Format of tiem stamp</param>
-        /// <param name="append">Append to a log file or create new</param>
-        /// <param name="retentionPolicy">retention policy for log files</param>
-        public FileLogger(string filePath, string category, Guid appId, bool addTimeStamp = true,
-            string timeStampFormat = DEFAULT_TIMESTAMP_FORMAT, bool append = false, FileLoggerRetentionPolicy retentionPolicy = null) : base(category, true)
+        /// <param name="opts">Log options</param>
+        public FileLogWriter(string filePath, string category, Guid appId, FileLogOptions opts = null) : base(category, true, opts?.Filter)
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -117,8 +160,8 @@ namespace Xarial.XToolkit.Reporting
 
             ValidatePath(filePath);
 
-            m_AddTimeStamp = addTimeStamp;
-            m_TimeStampFormat = timeStampFormat;
+            m_AddTimeStamp = opts?.AddTimeStamp ?? false;
+            m_TimeStampFormat = opts?.TimeStampFormat;
 
             m_Lock = new object();
 
@@ -131,13 +174,13 @@ namespace Xarial.XToolkit.Reporting
                 throw new ArgumentException("Log file path must include a directory", nameof(filePath));
             }
 
-            m_Append = append;
+            m_Append = opts?.Append ?? false;
             m_Signature = GetSignature(appId);
 
-            if (retentionPolicy != null)
+            if (opts?.RetentionPolicy != null)
             {
-                var logCleaner = new FileLoggerCleaner(m_DirPath, m_Signature, category);
-                logCleaner.TryClear(retentionPolicy);
+                var logCleaner = new FileLogCleaner(m_DirPath, m_Signature, category);
+                logCleaner.TryClear(opts.RetentionPolicy);
             }
         }
 
@@ -179,38 +222,41 @@ namespace Xarial.XToolkit.Reporting
         }
 
         /// <inheritdoc/>
-        public FileLogger(string filePath, string category, Guid appId,
-            FileLoggerRetentionPolicy retentionPolicy) 
-            : this(filePath, category, appId, true, DEFAULT_TIMESTAMP_FORMAT, false, retentionPolicy) 
+        public FileLogWriter(string filePath, string category, Guid appId,
+            FileLogRetentionPolicy retentionPolicy) 
+            : this(filePath, category, appId, new FileLogOptions(true, FileLogOptions.DEFAULT_TIMESTAMP_FORMAT, false, retentionPolicy)) 
         {
         }
 
         /// <inheritdoc/>
-        public override void Log(string msg)
+        public override void Log(string msg, LogMessageSeverity_e severity = LogMessageSeverity_e.Information)
         {
-            base.Log(msg);
-
-            lock (m_Lock)
+            if (IsEnabled(severity))
             {
-                if (!m_IsDisposed)
+                base.Log(msg, severity);
+
+                lock (m_Lock)
                 {
-                    try
+                    if (!m_IsDisposed)
                     {
-                        EnsureWriter();
-
-                        if (m_Writer != null)
+                        try
                         {
-                            if (m_AddTimeStamp)
-                            {
-                                msg = $"[{DateTime.Now.ToString(m_TimeStampFormat, CultureInfo.InvariantCulture)}] {msg}";
-                            }
+                            EnsureWriter();
 
-                            m_Writer.WriteLine(msg);
+                            if (m_Writer != null)
+                            {
+                                if (m_AddTimeStamp)
+                                {
+                                    msg = $"[{DateTime.Now.ToString(m_TimeStampFormat, CultureInfo.InvariantCulture)}] [{severity}] {msg}";
+                                }
+
+                                m_Writer.WriteLine(msg);
+                            }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-                        base.Log(LoggerExtension.GetExceptionContent(ex, false));
+                        catch (Exception ex)
+                        {
+                            base.Log(LogWriterExtension.GetExceptionContent(ex, false));
+                        }
                     }
                 }
             }

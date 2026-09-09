@@ -10,19 +10,19 @@ namespace Xarial.XToolkit.Reporting
     /// <summary>
     /// Utility to clear log files
     /// </summary>
-    public interface IFileLoggerCleaner
+    public interface IFileLogCleaner
     {
         /// <summary>
         /// Retention policy for clearing logs
         /// </summary>
         /// <param name="policy">Policy</param>
-        void TryClear(FileLoggerRetentionPolicy policy);
+        void TryClear(FileLogRetentionPolicy policy);
     }
 
     /// <summary>
     /// Clear log retention policy
     /// </summary>
-    public class FileLoggerRetentionPolicy
+    public class FileLogRetentionPolicy
     {
         /// <summary>
         /// Search pattern of the log files
@@ -47,7 +47,7 @@ namespace Xarial.XToolkit.Reporting
         /// <summary>
         /// Default constructor
         /// </summary>
-        public FileLoggerRetentionPolicy()
+        public FileLogRetentionPolicy()
         {
         }
 
@@ -58,7 +58,7 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="maxFilesCount">Maximum number of files to keep (null - unlimited)</param>
         /// <param name="expiryPeriod">Delete files older than this (null - unlimited)</param>
         /// <param name="maxFilesSize">Maximum aggregate size (in bytes) of the kept files (null - unlimited)</param>
-        public FileLoggerRetentionPolicy(string searchPattern, int? maxFilesCount = 10, TimeSpan? expiryPeriod = null, long? maxFilesSize = null)
+        public FileLogRetentionPolicy(string searchPattern, int? maxFilesCount = 10, TimeSpan? expiryPeriod = null, long? maxFilesSize = null)
         {
             SearchPattern = searchPattern;
             MaxFileCount = maxFilesCount;
@@ -68,7 +68,7 @@ namespace Xarial.XToolkit.Reporting
     }
 
     /// <inheritdoc/>
-    public class FileLoggerCleaner : IFileLoggerCleaner
+    public class FileLogCleaner : IFileLogCleaner
     {
         private readonly string m_DirPath;
         private readonly string m_CategoryName;
@@ -81,12 +81,12 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="dirPath">Log directory file path</param>
         /// <param name="appId">Application id</param>
         /// <param name="categoryName">category name</param>
-        public FileLoggerCleaner(string dirPath, Guid appId, string categoryName)
-            : this(dirPath, FileLogger.GetSignature(appId), categoryName)
+        public FileLogCleaner(string dirPath, Guid appId, string categoryName)
+            : this(dirPath, FileLogWriter.GetSignature(appId), categoryName)
         {
         }
 
-        internal FileLoggerCleaner(string dirPath, string appSignature, string categoryName)
+        internal FileLogCleaner(string dirPath, string appSignature, string categoryName)
         {
             if (string.IsNullOrEmpty(appSignature))
             {
@@ -100,7 +100,7 @@ namespace Xarial.XToolkit.Reporting
 
             dirPath = Environment.ExpandEnvironmentVariables(dirPath);
 
-            FileLogger.ValidatePath(dirPath);
+            FileLogWriter.ValidatePath(dirPath);
 
             m_DirPath = dirPath;
 
@@ -110,7 +110,7 @@ namespace Xarial.XToolkit.Reporting
         }
 
         /// <inheritdoc/>
-        public void TryClear(FileLoggerRetentionPolicy policy)
+        public void TryClear(FileLogRetentionPolicy policy)
         {
             if (policy == null)
             {
