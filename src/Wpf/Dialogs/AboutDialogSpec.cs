@@ -27,6 +27,9 @@ namespace Xarial.XToolkit.Wpf.Dialogs
         }
     }
 
+    /// <summary>
+    /// Specification for <see cref="AboutDialog"/>
+    /// </summary>
     public class AboutDialogSpec
     {
         private static Image TryFindAssemblyLogo(Assembly assm)
@@ -38,9 +41,9 @@ namespace Xarial.XToolkit.Wpf.Dialogs
 
             var lics = new List<LicenseInfo>();
 
-            if (atts?.Any() == true) 
+            if (atts?.Any() == true)
             {
-                foreach (AssemblyLicenseAttribute att in atts) 
+                foreach (AssemblyLicenseAttribute att in atts)
                 {
                     lics.AddRange(att.Licenses);
                 }
@@ -49,14 +52,50 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             return lics.ToArray();
         }
 
+        /// <summary>
+        /// Product title
+        /// </summary>
         public string Title { get; set; }
+        
+        /// <summary>
+        /// Product description
+        /// </summary>
         public string Description { get; set; }
+
+        /// <summary>
+        /// Company
+        /// </summary>
         public string Company { get; set; }
+        
+        /// <summary>
+        /// Copyright
+        /// </summary>
         public string Copyright { get; set; }
+
+        /// <summary>
+        /// Product version
+        /// </summary>
         public Version Version { get; set; }
+
+        /// <summary>
+        /// Product logo
+        /// </summary>
         public Image Logo { get; set; }
+
+        /// <summary>
+        /// Product 3rd party license information
+        /// </summary>
         public LicenseInfo[] Licenses { get; set; }
+
+        /// <summary>
+        /// Product edition
+        /// </summary>
         public PackageEditionSpec Edition { get; set; }
+
+        /// <summary>
+        /// RTF encoded text of the end-user license agreement to display in the About dialog
+        /// </summary>
+        public string Eula { get; set; }
 
         public AboutDialogSpec() 
         {
@@ -84,6 +123,7 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             Version = assm.GetName().Version;
             Licenses = licenses;
             Logo = logo;
+            Eula = assm.GetCustomAttribute<AssemblyEulaAttribute>()?.Eula;
         }
     }
 }

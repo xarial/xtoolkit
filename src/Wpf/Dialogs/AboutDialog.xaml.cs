@@ -85,5 +85,14 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             licDlg.Owner = this;
             licDlg.ShowDialog();
         }
+
+        private void OnShowEula(object sender, RoutedEventArgs e)
+        {
+            var spec = (AboutDialogSpec)this.DataContext;
+
+            var eulaDlg = new EulaDialog(spec.Eula);
+            eulaDlg.Owner = this;
+            eulaDlg.ShowDialog();
+        }
     }
 }

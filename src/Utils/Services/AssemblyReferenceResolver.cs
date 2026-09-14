@@ -41,7 +41,7 @@ namespace Xarial.XToolkit.Services
         /// <summary>
         /// Match by version (or newer version)
         /// </summary>
-        VersionNotOlder = 8,
+        VersionAllowNewer = 8,
 
         /// <summary>
         /// Full name
@@ -141,7 +141,7 @@ namespace Xarial.XToolkit.Services
     {
         private readonly AppDomain m_AppDomain;
         private readonly AssemblyReferenceResolverParameters m_Parameters;
-        private readonly ILogWriter m_Logger;
+        protected readonly ILogWriter m_Logger;
 
         /// <summary>
         /// Default constructor
@@ -260,7 +260,7 @@ namespace Xarial.XToolkit.Services
                 var reqAssmFilePath = requestingAssembly.Location;
 
                 return EmptyOrAny(m_Parameters.RequestingAssemblyFilter, a => CompareAssemblyNames(reqAssmName, a.Name, a.MatchFilter))
-                    || EmptyOrAny(m_Parameters.RequestingAssemblyDirectories, f => FileSystemUtils.IsInDirectory(reqAssmFilePath, f));
+                    && EmptyOrAny(m_Parameters.RequestingAssemblyDirectories, f => FileSystemUtils.IsInDirectory(reqAssmFilePath, f));
             }
             else
             {
@@ -413,32 +413,86 @@ namespace Xarial.XToolkit.Services
             {
                 return CaseInsensitiveCompare(firstAssmName.Name, secondAssmName.Name)
                     && (!filter.HasFlag(AssemblyNamePart_e.PublicKeyToken) || CaseInsensitiveCompare(GetPublicKeyToken(firstAssmName), GetPublicKeyToken(secondAssmName)))
-                    && (!filter.HasFlag(AssemblyNamePart_e.Culture) || CaseInsensitiveCompare(firstAssmName.CultureName, firstAssmName.CultureName))
-                    && (!filter.HasFlag(AssemblyNamePart_e.Version) || firstAssmName.Version == secondAssmName.Version)
-                    && (!filter.HasFlag(AssemblyNamePart_e.VersionNotOlder) || firstAssmName.Version >= secondAssmName.Version);
+                    && (!filter.HasFlag(AssemblyNamePart_e.Culture) || CaseInsensitiveCompare(firstAssmName.CultureName, secondAssmName.CultureName))
+                    && MatchVersion(firstAssmName.Version, secondAssmName.Version, filter);
             }
         }
 
-        private bool CaseInsensitiveCompare(string firstText, string secondText) => string.Equals(firstText, secondText, StringComparison.CurrentCultureIgnoreCase);
+        private bool MatchVersion(Version firstAssmVers, Version secondAssmVers, AssemblyNamePart_e filter)
+        {
+            if (filter.HasFlag(AssemblyNamePart_e.VersionAllowNewer))
+            {
+                return firstAssmVers >= secondAssmVers;
+            }
+            else if (filter.HasFlag(AssemblyNamePart_e.Version))
+            {
+                return firstAssmVers == secondAssmVers;
+            }
+            else 
+            {
+                return true;
+            }
+        }
+
+        private bool CaseInsensitiveCompare(string firstText, string secondText) 
+            => string.Equals(firstText, secondText, StringComparison.OrdinalIgnoreCase);
 
         private IEnumerable<AssemblyInfo> EnumerateAssemblyByName(string dir, bool recurse, AssemblyName searchAssmName, Assembly requestingAssembly)
         {
-            foreach (var probeAssmFilePath in ProvideProbeAssemblyFilePaths(dir, searchAssmName))
-            {
-                if (File.Exists(probeAssmFilePath))
-                {
-                    var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
+            IEnumerable<string> probeAssmFilePaths;
 
-                    if (Match(probeAssmName, searchAssmName, requestingAssembly))
+            try
+            {
+                probeAssmFilePaths = ProvideProbeAssemblyFilePaths(dir, searchAssmName).ToArray();
+            }
+            catch (Exception ex)
+            {
+                m_Logger.LogWarning($"Failed to enumerate probe assembly paths in '{dir}': {ex.Message}");
+                probeAssmFilePaths = Array.Empty<string>();
+            }
+
+            foreach (var probeAssmFilePath in probeAssmFilePaths)
+            {
+                AssemblyInfo probeAssmInfo = null;
+
+                try
+                {
+                    if (File.Exists(probeAssmFilePath))
                     {
-                        yield return new AssemblyInfo(probeAssmName, probeAssmFilePath, false);
+                        var probeAssmName = AssemblyName.GetAssemblyName(probeAssmFilePath);
+
+                        if (Match(probeAssmName, searchAssmName, requestingAssembly))
+                        {
+                            probeAssmInfo = new AssemblyInfo(probeAssmName, probeAssmFilePath, false);
+                        }
                     }
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.LogWarning($"Failed to probe assembly candidate '{probeAssmFilePath}': {ex.Message}");
+                }
+
+                if (probeAssmInfo != null)
+                {
+                    yield return probeAssmInfo;
                 }
             }
 
             if (recurse)
             {
-                foreach (var subDir in Directory.EnumerateDirectories(dir, "*.*", SearchOption.TopDirectoryOnly))
+                string[] subDirs;
+
+                try
+                {
+                    subDirs = Directory.EnumerateDirectories(dir, "*.*", SearchOption.TopDirectoryOnly).ToArray();
+                }
+                catch (Exception ex)
+                {
+                    m_Logger.LogWarning($"Failed to enumerate sub-directories of '{dir}': {ex.Message}");
+                    subDirs = Array.Empty<string>();
+                }
+
+                foreach (var subDir in subDirs)
                 {
                     foreach (var res in EnumerateAssemblyByName(subDir, recurse, searchAssmName, requestingAssembly))
                     {

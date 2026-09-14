@@ -11,6 +11,7 @@
         <conv:ImageToImageSourceConverter x:Key="imgSrcConv"/>
         <conv:EnumerableIsNotEmptyVisibilityConverter x:Key="collNotEmptyToVisConv"/>
         <conv:EditionTypeConverter x:Key="editionTypeConv"/>
+        <conv:ObjectIsNotNullVisibilityConverter x:Key="notNullToVisConv"/>
     </Window.Resources>
     <Window.Title>
         <Binding Path="Title" StringFormat="{}About {0}"/>
@@ -42,6 +43,10 @@
         <TextBox Text="{Binding Path=Description}" Grid.Column="1" Grid.Row="3" Margin="5" 
                  TextWrapping="Wrap" AcceptsReturn="True" IsReadOnly="True"/>
         <StackPanel Orientation="Horizontal" Grid.Row="4" Height="40" Grid.ColumnSpan="2" HorizontalAlignment="Right">
+            <Button Margin="5" Click="OnShowEula"
+                    Visibility="{Binding Path=Eula, Converter={StaticResource notNullToVisConv}}">
+                <TextBlock Text="EULA" Margin="10 0"/>
+            </Button>
             <Button Margin="5" Click="OnShowLicenses"
                     Visibility="{Binding Path=Licenses, Converter={StaticResource collNotEmptyToVisConv}}">
                 <TextBlock Text="Licenses" Margin="10 0"/>

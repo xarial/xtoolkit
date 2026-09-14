@@ -24,7 +24,7 @@ namespace ConsoleTester
 
         private class CustomAppConfigBindingRedirectReferenceResolver : AppConfigBindingRedirectReferenceResolver 
         {
-            public CustomAppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AssemblyReferenceResolverParameters parameters, ILogWriter logger) 
+            public CustomAppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AppConfigBindingRedirectReferenceResolverParameters parameters, ILogWriter logger) 
                 : base(appDomain, parameters, logger)
             {
             }

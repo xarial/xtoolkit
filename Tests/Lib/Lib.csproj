@@ -9,6 +9,13 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <ProductName>xToolkit</ProductName>
+    <Copyright>© Copyright Xarial Pty Limited 2026</Copyright>
+    <Description>Collection of utilitites</Description>
+    <Company>Xarial Pty Limited</Company>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove="Resources\icon.png" />
   </ItemGroup>
