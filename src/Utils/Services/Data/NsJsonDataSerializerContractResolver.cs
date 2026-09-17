@@ -133,16 +133,22 @@ namespace Xarial.XToolkit.Services.Data
         private readonly KnownKindManager m_KnownKindMgr;
         private readonly VersionTransformManager m_VersionTransformsMgr;
 
-        internal NsJsonDataSerializerContractResolver(KnownKindManager knownKindMgr, VersionTransformManager versTransMgr)
+        private readonly Action<Type, IList<JsonProperty>> m_ResolvePrpsFunc;
+
+        internal NsJsonDataSerializerContractResolver(KnownKindManager knownKindMgr, VersionTransformManager versTransMgr, Action<Type, IList<JsonProperty>> resolvePrpsFunc)
         {
             m_KnownKindMgr = knownKindMgr;
             m_VersionTransformsMgr = versTransMgr;
+
+            m_ResolvePrpsFunc = resolvePrpsFunc;
         }
 
         /// <inheritdoc/>
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
         {
             var props = base.CreateProperties(type, memberSerialization);
+
+            m_ResolvePrpsFunc?.Invoke(type, props);
 
             var versPrp = new JsonProperty
             {

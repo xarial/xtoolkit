@@ -169,7 +169,16 @@ namespace Xarial.XToolkit.Services.Data
                 }
             }
 
-            jsonSer.ContractResolver = new NsJsonDataSerializerContractResolver(m_KnownKindMgr, m_VersionTransformsMgr);
+            jsonSer.ContractResolver = new NsJsonDataSerializerContractResolver(m_KnownKindMgr, m_VersionTransformsMgr, ResolveProperties);
+        }
+
+        /// <summary>
+        /// Resolves serialization properties
+        /// </summary>
+        /// <param name="type">Type</param>
+        /// <param name="props">Properties</param>
+        protected virtual void ResolveProperties(Type type, IList<JsonProperty> props) 
+        {
         }
 
         /// <summary>
