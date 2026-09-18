@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace Lib.Wpf
 {
@@ -30,8 +31,12 @@ namespace Lib.Wpf
         public PasswordBoxExVM PasswordBoxEx { get; }
         public ColorPickerVM ColorPicker { get; }
         public WatermarkTextBoxVM WatermarkTextBox { get; }
+        public UserInputServiceVM UserInputService { get; }
+        public MessageServiceVM MessageService { get; }
+        public FileSystemBrowserVM FileSystemBrowser { get; }
+        public AboutServiceVM AboutService { get; }
 
-        public MainVM() 
+        public MainVM(Window parentWnd) 
         {
             FlagEnumComboBox = new FlagEnumComboBoxVM();
             NumberBox = new NumberBoxVM();
@@ -48,6 +53,10 @@ namespace Lib.Wpf
             PasswordBoxEx = new PasswordBoxExVM();
             ColorPicker = new ColorPickerVM();
             WatermarkTextBox = new WatermarkTextBoxVM();
+            UserInputService= new UserInputServiceVM(parentWnd);
+            MessageService = new MessageServiceVM(parentWnd);
+            FileSystemBrowser = new FileSystemBrowserVM(parentWnd);
+            AboutService = new AboutServiceVM(parentWnd);
         }
     }
 }

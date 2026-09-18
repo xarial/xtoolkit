@@ -21,55 +21,23 @@ using System.Windows.Shapes;
 
 namespace Xarial.XToolkit.Wpf.Dialogs
 {
-    public static class About 
-    {
-        public static void Show(Assembly assm, Image logo, IntPtr parent)
-        {
-            var spec = new AboutDialogSpec(assm, logo);
-
-            Show(spec, parent);
-        }
-
-        public static void Show(Assembly assm, Image logo, Window parent)
-        {
-            var spec = new AboutDialogSpec(assm, logo);
-
-            Show(spec, parent);
-        }
-
-        public static void Show(Assembly assm, Window parent)
-        {
-            var spec = new AboutDialogSpec(assm);
-
-            Show(spec, parent);
-        }
-
-        public static void Show(AboutDialogSpec spec, IntPtr parent)
-        {
-            var dlg = new AboutDialog();
-            dlg.DataContext = spec;
-
-            var interopHelper = new WindowInteropHelper(dlg);
-            interopHelper.Owner = parent;
-            dlg.ShowDialog();
-        }
-
-        public static void Show(AboutDialogSpec spec, Window parent)
-        {
-            var dlg = new AboutDialog();
-            dlg.DataContext = spec;
-            dlg.Owner = parent;
-            dlg.ShowDialog();
-        }
-    }
-
+    /// <summary>
+    /// About dialog
+    /// </summary>
     public partial class AboutDialog : Window
     {
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public AboutDialog()
         {
             InitializeComponent();
         }
 
+        /// <summary>
+        /// Constructor with specification
+        /// </summary>
+        /// <param name="spec"></param>
         public AboutDialog(AboutDialogSpec spec) : this()
         {
             this.DataContext = spec;

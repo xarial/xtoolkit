@@ -9,9 +9,11 @@ using System;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Xarial.XToolkit.Services;
 using Xarial.XToolkit.Services.Expressions;
 using Xarial.XToolkit.Wpf.Delegates;
 using Xarial.XToolkit.Wpf.Dialogs;
+using Xarial.XToolkit.Wpf.Services;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -50,6 +52,8 @@ namespace Xarial.XToolkit.Wpf.Controls
     {
         public ExpressionVariableFactoryDelegate Factory { get; }
 
+        private readonly UserInputService m_InputBox;
+
         public ExpressionVariableLinkGeneric(string title, string description, bool enterArgs, string inputTitle, string inputPrompt)
         {
             Title = title;
@@ -60,6 +64,8 @@ namespace Xarial.XToolkit.Wpf.Controls
             InputPrompt = inputPrompt;
 
             Factory = NewVariable;
+
+            m_InputBox = new UserInputService(InputTitle);
         }
 
         public ExpressionVariableLinkGeneric() : this("Insert New Variable...", "Insert a new variable with the specified name", true, "ExpressionBox", "Variable Name")
@@ -78,7 +84,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             var varName = "";
 
-            if (InputBox.ShowAtCursor(InputTitle, InputPrompt, ref varName))
+            if (m_InputBox.TryGetInputAtCursor(InputPrompt, ref varName))
             {
                 return new ExpressionTokenVariable(varName, null);
             }

@@ -102,11 +102,16 @@ namespace Xarial.XToolkit.Reporting
 
             FileLogWriter.ValidatePath(dirPath);
 
-            m_DirPath = dirPath;
+            m_DirPath = Path.GetFullPath(dirPath);
 
             m_CategoryName = categoryName;
 
             m_Signature = Encoding.UTF8.GetBytes(appSignature);
+
+            if (m_Signature?.Any() != true)
+            {
+                throw new NullReferenceException("Signature bytes is null");
+            }
         }
 
         /// <inheritdoc/>
@@ -135,6 +140,11 @@ namespace Xarial.XToolkit.Reporting
             if (string.IsNullOrWhiteSpace(policy.SearchPattern))
             {
                 throw new ArgumentException("Empty search pattern is not supported");
+            }
+
+            if (policy.SearchPattern.IndexOfAny(new[] { '\\', '/', ':' }) != -1)
+            {
+                throw new ArgumentException("Search pattern must be a file name pattern without a path");
             }
 
             try
@@ -250,36 +260,7 @@ namespace Xarial.XToolkit.Reporting
                 using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read,
                     FileShare.ReadWrite | FileShare.Delete))
                 {
-                    var buffer = new byte[m_Signature.Length];
-
-                    var read = 0;
-
-                    while (read < buffer.Length)
-                    {
-                        var chunk = stream.Read(buffer, read, buffer.Length - read);
-
-                        if (chunk == 0)
-                        {
-                            break;
-                        }
-
-                        read += chunk;
-                    }
-
-                    if (read < buffer.Length)
-                    {
-                        return false;
-                    }
-
-                    for (int i = 0; i < buffer.Length; i++)
-                    {
-                        if (buffer[i] != m_Signature[i])
-                        {
-                            return false;
-                        }
-                    }
-
-                    return true;
+                    return FileLogWriter.StartsWithSignature(stream, m_Signature);
                 }
             }
             catch

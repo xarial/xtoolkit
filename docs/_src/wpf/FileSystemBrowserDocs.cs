@@ -1,6 +1,7 @@
 ﻿using System;
 using Xarial.XToolkit;
-using Xarial.XToolkit.Wpf.Utils;
+using Xarial.XToolkit.Wpf.Services;
+using Xarial.XToolkit.Services;
 
 namespace Wpf.Docs
 {
@@ -9,7 +10,9 @@ namespace Wpf.Docs
         public static void BrowseFolder() 
         {
             //--- browse-folder
-            if (FileSystemBrowser.BrowseFolder(out string path, "Select sample folder"))
+            var fsb = new FileSystemBrowser();
+
+            if (fsb.BrowseFolder(out string path, "Select sample folder"))
             {
                 Console.WriteLine($"Selected path: {path}");
             }
@@ -30,7 +33,9 @@ namespace Wpf.Docs
             //---
 
             //--- browse-file-open
-            if (FileSystemBrowser.BrowseFileOpen(out string fileIn, "Select input file", filters)) 
+            var fsb = new FileSystemBrowser();
+
+            if (fsb.BrowseFileOpen(out string fileIn, "Select input file", filters)) 
             {
                 Console.WriteLine($"Selected path: {fileIn}");
             }
@@ -41,7 +46,7 @@ namespace Wpf.Docs
             //---
 
             //--- browse-file-save
-            if (FileSystemBrowser.BrowseFileSave(out string fileOut, "Select output file", filters))
+            if (fsb.BrowseFileSave(out string fileOut, "Select output file", filters))
             {
                 Console.WriteLine($"Selected path: {fileOut}");
             }

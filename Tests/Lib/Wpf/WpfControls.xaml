@@ -212,17 +212,29 @@
                                  SelectedItemsSource="{Binding Path=SelectedItems}"/>
                 </StackPanel>
             </TabItem>
-            <TabItem Header="AboutDialog">
-                <Button Click="OnShowAboutClick">Show About</Button>
+            <TabItem Header="AboutService">
+                <Grid DataContext="{Binding Path=AboutService}">
+                    <StackPanel Orientation="Vertical">
+                        <Button Command="{Binding Path=ShowAboutCommand}">Show About</Button>
+                        <Button Command="{Binding Path=ShowAboutNoParentCommand}">Show About (No Parent)</Button>
+                        <Button Command="{Binding Path=ShowAboutWin32ParentCommand}">Show About (Win32 Parent)</Button>
+                        <Button Command="{Binding Path=ShowAboutBackgroundCommand}">Show About (Background)</Button>
+                        <Button Command="{Binding Path=ShowAboutWin32BackgroundCommand}">Show About (Win32 Background)</Button>
+                    </StackPanel>
+                </Grid>
             </TabItem>
-            <TabItem Header="File System Browser">
-                <StackPanel Orientation="Vertical">
-                    <Button Click="OnBrowseFileOpen">Browse File Open</Button>
-                    <Button Click="OnBrowseFileSave">Browse File Save</Button>
-                    <Button Click="OnBrowseFilesOpen">Browse Files Open</Button>
-                    <Button Click="OnBrowseFolder">Browse folder</Button>
-                    <Button Click="OnBrowseFolders">Browse folders</Button>
-                </StackPanel>
+            <TabItem Header="FileSystemBrowser">
+                <Grid DataContext="{Binding Path=FileSystemBrowser}">
+                    <StackPanel Orientation="Vertical">
+                        <Button Command="{Binding Path=BrowseFileOpenCommand}">Browse File Open (No Parent)</Button>
+                        <Button Command="{Binding Path=BrowseFilesOpenCommand}">Browse Files Open (Win32 Parent)</Button>
+                        <Button Command="{Binding Path=BrowseFileSaveCommand}">Browse File Save (No Parent)</Button>
+                        <Button Command="{Binding Path=BrowseFolderCommand}">Browse Folder (Win32 Parent)</Button>
+                        <Button Command="{Binding Path=BrowseFoldersCommand}">Browse Folders (WPF Parent)</Button>
+                        <Button Command="{Binding Path=BrowseFileOpenBackgroundCommand}">Browse File Open (Background)</Button>
+                        <Button Command="{Binding Path=BrowseFolderBackgroundCommand}">Browse Folder (Background)</Button>
+                    </StackPanel>
+                </Grid>
             </TabItem>
             <TabItem Header="ProgressPane">
                 <Grid DataContext="{Binding Path=ProgressPane}">
@@ -252,7 +264,28 @@
                 </Grid>
             </TabItem>
             <TabItem Header="InputBoxDialog">
-                <Button Click="OnShowInputBoxClick">Show Input Box</Button>
+                <Grid DataContext="{Binding Path=UserInputService}">
+                    <StackPanel Orientation="Vertical">
+                        <Button Command="{Binding Path=ShowInputBoxCommand}">Show Input Box</Button>
+                        <Button Command="{Binding Path=ShowInputBoxDefaultValueCommand}">Show Input Box (Default Value)</Button>
+                        <Button Command="{Binding Path=ShowInputBoxNoParentCommand}">Show Input Box (No Parent)</Button>
+                        <Button Command="{Binding Path=ShowInputBoxWin32ParentCommand}">Show Input Box (Wind32 Parent)</Button>
+                        <Button Command="{Binding Path=ShowInputBoxBackgroundCommand}">Show Input Box (Background)</Button>
+                        <Button Command="{Binding Path=ShowInputBoxWin32BackgroundCommand}">Show Input Box (Win32 Background)</Button>
+                    </StackPanel>
+                </Grid>
+            </TabItem>
+            <TabItem Header="MessageService">
+                <Grid DataContext="{Binding Path=MessageService}">
+                    <StackPanel Orientation="Vertical">
+                        <Button Command="{Binding Path=ShowMessageCommand}">Show Message</Button>
+                        <Button Command="{Binding Path=ShowQuestionCommand}">Show Question (Yes/No/Cancel)</Button>
+                        <Button Command="{Binding Path=ShowMessageNoParentCommand}">Show Message (No Parent)</Button>
+                        <Button Command="{Binding Path=ShowMessageWin32ParentCommand}">Show Message (Win32 Parent)</Button>
+                        <Button Command="{Binding Path=ShowMessageBackgroundCommand}">Show Message (Background)</Button>
+                        <Button Command="{Binding Path=ShowMessageWin32BackgroundCommand}">Show Message (Win32 Background)</Button>
+                    </StackPanel>
+                </Grid>
             </TabItem>
             <TabItem Header="ExpandToggleButton">
                 <Grid DataContext="{Binding Path=ExpandToggleButton}">

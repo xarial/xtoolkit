@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography.Xml;
 using System.Text;
 
 namespace Xarial.XToolkit.Reporting
@@ -69,6 +68,47 @@ namespace Xarial.XToolkit.Reporting
             }
 
             return string.Format(SIGNATURE, appId);
+        }
+
+        internal static bool StartsWithSignature(Stream stream, byte[] signature)
+        {
+            if (signature.Length > 0)
+            {
+                var buffer = new byte[signature.Length];
+
+                var read = 0;
+
+                while (read < buffer.Length)
+                {
+                    var chunk = stream.Read(buffer, read, buffer.Length - read);
+
+                    if (chunk == 0)
+                    {
+                        break;
+                    }
+
+                    read += chunk;
+                }
+
+                if (read < buffer.Length)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    if (buffer[i] != signature[i])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            else 
+            {
+                return false;
+            }
         }
 
         internal static void ValidatePath(string path)
@@ -167,7 +207,7 @@ namespace Xarial.XToolkit.Reporting
 
             FilePath = filePath;
 
-            m_DirPath = Path.GetDirectoryName(FilePath);
+            m_DirPath = Path.GetDirectoryName(filePath);
 
             if (string.IsNullOrEmpty(m_DirPath))
             {
@@ -197,9 +237,29 @@ namespace Xarial.XToolkit.Reporting
             {
                 Directory.CreateDirectory(m_DirPath);
 
-                var stream = new FileStream(FilePath,
-                    m_Append ? FileMode.Append : FileMode.Create,
-                    FileAccess.Write, FileShare.ReadWrite);
+                var stream = new FileStream(FilePath, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite);
+
+                try
+                {
+                    if (stream.Length > 0 && !StartsWithSignature(stream, Encoding.UTF8.GetBytes(m_Signature)))
+                    {
+                        throw new IOException($"File '{FilePath}' already exists and is not a log file of this application");
+                    }
+
+                    if (m_Append)
+                    {
+                        stream.Seek(0, SeekOrigin.End);
+                    }
+                    else
+                    {
+                        stream.SetLength(0);
+                    }
+                }
+                catch
+                {
+                    stream.Dispose();
+                    throw;
+                }
 
                 writer = new StreamWriter(stream, new UTF8Encoding(false))
                 {

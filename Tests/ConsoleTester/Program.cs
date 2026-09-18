@@ -59,9 +59,11 @@ namespace ConsoleTester
         {
             var appGuid = new Guid("{1CA4640E-FC18-454E-93A5-3D815FF8686A}");
 
+            var retention = new FileLogRetentionPolicy("testlog_*.log", 3, TimeSpan.FromDays(30));
+
             var fileLogger = new FileLogWriter(
                 $@"%appdata%\Xarial\xToolkit\Logs\testlog_{Guid.NewGuid().ToString()}.log", "test", appGuid,
-                new FileLogRetentionPolicy("testlog_*.log", 3, TimeSpan.FromDays(30)));
+                retention);
 
             fileLogger.LogInformation("Message 1");
 

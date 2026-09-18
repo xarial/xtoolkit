@@ -6,54 +6,56 @@
 //*********************************************************************
 
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
+using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Threading;
 using Xarial.XToolkit.Services;
+using Xarial.XToolkit.Wpf.Dialogs;
+using WinForms = System.Windows.Forms;
 
 namespace Xarial.XToolkit.Wpf.Services
 {
     /// <summary>
-    /// Represents the instance of the <see cref="IMessageService"/> based on WPF message box
+    /// Represents the instance of the <see cref="IMessageService"/> based on the message box
     /// </summary>
-    public class WindowsMessageService : IMessageService
+    public class MessageService : IMessageService
     {
         private readonly Type[] m_UserErrors;
-
         private readonly string m_Title;
+        private readonly IParentWindow m_Parent;
 
-        private readonly Dispatcher m_Dispatcher;
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="title">Title of the message box</param>
+        public MessageService(string title)
+            : this(title, null)
+        {
+        }
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="title">Title of the message box</param>
         /// <param name="userErrors">Additional user errors</param>
-        public WindowsMessageService(string title, Type[] userErrors) : this(title)
+        public MessageService(string title, Type[] userErrors)
+            : this(title, null, userErrors)
         {
+        }
+
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="title">Title of the message box</param>
+        /// <param name="parent">Parent window of the message box or null</param>
+        /// <param name="userErrors">Additional user errors</param>
+        public MessageService(string title, IParentWindow parent, Type[] userErrors)
+        {
+            m_Title = title;
+            m_Parent = parent;
             m_UserErrors = userErrors;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="title">Title of the mesage box</param>
-        public WindowsMessageService(string title) : this(title, Dispatcher.CurrentDispatcher)
-        {
-            m_Title = title;
-        }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="title">Title of the mesage box</param>
-        /// <param name="dispatcher">dispatcher for thread safety</param>
-        protected WindowsMessageService(string title, Dispatcher dispatcher)
-        {
-            m_Title = title;
-            m_Dispatcher = dispatcher;
         }
 
         /// <summary>
@@ -66,16 +68,29 @@ namespace Xarial.XToolkit.Wpf.Services
         /// <returns>Message box result</returns>
         protected virtual MessageBoxResult DisplayMessageBox(string msg, string title, MessageBoxImage img, MessageBoxButton btn)
         {
-            MessageBoxResult Show() => MessageBox.Show(msg, title, btn, img);
+            MessageBoxResult Show()
+            {
+                try
+                {
+                    switch (m_Parent)
+                    {
+                        case WpfParentWindow wpfParent when wpfParent.IsValidWindow():
+                            return MessageBox.Show(wpfParent.Window, msg, title, btn, img);
 
-            if (m_Dispatcher != null && m_Dispatcher.Thread != Thread.CurrentThread)
-            {
-                return m_Dispatcher.Invoke(Show);
+                        case IParentWindow parent when parent.IsValidWindow():
+                            return (MessageBoxResult)WinForms.MessageBox.Show(new Win32Window(parent.Handle), msg, title,
+                                (WinForms.MessageBoxButtons)btn, (WinForms.MessageBoxIcon)img);
+
+                    }
+                }
+                catch
+                {
+                }
+
+                return MessageBox.Show(msg, title, btn, img);
             }
-            else
-            {
-                return Show();
-            }
+
+            return m_Parent.InvokeOnWindowThread(Show);
         }
 
         /// <inheritdoc/>

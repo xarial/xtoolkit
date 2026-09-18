@@ -1,5 +1,6 @@
 ﻿Imports System
 Imports Xarial.XToolkit
+Imports Xarial.XToolkit.Wpf.Services
 Imports Xarial.XToolkit.Wpf.Utils
 
 Namespace Wpf.Docs
@@ -11,7 +12,9 @@ Namespace Wpf.Docs
             '--- browse-folder
             Dim path As String = Nothing
 
-            If FileSystemBrowser.BrowseFolder(path, "Select sample folder") Then
+            Dim fsb = New FileSystemBrowser
+
+            If fsb.BrowseFolder(path, "Select sample folder") Then
                 Console.WriteLine($"Selected path: {path}")
             Else
                 Console.WriteLine("User has cancelled the folder browsing")
@@ -32,7 +35,9 @@ Namespace Wpf.Docs
             '--- browse-file-open
             Dim fileIn As String = Nothing
 
-            If FileSystemBrowser.BrowseFileOpen(fileIn, "Select input file", filters) Then
+            Dim fsb = New FileSystemBrowser
+
+            If fsb.BrowseFileOpen(fileIn, "Select input file", filters) Then
                 Console.WriteLine($"Selected path: {fileIn}")
             Else
                 Console.WriteLine("User has cancelled the file browsing")
@@ -42,7 +47,7 @@ Namespace Wpf.Docs
             '--- browse-file-save
             Dim fileOut As String = Nothing
 
-            If FileSystemBrowser.BrowseFileSave(fileOut, "Select output file", filters) Then
+            If fsb.BrowseFileSave(fileOut, "Select output file", filters) Then
                 Console.WriteLine($"Selected path: {fileOut}")
             Else
                 Console.WriteLine("User has cancelled the file browsing")

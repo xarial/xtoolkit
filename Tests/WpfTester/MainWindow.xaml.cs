@@ -23,7 +23,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Xarial.XToolkit;
-using Xarial.XToolkit.Wpf.Utils;
+using Xarial.XToolkit.Wpf.Services;
+using Xarial.XToolkit.Services;
 
 namespace WpfTester
 {
@@ -36,7 +37,9 @@ namespace WpfTester
 
         private void OnLoadFromFile(object sender, RoutedEventArgs e)
         {
-            if (FileSystemBrowser.BrowseFileOpen(out var path, "Library dll file",
+            var fsb = new FileSystemBrowser();
+
+            if (fsb.BrowseFileOpen(out var path, "Library dll file",
                 FileFilter.BuildFilterString(FileFilter.Create("DLL", "*.dll")),
                 System.IO.Path.GetDirectoryName(typeof(WpfControls).Assembly.Location),
                 System.IO.Path.GetFileName(typeof(WpfControls).Assembly.Location)))
