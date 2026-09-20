@@ -69,10 +69,12 @@ namespace Utils.Tests
 
             private List<VersionTransform> m_Transforms;
 
-            public string NewValue { get; set; }
+            public string NewValue { get; }
 
-            public SettsMock5Transformer()
+            public SettsMock5Transformer(string newVal)
             {
+                NewValue = newVal;
+
                 m_Transforms = new List<VersionTransform>();
                 m_Transforms.Add(new VersionTransform(
                     new Version("1.0"),
@@ -97,7 +99,7 @@ namespace Utils.Tests
             public IObjectType Obj { get; set; }
         }
 
-        [DataVersion("2.0", typeof(SettsMock5Transformer))]
+        [DataVersion("2.0")]
         public class SettsMock5
         {
             public string Field1 { get; set; }
@@ -990,11 +992,8 @@ namespace Utils.Tests
 
         private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5>
         {
-            protected override IVersionsTransformer GetVersionTransformer(IVersionsTransformer src)
-            {
-                ((SettsMock5Transformer)src).NewValue = "BBB";
-                return src;
-            }
+            protected override IVersionsTransformer CreateVersionTransformer(Type objectType, DataVersionAttribute dataVersAtt)
+                => new SettsMock5Transformer("BBB");
         }
 
         [Test]

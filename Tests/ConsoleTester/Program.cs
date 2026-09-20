@@ -61,8 +61,12 @@ namespace ConsoleTester
 
             var retention = new FileLogRetentionPolicy("testlog_*.log", 3, TimeSpan.FromDays(30));
 
+            var logFilePath = $@"%appdata%\Xarial\xToolkit\Logs\testlog_{Guid.NewGuid().ToString()}.log";
+
+            logFilePath = $@"%appdata%\Xarial\xToolkit\Logs\";
+
             var fileLogger = new FileLogWriter(
-                $@"%appdata%\Xarial\xToolkit\Logs\testlog_{Guid.NewGuid().ToString()}.log", "test", appGuid,
+                logFilePath, "test", appGuid,
                 retention);
 
             fileLogger.LogInformation("Message 1");

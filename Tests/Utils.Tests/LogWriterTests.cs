@@ -27,7 +27,7 @@ namespace Utils.Tests
         [Test]
         public void TestLogSingleLineNoStackTrace() 
         {
-            var ex = new Exception("Test1", new Exception("Test2", new Exception("Test3")));
+            var ex = new Exception("Test1", new Exception("Test2", new NullReferenceException("Test3")));
             
             var msgs = new List<string>();
 
@@ -36,9 +36,9 @@ namespace Utils.Tests
             logger.LogError(ex, false);
 
             Assert.AreEqual(3, msgs.Count);
-            Assert.AreEqual("Test1", msgs[0]);
-            Assert.AreEqual("Test2", msgs[1]);
-            Assert.AreEqual("Test3", msgs[2]);
+            Assert.AreEqual("Exception: Test1", msgs[0]);
+            Assert.AreEqual("Exception: Test2", msgs[1]);
+            Assert.AreEqual("NullReferenceException: Test3", msgs[2]);
         }
 
         [Test]
@@ -67,10 +67,10 @@ namespace Utils.Tests
             var stackTrace = $"   at {method.DeclaringType.FullName}.{method.Name}() in {frame.GetFileName()}";
 
             Assert.AreEqual(4, msgs.Count);
-            Assert.AreEqual("Test1", msgs[0]);
+            Assert.AreEqual("Exception: Test1", msgs[0]);
             Assert.That(msgs[1].StartsWith(stackTrace));
-            Assert.AreEqual("Test2", msgs[2]);
-            Assert.AreEqual("Test3", msgs[3]);
+            Assert.AreEqual("Exception: Test2", msgs[2]);
+            Assert.AreEqual("Exception: Test3", msgs[3]);
         }
 
         [Test]

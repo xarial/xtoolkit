@@ -32,11 +32,11 @@ namespace Xarial.XToolkit.Services.Data
 
         private readonly Dictionary<Type, VersionTransformInfo> m_VersionTransforms;
 
-        private readonly Func<IVersionsTransformer, IVersionsTransformer> m_TransformerAdapter;
+        private readonly Func<Type, DataVersionAttribute, IVersionsTransformer> m_TransformerFact;
 
-        internal VersionTransformManager(Func<IVersionsTransformer, IVersionsTransformer> transformerAdapter) 
+        internal VersionTransformManager(Func<Type, DataVersionAttribute, IVersionsTransformer> transformerFact) 
         {
-            m_TransformerAdapter = transformerAdapter;
+            m_TransformerFact = transformerFact;
 
             m_VersionTransforms = new Dictionary<Type, VersionTransformInfo>();
         }
@@ -47,7 +47,7 @@ namespace Xarial.XToolkit.Services.Data
             {
                 if (objectType.TryGetAttribute(out DataVersionAttribute att, true))
                 {
-                    transformer = m_TransformerAdapter.Invoke(att.VersionTransformer);
+                    transformer = m_TransformerFact.Invoke(objectType, att);
                     versTransInfo = new VersionTransformInfo(att.Version, transformer);
                 }
                 else

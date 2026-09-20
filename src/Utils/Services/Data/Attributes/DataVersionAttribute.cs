@@ -17,25 +17,22 @@ namespace Xarial.XToolkit.Services.Data.Attributes
     public class DataVersionAttribute : Attribute
     {
         internal Version Version { get; }
-        internal IVersionsTransformer VersionTransformer { get; }
+        internal Type VersionTransformerType { get; }
 
         /// <summary>
         /// Initiates the version support for this data
         /// </summary>
         /// <param name="version">Current (latest) version of the data</param>
-        /// <param name="versionTransformerType">Collection of version transformers of <see cref="IVersionsTransformer"/></param>
-        public DataVersionAttribute(string version, Type versionTransformerType)
+        public DataVersionAttribute(string version)
         {
             Version = new Version(version);
+        }
 
-            if (typeof(IVersionsTransformer).IsAssignableFrom(versionTransformerType))
-            {
-                VersionTransformer = (IVersionsTransformer)Activator.CreateInstance(versionTransformerType);
-            }
-            else 
-            {
-                throw new InvalidCastException($"'{versionTransformerType.FullName}' must implement '{nameof(IVersionsTransformer)}' interface'");
-            }
+        /// <inheritdoc cref="DataVersionAttribute"/>
+        /// <param name="versionTransformerType">Collection of version transformers of <see cref="IVersionsTransformer"/></param>
+        public DataVersionAttribute(string version, Type versionTransformerType) : this(version)
+        {
+            VersionTransformerType = versionTransformerType;
         }
     }
 }

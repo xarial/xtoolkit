@@ -65,7 +65,7 @@ namespace Xarial.XToolkit.Services.Data
 
             m_JsonSer = jsonSer;
 
-            m_VersionTransformsMgr = new VersionTransformManager(GetVersionTransformer);
+            m_VersionTransformsMgr = new VersionTransformManager(CreateVersionTransformer);
 
             m_KnownKindMgr = new KnownKindManager(knownKinds);
 
@@ -105,9 +105,29 @@ namespace Xarial.XToolkit.Services.Data
         /// <summary>
         /// Provides version transformer
         /// </summary>
-        /// <param name="src">Source version transformer</param>
-        /// <returns>Bersion transformer</returns>
-        protected virtual IVersionsTransformer GetVersionTransformer(IVersionsTransformer src) => src;
+        /// <param name="objectType">Object type to get transform for</param>
+        /// <param name="dataVersAtt">Current daat versiona ttribute associated with this object type</param>
+        /// <returns>Version transformer</returns>
+        protected virtual IVersionsTransformer CreateVersionTransformer(Type objectType, DataVersionAttribute dataVersAtt) 
+        {
+            var versionTransformerType = dataVersAtt.VersionTransformerType;
+
+            if (versionTransformerType != null)
+            {
+                if (typeof(IVersionsTransformer).IsAssignableFrom(versionTransformerType))
+                {
+                    return (IVersionsTransformer)Activator.CreateInstance(versionTransformerType);
+                }
+                else
+                {
+                    throw new InvalidCastException($"'{versionTransformerType.FullName}' must implement '{nameof(IVersionsTransformer)}' interface'");
+                }
+            }
+            else 
+            {
+                throw new NullReferenceException($"Version transform type is not set in {nameof(DataVersionAttribute)}. Alternatively override {nameof(CreateVersionTransformer)} to create custom version transformer");
+            }
+        }
 
         /// <inheritdoc/>
         public object Read(TextReader settsReader)
