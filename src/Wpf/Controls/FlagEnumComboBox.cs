@@ -234,6 +234,11 @@ namespace Xarial.XToolkit.Wpf.Controls
             private void OnValueChanged(Enum value)
                 => this.NotifyChanged(nameof(IsSelected));
 
+            /// <summary>
+            /// Unsubscribes this item from its parent so it can be garbage-collected once it is no longer used
+            /// </summary>
+            internal void Detach() => m_Parent.ValueChanged -= OnValueChanged;
+
             private bool IsNone(Enum val) => Convert.ToInt32(val) == 0;
 
             public override string ToString() => Value.ToString();
@@ -342,6 +347,11 @@ namespace Xarial.XToolkit.Wpf.Controls
                 if (enumType != m_CurBoundType)
                 {
                     m_CurFlags = enumType.GetEnumFlags();
+
+                    foreach (var oldItem in m_ComboBox.Items.OfType<FlagEnumComboBoxItem>())
+                    {
+                        oldItem.Detach();
+                    }
 
                     m_ComboBox.Items.Clear();
 

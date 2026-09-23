@@ -1,12 +1,15 @@
 variables:
   ${{ if eq(variables['Build.SourceBranchName'], 'master') }}:
     versionSuffix: release
+    signRelease: 'true'
   ${{ if eq(variables['Build.SourceBranchName'], 'dev') }}:
     versionSuffix: dev
   ${{ if eq(variables['Build.SourceBranchName'], '!alpha') }}:
     versionSuffix: alpha
+    signRelease: 'true'
   ${{ if eq(variables['Build.SourceBranchName'], '!beta') }}:
     versionSuffix: beta
+    signRelease: 'true'
 
 trigger:
   branches:
@@ -27,9 +30,11 @@ stages:
   variables:
     buildConfiguration: 'Release'
     buildPlatform: 'Any CPU'
+    signFilesPattern: 'Xarial.XToolkit*.dll'
 
   jobs:
-  - job:
+  - job: 'Compile'
+    displayName: 'Compile + Unit Tests'
     pool:
       name: 'Azure Pipelines'
       vmImage: windows-latest
@@ -70,7 +75,7 @@ stages:
 
       - task: DownloadSecureFile@1
         name: Certificate
-        displayName: 'Download code signing certificate'
+        displayName: 'Download assembly strong name signing certificate'
         inputs:
           secureFile: xarial.snk
 
@@ -78,11 +83,151 @@ stages:
         displayName: 'Build projects'
         inputs:
           solution: 'src/**/*.csproj'
-          msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID)'
+          msbuildArgs: '/p:SignAssembly=true;AssemblyOriginatorKeyFile=$(Certificate.secureFilePath);DelaySign=false;BuildNumber=.$(Build.BuildID);ContinuousIntegrationBuild=true'
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
 
-      - ${{ if and(or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+        - task: ArchiveFiles@2
+          displayName: 'Zipping build binaries'
+          inputs:
+            rootFolderOrFile: '$(Build.SourcesDirectory)/_build'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: '$(Build.ArtifactStagingDirectory)/_build/_build.zip'
+            replaceExistingArchive: true
+
+        - publish: '$(Build.ArtifactStagingDirectory)/_build'
+          displayName: 'Publish build artifact'
+          artifact: '_build'
+
+  - ${{ if and(eq(variables.signRelease, 'true'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+    - job: 'Sign'
+      displayName: 'Sign Binaries'
+      pool:
+        name: 'Local'
+      dependsOn: 'Compile'
+      condition: succeeded()
+      workspace:
+        clean: all
+      timeoutInMinutes: 5
+
+      steps:
+      - checkout: none
+
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Downloading build'
+        inputs:
+          buildType: 'current'
+          artifactName: _build
+          targetPath: '$(Pipeline.Workspace)/_build-zip'
+
+      - task: ExtractFiles@1
+        displayName: 'Unzipping build'
+        inputs:
+          archiveFilePatterns: '$(Pipeline.Workspace)/_build-zip/_build.zip'
+          destinationFolder: '$(Pipeline.Workspace)/_build'
+          cleanDestinationFolder: true
+          overwriteExistingFiles: true
+
+      - script: '"%sign%" "$(Pipeline.Workspace)\_build" "xToolkit" "https://xtoolkit.xarial.com/" "$(signFilesPattern)"'
+        displayName: 'Signing xToolkit binaries'
+
+      - task: CopyFiles@2
+        displayName: 'Staging signed files'
+        inputs:
+          SourceFolder: '$(Pipeline.Workspace)/_build'
+          Contents: '**/$(signFilesPattern)'
+          TargetFolder: '$(Pipeline.Workspace)/_build-signed-stage'
+
+      - task: ArchiveFiles@2
+        displayName: 'Zipping signed binaries'
+        inputs:
+          rootFolderOrFile: '$(Pipeline.Workspace)/_build-signed-stage'
+          includeRootFolder: false
+          archiveType: 'zip'
+          archiveFile: '$(Build.ArtifactStagingDirectory)/_build-signed/_build-signed.zip'
+          replaceExistingArchive: true
+
+      - publish: '$(Build.ArtifactStagingDirectory)/_build-signed'
+        displayName: 'Publish signed binaries artifact'
+        artifact: '_build-signed'
+
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - job: 'Pack'
+      displayName: 'Pack NuGet Packages'
+      ${{ if eq(variables.signRelease, 'true') }}:
+        dependsOn: 'Sign'
+      ${{ else }}:
+        dependsOn: 'Compile'
+      pool:
+        name: 'Azure Pipelines'
+        vmImage: windows-latest
+
+      steps:
+      - task: NuGetToolInstaller@1
+        displayName: 'Install NuGet'
+
+      - task: UseDotNet@2
+        displayName: 'Install .NET SDK'
+        inputs:
+          packageType: 'sdk'
+          version: '6.0.301'
+
+      - task: NuGetCommand@2
+        displayName: 'Restore NuGet References'
+        inputs:
+          restoreSolution: '**\*.sln'
+
+      - task: DownloadPipelineArtifact@2
+        displayName: 'Downloading build'
+        inputs:
+          buildType: 'current'
+          artifactName: _build
+          targetPath: '$(Pipeline.Workspace)/_build-zip'
+
+      - task: ExtractFiles@1
+        displayName: 'Unzipping build binaries'
+        inputs:
+          archiveFilePatterns: '$(Pipeline.Workspace)/_build-zip/_build.zip'
+          destinationFolder: '$(Build.SourcesDirectory)/_build'
+          cleanDestinationFolder: true
+          overwriteExistingFiles: true
+
+      - ${{ if eq(variables.signRelease, 'true') }}:
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Downloading signed binaries'
+          inputs:
+            buildType: 'current'
+            artifactName: _build-signed
+            targetPath: '$(Pipeline.Workspace)/_build-signed-zip'
+
+        - task: ExtractFiles@1
+          displayName: 'Unzipping signed binaries'
+          inputs:
+            archiveFilePatterns: '$(Pipeline.Workspace)/_build-signed-zip/_build-signed.zip'
+            destinationFolder: '$(Pipeline.Workspace)/_build-signed'
+            cleanDestinationFolder: true
+            overwriteExistingFiles: true
+
+        - task: DownloadSecureFile@1
+          name: SignaturelessComparer
+          displayName: 'Download compare signed files tool'
+          inputs:
+            secureFile: signatureless-comparer.exe
+
+        - script: '"$(SignaturelessComparer.secureFilePath)" "$(Pipeline.Workspace)/_build-signed" "$(Build.SourcesDirectory)/_build"'
+          displayName: 'Validating the signed binaries'
+
+        - task: CopyFiles@2
+          displayName: 'Overwriting binaries with signed files'
+          inputs:
+            SourceFolder: '$(Pipeline.Workspace)/_build-signed'
+            Contents: '**'
+            OverWrite: true
+            TargetFolder: '$(Build.SourcesDirectory)/_build'
+
+      - ${{ if or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')) }}:
         - task: DotNetCoreCLI@2
           displayName: 'Pack $(versionSuffix) versions'
           inputs:
@@ -93,7 +238,7 @@ stages:
             nobuild: true
             buildProperties: 'VersionSuffix=$(versionSuffix).$(Build.BuildId)'
 
-      - ${{ if and(eq(variables['Build.SourceBranch'], 'refs/heads/master'), ne(variables['Build.Reason'], 'PullRequest')) }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
         - task: DotNetCoreCLI@2
           displayName: 'Pack production versions'
           inputs:
@@ -103,21 +248,10 @@ stages:
             outputDir: $(Build.ArtifactStagingDirectory)/packages/release
             nobuild: true
             buildProperties: 'VersionSuffix='
-      
-      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-        - task: CopyFiles@2
-          displayName: 'Copy NuGet packages to artifacts folder'
-          inputs:
-            SourceFolder: '$(system.defaultworkingdirectory)/build'
-            Contents: |
-              **\*.nupkg
-              **\*.snupkg
-            TargetFolder: '$(Build.ArtifactStagingDirectory)/packages'
-      
-      - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
-        - publish: '$(Build.ArtifactStagingDirectory)/packages'
-          displayName: 'Publish packages artifact'
-          artifact: 'packages'
+
+      - publish: '$(Build.ArtifactStagingDirectory)/packages'
+        displayName: 'Publish packages artifact'
+        artifact: 'packages'
 
 - stage: 'PublishDevNuGetPackage'
   displayName: 'Publish Dev NuGet Package to xarial nuget feed'
@@ -145,8 +279,6 @@ stages:
 - stage: 'PublishPublicPackage'
   variables:
     - group: build-vars
-    - name: packagePath
-      value:
   displayName: 'Publish public NuGet packages to nuget.org'
   dependsOn: 'Build'
   condition: and(succeeded(), or(eq(variables['Build.SourceBranch'], 'refs/heads/master'), eq(variables['Build.SourceBranch'], 'refs/heads/!alpha'), eq(variables['Build.SourceBranch'], 'refs/heads/!beta')), ne(variables['Build.Reason'], 'PullRequest'))

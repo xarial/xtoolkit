@@ -160,7 +160,9 @@ namespace Xarial.XToolkit.Wpf.Controls
             UpdateVariableControl(variable);
             UpdateVariableArguments(variable);
         }
-        
+
+        internal void Detach() => Owner.VariableDescriptorChanged -= OnVariableDescriptorChanged;
+
         public override void OnApplyTemplate()
         {
             m_DataGrid = (DataGrid)this.Template.FindName("PART_DataGrid", this);
@@ -875,6 +877,12 @@ namespace Xarial.XToolkit.Wpf.Controls
             {
                 using (var intChnage = m_InternalChangeTracker.PerformInternalChange())
                 {
+                    foreach (var oldVarCtrl in Inlines.OfType<InlineUIContainer>()
+                        .Select(c => c.Child).OfType<ExpressionVariableTokenControl>())
+                    {
+                        oldVarCtrl.Detach();
+                    }
+
                     m_Doc.Blocks.Clear();
 
                     var parser = GetExpressionParser();

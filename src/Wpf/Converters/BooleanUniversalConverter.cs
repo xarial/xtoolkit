@@ -55,15 +55,15 @@ namespace Xarial.XToolkit.Wpf.Converters
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == TrueValue)
+            if (Equals(value, TrueValue))
             {
                 return !Reverse;
             }
-            else if (value == FalseValue)
+            else if (Equals(value, FalseValue))
             {
                 return Reverse;
             }
-            else 
+            else
             {
                 return null;
             }

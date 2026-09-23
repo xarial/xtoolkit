@@ -51,6 +51,11 @@ namespace Xarial.XToolkit.Licensing
 
             var nodeList = xmlDoc.GetElementsByTagName("Signature");
 
+            if (nodeList.Count == 0)
+            {
+                throw new LicenseFileMalformedException(new XmlException("License file does not contain a Signature element"));
+            }
+
             try
             {
                 signedXml.LoadXml((XmlElement)nodeList[0]);

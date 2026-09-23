@@ -78,8 +78,7 @@ namespace Xarial.XToolkit.Services.Expressions
             }
             else if (token is IExpressionTokenVariable && other is IExpressionTokenVariable)
             {
-                if((token is IExpressionTokenCustomVariable && !(other is IExpressionTokenCustomVariable))
-                    || !(token is IExpressionTokenCustomVariable && (other is IExpressionTokenCustomVariable)))
+                if ((token is IExpressionTokenCustomVariable) != (other is IExpressionTokenCustomVariable))
                 {
                     return false;
                 }

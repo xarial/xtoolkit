@@ -6,7 +6,7 @@
 //*********************************************************************
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Services.Data.Attributes;
 
@@ -30,33 +30,30 @@ namespace Xarial.XToolkit.Services.Data
             }
         }
 
-        private readonly Dictionary<Type, VersionTransformInfo> m_VersionTransforms;
+        private readonly ConcurrentDictionary<Type, VersionTransformInfo> m_VersionTransforms;
 
         private readonly Func<Type, DataVersionAttribute, IVersionsTransformer> m_TransformerFact;
 
-        internal VersionTransformManager(Func<Type, DataVersionAttribute, IVersionsTransformer> transformerFact) 
+        internal VersionTransformManager(Func<Type, DataVersionAttribute, IVersionsTransformer> transformerFact)
         {
             m_TransformerFact = transformerFact;
 
-            m_VersionTransforms = new Dictionary<Type, VersionTransformInfo>();
+            m_VersionTransforms = new ConcurrentDictionary<Type, VersionTransformInfo>();
         }
 
         internal bool TryGetVersionTransformInfo(Type objectType, out Version latestVersion, out IVersionsTransformer transformer)
         {
-            if (!m_VersionTransforms.TryGetValue(objectType, out var versTransInfo))
+            var versTransInfo = m_VersionTransforms.GetOrAdd(objectType, t =>
             {
-                if (objectType.TryGetAttribute(out DataVersionAttribute att, true))
+                if (t.TryGetAttribute(out DataVersionAttribute att, true))
                 {
-                    transformer = m_TransformerFact.Invoke(objectType, att);
-                    versTransInfo = new VersionTransformInfo(att.Version, transformer);
+                    return new VersionTransformInfo(att.Version, m_TransformerFact.Invoke(t, att));
                 }
                 else
                 {
-                    versTransInfo = null;
+                    return null;
                 }
-
-                m_VersionTransforms.Add(objectType, versTransInfo);
-            }
+            });
 
             if (versTransInfo != null)
             {
