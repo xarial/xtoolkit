@@ -72,6 +72,8 @@ stages:
             !**\obj\**
           platform: '$(BuildPlatform)'
           configuration: '$(BuildConfiguration)'
+          failOnMinTestsNotRun: true
+          minimumExpectedTests: 1
 
       - task: DownloadSecureFile@1
         name: Certificate
