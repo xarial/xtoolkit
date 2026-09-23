@@ -95,7 +95,7 @@ namespace Xarial.XToolkit.Reporting
                     return false;
                 }
 
-                for (int i = 0; i < buffer.Length; i++)
+                for (int i = 0; i < signature.Length; i++)
                 {
                     if (buffer[i] != signature[i])
                     {
@@ -173,7 +173,9 @@ namespace Xarial.XToolkit.Reporting
         private readonly string m_TimeStampFormat;
 
         private readonly bool m_Append;
+
         private readonly string m_Signature;
+        
         private readonly string m_DirPath;
 
         private StreamWriter m_Writer;
@@ -217,9 +219,20 @@ namespace Xarial.XToolkit.Reporting
             m_Append = opts?.Append ?? false;
             m_Signature = GetSignature(appId);
 
+            ClearLogFiles(opts, m_Signature, category);
+        }
+
+        /// <summary>
+        /// Clears existing log files
+        /// </summary>
+        /// <param name="opts">Log options</param>
+        /// <param name="signature">Application signature</param>
+        /// <param name="category">Log category</param>
+        protected virtual void ClearLogFiles(FileLogOptions opts, string signature, string category)
+        {
             if (opts?.RetentionPolicy != null)
             {
-                var logCleaner = new FileLogCleaner(m_DirPath, m_Signature, category);
+                var logCleaner = new FileLogCleaner(m_DirPath, signature, category);
                 logCleaner.TryClear(opts.RetentionPolicy);
             }
         }

@@ -100,13 +100,24 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             return false;
         }
 
-        internal static TResult InvokeOnWindowThread<TResult>(this IParentWindow parentWnd, Func<TResult> callback)
+        internal static TResult InvokeOnWindowThread<TResult>(this IParentWindow parentWndOrNull, Func<TResult> callback)
         {
-            var disp = parentWnd?.Dispatcher;
+            var disp = parentWndOrNull?.Dispatcher;
 
-            if (disp != null && !disp.HasShutdownStarted && !disp.CheckAccess())
+            if (disp != null
+                && !disp.HasShutdownStarted
+                && !disp.HasShutdownFinished
+                && disp.Thread.IsAlive
+                && !disp.CheckAccess())
             {
-                return disp.Invoke(callback);
+                try
+                {
+                    return disp.Invoke(callback);
+                }
+                catch (OperationCanceledException)
+                {
+                    return callback.Invoke();
+                }
             }
             else
             {

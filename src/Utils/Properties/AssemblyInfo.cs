@@ -10,9 +10,4 @@ using System.Windows;
 
 [assembly: ComVisible(false)]
 
-[assembly: Guid("BB827E06-5F1B-43EE-A2BF-48001DD578DB")]
-
-[assembly: ThemeInfo(
-    ResourceDictionaryLocation.None,
-    ResourceDictionaryLocation.SourceAssembly
-)]
+[assembly: Guid("A3FB880A-6D77-451B-903C-5030E336A0EF")]

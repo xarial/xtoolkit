@@ -9,7 +9,7 @@ using Xarial.XToolkit.Reporting;
 
 namespace Utils.Tests
 {
-    public class LogWriterTests
+    public class TraceLogWriterTests
     {
         private class LogWriterMock : TraceLogWriter
         {

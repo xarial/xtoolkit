@@ -30,7 +30,7 @@ namespace Xarial.XToolkit.Wpf.Services
         /// </summary>
         /// <param name="title">Title of the message box</param>
         public MessageService(string title)
-            : this(title, null)
+            : this(title, Type.EmptyTypes)
         {
         }
 
@@ -40,10 +40,9 @@ namespace Xarial.XToolkit.Wpf.Services
         /// <param name="title">Title of the message box</param>
         /// <param name="userErrors">Additional user errors</param>
         public MessageService(string title, Type[] userErrors)
-            : this(title, null, userErrors)
+            : this(title, default(IParentWindow), userErrors)
         {
         }
-
 
         /// <summary>
         /// Constructor
@@ -51,12 +50,22 @@ namespace Xarial.XToolkit.Wpf.Services
         /// <param name="title">Title of the message box</param>
         /// <param name="parent">Parent window of the message box or null</param>
         /// <param name="userErrors">Additional user errors</param>
-        public MessageService(string title, IParentWindow parent, Type[] userErrors)
+        public MessageService(string title, IParentWindow parent, Type[] userErrors) : this(title, parent)
+        {
+            m_UserErrors = userErrors;
+        }
+
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="title">Title of the message box</param>
+        /// <param name="parent">Parent window of the message box or null</param>
+        public MessageService(string title, IParentWindow parent)
         {
             m_Title = title;
             m_Parent = parent;
-            m_UserErrors = userErrors;
         }
+
 
         /// <summary>
         /// Display the message box

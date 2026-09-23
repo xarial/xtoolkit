@@ -86,7 +86,13 @@ namespace Xarial.XToolkit.Reporting
         {
         }
 
-        internal FileLogCleaner(string dirPath, string appSignature, string categoryName)
+        /// <summary>
+        /// Constructor
+        /// </summary>
+        /// <param name="dirPath">Log directory file path</param>
+        /// <param name="appSignature">Applicationm signature</param>
+        /// <param name="categoryName">Category name</param>
+        protected internal FileLogCleaner(string dirPath, string appSignature, string categoryName)
         {
             if (string.IsNullOrEmpty(appSignature))
             {
@@ -137,15 +143,7 @@ namespace Xarial.XToolkit.Reporting
                 throw new ArgumentException("Maximum aggregate size must not be negative");
             }
 
-            if (string.IsNullOrWhiteSpace(policy.SearchPattern))
-            {
-                throw new ArgumentException("Empty search pattern is not supported");
-            }
-
-            if (policy.SearchPattern.IndexOfAny(new[] { '\\', '/', ':' }) != -1)
-            {
-                throw new ArgumentException("Search pattern must be a file name pattern without a path");
-            }
+            ValidateSearchPattern(policy.SearchPattern);
 
             try
             {
@@ -225,6 +223,51 @@ namespace Xarial.XToolkit.Reporting
             }
         }
 
+        private void ValidateSearchPattern(string pattern)
+        {
+            if (string.IsNullOrWhiteSpace(pattern))
+            {
+                throw new ArgumentException("Empty search pattern is not supported");
+            }
+
+            if (pattern.IndexOfAny(new[] { '\\', '/', ':' }) != -1)
+            {
+                throw new ArgumentException("Search pattern must be a file name pattern without a path");
+            }
+
+            var lastDot = pattern.LastIndexOf('.');
+
+            if (lastDot < 0 || lastDot == pattern.Length - 1)
+            {
+                throw new ArgumentException("Search pattern must include a specific file extension");
+            }
+
+            var extension = pattern.Substring(lastDot + 1);
+
+            if (extension.IndexOfAny(new[] { '*', '?' }) != -1)
+            {
+                throw new ArgumentException("Search pattern extension must not contain wildcards");
+            }
+
+            var name = pattern.Substring(0, lastDot);
+
+            var firstWildcard = name.IndexOfAny(new[] { '*', '?' });
+
+            if (firstWildcard != -1)
+            {
+                var lastWildcard = name.LastIndexOfAny(new[] { '*', '?' });
+
+                var prefix = name.Substring(0, firstWildcard);
+                var suffix = name.Substring(lastWildcard + 1);
+
+                if (string.IsNullOrEmpty(prefix) || string.IsNullOrEmpty(suffix))
+                {
+                    throw new ArgumentException(
+                        "Search pattern must contain a non-wildcard prefix and suffix around the wildcard, plus a file extension (e.g. 'prefix*suffix.ext')");
+                }
+            }
+        }
+
         /// <summary>
         /// Delete log file
         /// </summary>
@@ -234,7 +277,7 @@ namespace Xarial.XToolkit.Reporting
         {
             if (FileSystemUtils.IsInDirectory(file.FullName, m_DirPath))
             {
-                if (TextUtils.MatchesAnyFilter(file.Name, filter))
+                if (!string.IsNullOrWhiteSpace(filter) && TextUtils.MatchesAnyFilter(file.Name, filter))
                 {
                     Trace($"Deleting '{file.Name}'");
                     file.Delete();
