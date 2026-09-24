@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Xarial.XToolkit.Reporting;
 
@@ -53,8 +54,8 @@ namespace Utils.Tests
         private static string CreateLogFile(string dir, string name, Guid appId)
             => CreateFile(dir, name, GetSignature(appId) + Environment.NewLine + "log line");
 
-        private FileLogWriter CreateWriter(string filePath, bool append, FileLogRetentionPolicy retentionPolicy = null)
-            => new FileLogWriter(filePath, "Tests", m_AppId, new FileLogOptions(append: append, retentionPolicy: retentionPolicy));
+        private FileLogWriter CreateWriter(string filePath, bool append)
+            => new FileLogWriter(filePath, "Tests", m_AppId, new FileLogOptions(append: append));
 
         private static void LogAndDispose(FileLogWriter writer, string msg)
         {
@@ -149,6 +150,49 @@ namespace Utils.Tests
 
         #endregion
 
+        #region Short names
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ExistingNonLogFileAddressedByShortName_NotModified(bool append)
+        {
+            var file = CreateFile(m_LogDir, "important_user_report.log", "important user data");
+            var shortPath = ShortPathHelper.GetShortPathOrIgnore(file);
+
+            var before = File.ReadAllBytes(file);
+
+            LogAndDispose(CreateWriter(shortPath, append), "message");
+
+            Assert.That(File.ReadAllBytes(file), Is.EqualTo(before));
+        }
+
+        [Test]
+        public void ExistingOwnLogAddressedByShortName_Append_Appended()
+        {
+            var file = CreateLogFile(m_LogDir, "application_session.log", m_AppId);
+            var shortPath = ShortPathHelper.GetShortPathOrIgnore(file);
+
+            LogAndDispose(CreateWriter(shortPath, true), "new message");
+
+            var content = File.ReadAllText(file);
+
+            Assert.That(content, Does.StartWith(GetSignature(m_AppId)));
+            Assert.That(content, Does.Contain("log line"));
+            Assert.That(content, Does.Contain("new message"));
+        }
+
+        [Test]
+        public void NewFileInShortDirPath_Created()
+        {
+            var shortTempDir = ShortPathHelper.GetShortPathOrIgnore(m_TempDir);
+
+            LogAndDispose(CreateWriter(Path.Combine(shortTempDir, "Logs", "app.log"), false), "message");
+
+            Assert.That(File.ReadAllText(Path.Combine(m_LogDir, "app.log")), Does.Contain("message"));
+        }
+
+        #endregion
+
         #region New files
 
         [Test]
@@ -193,29 +237,25 @@ namespace Utils.Tests
 
         #endregion
 
-        #region Retention policy
+        #region Other files in folder
 
-        [Test]
-        public void RetentionPolicy_DeletesOnlyOwnSignedFiles()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void ExistingOtherLogsInFolder_NotModified(bool append)
         {
             var ownOld = CreateLogFile(m_LogDir, "rt_old_x.log", m_AppId);
             var unsigned = CreateFile(m_LogDir, "rt_user_x.log", "user content");
             var otherApp = CreateLogFile(m_LogDir, "rt_other_x.log", m_OtherAppId);
 
-            LogAndDispose(CreateWriter(Path.Combine(m_LogDir, "rt_new_x.log"), false,
-                new FileLogRetentionPolicy("rt_*_x.log", 0)), "message");
+            var before = new[] { ownOld, unsigned, otherApp }.ToDictionary(f => f, f => File.ReadAllBytes(f));
 
-            Assert.That(File.Exists(ownOld), Is.False);
-            Assert.That(File.Exists(unsigned), Is.True);
-            Assert.That(File.Exists(otherApp), Is.True);
-        }
+            LogAndDispose(CreateWriter(Path.Combine(m_LogDir, "rt_new_x.log"), append), "message");
 
-        [Test]
-        public void InvalidRetentionPolicy_ThrowsFromConstructor()
-        {
-            var file = Path.Combine(m_LogDir, "app.log");
-
-            Assert.Catch<ArgumentException>(() => CreateWriter(file, false, new FileLogRetentionPolicy("*", null)));
+            foreach (var file in before)
+            {
+                Assert.That(File.Exists(file.Key), Is.True, file.Key);
+                Assert.That(File.ReadAllBytes(file.Key), Is.EqualTo(file.Value), file.Key);
+            }
         }
 
         #endregion
@@ -230,10 +270,47 @@ namespace Utils.Tests
         [TestCase(@"\Logs\app.log")]
         [TestCase("/Logs/app.log")]
         [TestCase("C:app.log")]
+        [TestCase(@"C:\Logs\app.log:stream")]
+        [TestCase(@"C:\Logs\app.log::$DATA")]
+        [TestCase(@"C:\Logs:x\app.log")]
+        [TestCase(@"C:\Logs\a:b.log")]
         [TestCase(@"%XT_UNDEFINED_TEST_VAR%\app.log")]
         public void InvalidPath_Throws(string filePath)
         {
             Assert.Catch<ArgumentException>(() => new FileLogWriter(filePath, "Tests", m_AppId));
+        }
+
+        [TestCase("app")]
+        [TestCase("app.")]
+        [TestCase("app.log.")]
+        [TestCase(@"Sub\")]
+        public void PathWithoutExtension_Throws(string fileName)
+        {
+            var filePath = Path.Combine(m_LogDir, fileName);
+
+            Assert.Catch<ArgumentException>(() => new FileLogWriter(filePath, "Tests", m_AppId));
+            Assert.That(File.Exists(filePath), Is.False);
+        }
+
+        [TestCase(".log")]
+        [TestCase(" .log")]
+        [TestCase("  .log")]
+        [TestCase(@"Sub\.log")]
+        public void PathWithoutFileName_Throws(string fileName)
+        {
+            var filePath = Path.Combine(m_LogDir, fileName);
+
+            Assert.Catch<ArgumentException>(() => new FileLogWriter(filePath, "Tests", m_AppId));
+            Assert.That(File.Exists(filePath), Is.False);
+        }
+
+        [TestCase("app.log")]
+        [TestCase("app.txt")]
+        [TestCase("app.1.log")]
+        [TestCase("a.log")]
+        public void PathWithExtension_DoesNotThrow(string fileName)
+        {
+            Assert.DoesNotThrow(() => LogAndDispose(CreateWriter(Path.Combine(m_LogDir, fileName), false), "message"));
         }
 
         [Test]

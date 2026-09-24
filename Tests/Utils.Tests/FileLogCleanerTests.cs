@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Xarial.XToolkit;
 using Xarial.XToolkit.Reporting;
 
 namespace Utils.Tests
@@ -62,6 +63,8 @@ namespace Utils.Tests
         private string m_LogDir;
         private string m_OutsideDir;
 
+        private Dictionary<string, byte[]> m_OutsideSnapshot;
+
         [SetUp]
         public void Setup()
         {
@@ -71,12 +74,22 @@ namespace Utils.Tests
 
             Directory.CreateDirectory(m_LogDir);
             Directory.CreateDirectory(m_OutsideDir);
+
+            CreateLogFile(m_OutsideDir, "sentinel1.log", m_AppId);
+            CreateFile(m_OutsideDir, "user.txt", "user content");
+
+            var siblingDir = m_LogDir + "2";
+            Directory.CreateDirectory(siblingDir);
+            CreateLogFile(siblingDir, "sentinel2.log", m_AppId);
+
+            m_OutsideSnapshot = GetSnapshotOutsideLogFolder();
         }
 
         [TearDown]
         public void TearDown()
         {
             var outOfScope = m_Cleaners.SelectMany(c => c.OutOfScope).ToArray();
+            var after = GetSnapshotOutsideLogFolder();
 
             m_Cleaners.Clear();
 
@@ -95,6 +108,17 @@ namespace Utils.Tests
             finally
             {
                 Assert.That(outOfScope, Is.Empty, "Cleaner attempted to delete files outside of the test folder");
+
+                var deleted = m_OutsideSnapshot.Keys.Where(f => !after.ContainsKey(f)).ToArray();
+
+                Assert.That(deleted, Is.Empty, "Files outside of the log folder were deleted");
+
+                var modified = m_OutsideSnapshot
+                    .Where(f => after.ContainsKey(f.Key) && !after[f.Key].SequenceEqual(f.Value))
+                    .Select(f => f.Key)
+                    .ToArray();
+
+                Assert.That(modified, Is.Empty, "Files outside of the log folder were modified");
             }
         }
 
@@ -127,6 +151,15 @@ namespace Utils.Tests
         }
 
         private static FileLogRetentionPolicy DeleteAllPolicy(string pattern) => new FileLogRetentionPolicy(pattern, 0);
+
+        private Dictionary<string, byte[]> GetSnapshotOutsideLogFolder()
+        {
+            var logDir = Path.GetFullPath(m_LogDir) + Path.DirectorySeparatorChar;
+
+            return Directory.EnumerateFiles(m_TempDir, "*", SearchOption.AllDirectories)
+                .Where(f => !Path.GetFullPath(f).StartsWith(logDir, StringComparison.OrdinalIgnoreCase))
+                .ToDictionary(f => Path.GetFullPath(f), f => File.ReadAllBytes(f), StringComparer.OrdinalIgnoreCase);
+        }
 
         private static bool TryMkLink(string args)
         {
@@ -167,12 +200,14 @@ namespace Utils.Tests
             Directory.CreateDirectory(subDir);
             var ownInSubDir = CreateLogFile(subDir, "log_d_x.log", m_AppId);
 
-            CreateCleaner().TryClear(DeleteAllPolicy("log_*_x.log"));
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(DeleteAllPolicy("log_*_x.log"));
 
             Assert.That(File.Exists(ownLog), Is.False);
             Assert.That(File.Exists(unsigned), Is.True);
             Assert.That(File.Exists(otherApp), Is.True);
             Assert.That(File.Exists(ownInSubDir), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(ownLog) }));
         }
 
         [TestCase("")]
@@ -230,11 +265,13 @@ namespace Utils.Tests
 
             var longerExt = CreateLogFile(m_LogDir, "c.log2", m_AppId);
 
-            CreateCleaner().TryClear(DeleteAllPolicy("a.log"));
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(DeleteAllPolicy("a.log"));
 
             Assert.That(File.Exists(matching), Is.False);
             Assert.That(File.Exists(notMatching), Is.True);
             Assert.That(File.Exists(longerExt), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(matching) }));
         }
 
         [Test]
@@ -244,11 +281,13 @@ namespace Utils.Tests
             var otherName = CreateLogFile(m_LogDir, "backup_tstlg_x_tmp.log", m_AppId);
             var otherExt = CreateLogFile(m_LogDir, "tstlg_x_tmp.log2", m_AppId);
 
-            CreateCleaner().TryClear(DeleteAllPolicy("tstlg_*_tmp.log"));
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(DeleteAllPolicy("tstlg_*_tmp.log"));
 
             Assert.That(File.Exists(log), Is.False);
             Assert.That(File.Exists(otherName), Is.True);
             Assert.That(File.Exists(otherExt), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(log) }));
         }
 
         [TestCase(@"Sub\*.log")]
@@ -321,6 +360,9 @@ namespace Utils.Tests
         [TestCase(@"\Logs")]
         [TestCase("/Logs")]
         [TestCase("C:Logs")]
+        [TestCase(@"C:\Logs:stream")]
+        [TestCase(@"C:\Logs:x\Sub")]
+        [TestCase(@"C:\Lo:gs")]
         [TestCase(@"%XT_UNDEFINED_TEST_VAR%\Logs")]
         public void InvalidDirPath_Throws(string dirPath)
         {
@@ -371,11 +413,14 @@ namespace Utils.Tests
             var own = CreateLogFile(m_LogDir, "log_a_x.log", m_AppId);
             var unsigned = CreateFile(m_LogDir, "log_b_x.log", "user content");
 
-            var cleaner = new FileLogCleaner(Path.Combine(m_LogDir, "Sub", ".."), m_AppId, "Tests");
+            var cleaner = new TestCleaner(Path.Combine(m_LogDir, "Sub", ".."), m_AppId, m_TempDir);
+            m_Cleaners.Add(cleaner);
+
             cleaner.TryClear(DeleteAllPolicy("log_*_x.log"));
 
             Assert.That(File.Exists(own), Is.False);
             Assert.That(File.Exists(unsigned), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(own) }));
         }
 
         #endregion
@@ -393,11 +438,13 @@ namespace Utils.Tests
             File.SetLastWriteTimeUtc(middle, DateTime.UtcNow.AddDays(-2));
             File.SetLastWriteTimeUtc(newest, DateTime.UtcNow.AddDays(-1));
 
-            CreateCleaner().TryClear(new FileLogRetentionPolicy("log_*_x.log", 2));
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(new FileLogRetentionPolicy("log_*_x.log", 2));
 
             Assert.That(File.Exists(oldest), Is.False);
             Assert.That(File.Exists(middle), Is.True);
             Assert.That(File.Exists(newest), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(oldest) }));
         }
 
         [Test]
@@ -409,10 +456,67 @@ namespace Utils.Tests
             File.SetLastWriteTimeUtc(expired, DateTime.UtcNow.AddDays(-11));
             File.SetLastWriteTimeUtc(fresh, DateTime.UtcNow.AddDays(-1));
 
-            CreateCleaner().TryClear(new FileLogRetentionPolicy("log_*_x.log", null, TimeSpan.FromDays(10)));
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(new FileLogRetentionPolicy("log_*_x.log", null, TimeSpan.FromDays(10)));
 
             Assert.That(File.Exists(expired), Is.False);
             Assert.That(File.Exists(fresh), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(expired) }));
+        }
+
+        [Test]
+        public void ExpiryPeriod_DeletesOnlyOwnSignedFiles()
+        {
+            var own = CreateLogFile(m_LogDir, "log_a_x.log", m_AppId);
+            var unsigned = CreateFile(m_LogDir, "log_b_x.log", "user content");
+            var otherApp = CreateLogFile(m_LogDir, "log_c_x.log", m_OtherAppId);
+            var otherName = CreateLogFile(m_LogDir, "report.log", m_AppId);
+
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(new FileLogRetentionPolicy("log_*_x.log", 500, TimeSpan.FromDays(10)));
+
+            Assert.That(File.Exists(own), Is.False);
+            Assert.That(File.Exists(unsigned), Is.True);
+            Assert.That(File.Exists(otherApp), Is.True);
+            Assert.That(File.Exists(otherName), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(own) }));
+        }
+
+        [Test]
+        public void MaxFilesSize_DeletesUntilWithinLimit()
+        {
+            var newest = CreateLogFile(m_LogDir, "log_a_x.log", m_AppId);
+            var older = CreateLogFile(m_LogDir, "log_b_x.log", m_AppId);
+            var oldest = CreateLogFile(m_LogDir, "log_c_x.log", m_AppId);
+
+            File.SetLastWriteTimeUtc(newest, DateTime.UtcNow.AddDays(-1));
+            File.SetLastWriteTimeUtc(older, DateTime.UtcNow.AddDays(-2));
+            File.SetLastWriteTimeUtc(oldest, DateTime.UtcNow.AddDays(-3));
+
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(new FileLogRetentionPolicy("log_*_x.log", null, null, new FileInfo(newest).Length));
+
+            Assert.That(File.Exists(newest), Is.True);
+            Assert.That(File.Exists(older), Is.False);
+            Assert.That(File.Exists(oldest), Is.False);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(older), Path.GetFullPath(oldest) }));
+        }
+
+        [Test]
+        public void MaxFilesSize_RetainedUnsignedFilesCountTowardsLimit()
+        {
+            var unsigned = CreateFile(m_LogDir, "log_a_x.log", "user content which is larger than the limit");
+            var own = CreateLogFile(m_LogDir, "log_b_x.log", m_AppId);
+
+            File.SetLastWriteTimeUtc(unsigned, DateTime.UtcNow.AddDays(-1));
+            File.SetLastWriteTimeUtc(own, DateTime.UtcNow.AddDays(-2));
+
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(new FileLogRetentionPolicy("log_*_x.log", null, null, new FileInfo(own).Length));
+
+            Assert.That(File.Exists(unsigned), Is.True);
+            Assert.That(File.Exists(own), Is.False);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(own) }));
         }
 
         #endregion
@@ -452,11 +556,28 @@ namespace Utils.Tests
 
             try
             {
-                writer.Log("message", LogMessageSeverity_e.Error);
+                writer.Log("first", LogMessageSeverity_e.Error);
 
-                CreateCleaner().TryClear(DeleteAllPolicy("active.log"));
+                var cleaner = CreateCleaner();
+                cleaner.TryClear(DeleteAllPolicy("active.log"));
+
+                writer.Log("second", LogMessageSeverity_e.Error);
 
                 Assert.That(File.Exists(logFile), Is.True);
+                Assert.That(cleaner.Deleted, Is.Empty);
+
+                string content;
+
+                using (var stream = new FileStream(logFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                {
+                    using (var reader = new StreamReader(stream, Encoding.UTF8))
+                    {
+                        content = reader.ReadToEnd();
+                    }
+                }
+
+                Assert.That(content, Does.Contain("first"));
+                Assert.That(content, Does.Contain("second"));
             }
             finally
             {
@@ -479,11 +600,13 @@ namespace Utils.Tests
                 Assert.Ignore("Creating symbolic links requires administrator rights or Developer Mode");
             }
 
-            CreateCleaner().TryClear(DeleteAllPolicy("link.log"));
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(DeleteAllPolicy("link.log"));
 
             Assert.That(File.Exists(link), Is.False);
             Assert.That(File.Exists(target), Is.True);
             Assert.That(File.ReadAllText(target), Does.StartWith(GetSignature(m_AppId)));
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(link) }));
         }
 
         [Test]
@@ -514,11 +637,73 @@ namespace Utils.Tests
                 Assert.Ignore("Failed to create hard link");
             }
 
-            CreateCleaner().TryClear(DeleteAllPolicy("link.log"));
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(DeleteAllPolicy("link.log"));
 
             Assert.That(File.Exists(link), Is.False);
             Assert.That(File.Exists(target), Is.True);
             Assert.That(File.ReadAllText(target), Does.StartWith(GetSignature(m_AppId)));
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(link) }));
+        }
+
+        #endregion
+
+        #region Short names
+
+        [Test]
+        public void PatternMatchingOnlyShortName_NotDeleted()
+        {
+            var file = CreateLogFile(m_LogDir, "abcdefgh_report.log2", m_AppId);
+
+            var shortName = Path.GetFileName(ShortPathHelper.GetShortPathOrIgnore(file));
+
+            Assert.That(TextUtils.MatchesAnyFilter(shortName, "abc*1.log"), Is.True, $"Unexpected short name '{shortName}'");
+
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(DeleteAllPolicy("abc*1.log"));
+
+            Assert.That(File.Exists(file), Is.True);
+            Assert.That(cleaner.Deleted, Is.Empty);
+        }
+
+        [Test]
+        public void PatternMatchingOnlyShortName_NotCountedTowardsMaxFileCount()
+        {
+            var shortOnly = CreateLogFile(m_LogDir, "abcdefgh_report.log2", m_AppId);
+            var own = CreateLogFile(m_LogDir, "abc_run_1.log", m_AppId);
+
+            var shortName = Path.GetFileName(ShortPathHelper.GetShortPathOrIgnore(shortOnly));
+
+            Assert.That(TextUtils.MatchesAnyFilter(shortName, "abc*1.log"), Is.True, $"Unexpected short name '{shortName}'");
+
+            File.SetLastWriteTimeUtc(shortOnly, DateTime.UtcNow.AddDays(-1));
+            File.SetLastWriteTimeUtc(own, DateTime.UtcNow.AddDays(-2));
+
+            var cleaner = CreateCleaner();
+            cleaner.TryClear(new FileLogRetentionPolicy("abc*1.log", 1));
+
+            Assert.That(File.Exists(shortOnly), Is.True);
+            Assert.That(File.Exists(own), Is.True);
+            Assert.That(cleaner.Deleted, Is.Empty);
+        }
+
+        [Test]
+        public void ShortDirPath_DeletesOnlyOwnSignedFiles()
+        {
+            var own = CreateLogFile(m_LogDir, "log_a_x.log", m_AppId);
+            var unsigned = CreateFile(m_LogDir, "log_b_x.log", "user content");
+
+            var shortTempDir = ShortPathHelper.GetShortPathOrIgnore(m_TempDir);
+            var shortLogDir = Path.Combine(shortTempDir, Path.GetFileName(m_LogDir));
+
+            var cleaner = new TestCleaner(shortLogDir, m_AppId, shortTempDir);
+            m_Cleaners.Add(cleaner);
+
+            cleaner.TryClear(DeleteAllPolicy("log_*_x.log"));
+
+            Assert.That(File.Exists(own), Is.False);
+            Assert.That(File.Exists(unsigned), Is.True);
+            Assert.That(cleaner.Deleted, Is.EquivalentTo(new[] { Path.GetFullPath(Path.Combine(shortLogDir, "log_a_x.log")) }));
         }
 
         #endregion
@@ -570,7 +755,7 @@ namespace Utils.Tests
         {
             var file = CreateLogFile(m_LogDir, "a.txt", m_AppId);
 
-            var res = CreateCleaner().CallDeleteFile(new FileInfo(file), "");
+            var res = CreateCleaner().CallDeleteFile(new FileInfo(file), filter);
 
             Assert.That(res, Is.False);
             Assert.That(File.Exists(file), Is.True);

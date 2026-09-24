@@ -34,23 +34,16 @@ namespace Xarial.XToolkit.Reporting
         /// </summary>
         public bool Append { get; set; }
 
-        /// <summary>
-        /// Retention policy for log files
-        /// </summary>
-        public FileLogRetentionPolicy RetentionPolicy { get; set; }
-
         /// <param name="addTimeStamp">Add time stamp to log message</param>
         /// <param name="timeStampFormat">Format of time stamp</param>
         /// <param name="append">Append to a log file or create new</param>
-        /// <param name="retentionPolicy">Retention policy for log files</param>
         /// <param name="filter">Fitler for messages (null to filter all)</param>
         public FileLogOptions(bool addTimeStamp = true,
-            string timeStampFormat = DEFAULT_TIMESTAMP_FORMAT, bool append = false, FileLogRetentionPolicy retentionPolicy = null, LogMessageSeverity_e[] filter = null)
+            string timeStampFormat = DEFAULT_TIMESTAMP_FORMAT, bool append = false, LogMessageSeverity_e[] filter = null)
         { 
             AddTimeStamp = addTimeStamp;
             TimeStampFormat = timeStampFormat;
             Append = append;
-            RetentionPolicy = retentionPolicy;
             Filter = filter;
         }
     }
@@ -155,6 +148,11 @@ namespace Xarial.XToolkit.Reporting
                 {
                     return false;
                 }
+
+                if (path.IndexOf(':', root.Length) != -1)
+                {
+                    return false;
+                }
             }
 
             return true;
@@ -191,7 +189,7 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="category">Log category</param>
         /// <param name="appId">Application id</param>
         /// <param name="opts">Log options</param>
-        public FileLogWriter(string filePath, string category, Guid appId, FileLogOptions opts = null) : base(category, true, opts?.Filter)
+        public FileLogWriter(string filePath, string category, Guid appId, FileLogOptions opts) : base(category, true, opts?.Filter)
         {
             if (string.IsNullOrWhiteSpace(filePath))
             {
@@ -216,25 +214,30 @@ namespace Xarial.XToolkit.Reporting
                 throw new ArgumentException("Log file path must include a directory", nameof(filePath));
             }
 
+            if (string.IsNullOrEmpty(Path.GetExtension(filePath)))
+            {
+                throw new ArgumentException("Log file path must include a file extension", nameof(filePath));
+            }
+
+            if (string.IsNullOrWhiteSpace(Path.GetFileNameWithoutExtension(filePath)))
+            {
+                throw new ArgumentException("Log file path must include a file name", nameof(filePath));
+            }
+
             m_Append = opts?.Append ?? false;
+
             m_Signature = GetSignature(appId);
 
-            ClearLogFiles(opts, m_Signature, category);
+            if (string.IsNullOrEmpty(m_Signature))
+            {
+                throw new ArgumentNullException(nameof(m_Signature));
+            }
         }
 
-        /// <summary>
-        /// Clears existing log files
-        /// </summary>
-        /// <param name="opts">Log options</param>
-        /// <param name="signature">Application signature</param>
-        /// <param name="category">Log category</param>
-        protected virtual void ClearLogFiles(FileLogOptions opts, string signature, string category)
+        /// <inheritdoc/>
+        public FileLogWriter(string filePath, string category, Guid appId)
+            : this(filePath, category, appId, new FileLogOptions(true, FileLogOptions.DEFAULT_TIMESTAMP_FORMAT, false))
         {
-            if (opts?.RetentionPolicy != null)
-            {
-                var logCleaner = new FileLogCleaner(m_DirPath, signature, category);
-                logCleaner.TryClear(opts.RetentionPolicy);
-            }
         }
 
         private void EnsureWriter()
@@ -292,13 +295,6 @@ namespace Xarial.XToolkit.Reporting
                 writer?.Dispose();
                 throw;
             }
-        }
-
-        /// <inheritdoc/>
-        public FileLogWriter(string filePath, string category, Guid appId,
-            FileLogRetentionPolicy retentionPolicy) 
-            : this(filePath, category, appId, new FileLogOptions(true, FileLogOptions.DEFAULT_TIMESTAMP_FORMAT, false, retentionPolicy)) 
-        {
         }
 
         /// <inheritdoc/>

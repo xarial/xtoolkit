@@ -59,15 +59,19 @@ namespace ConsoleTester
         {
             var appGuid = new Guid("{1CA4640E-FC18-454E-93A5-3D815FF8686A}");
 
-            var retention = new FileLogRetentionPolicy("testlog_*.log", 3, TimeSpan.FromDays(30));
+            var category = "xToolkit_Test";
 
-            var logFilePath = $@"%appdata%\Xarial\xToolkit\Logs\testlog_{Guid.NewGuid().ToString()}.log";
+            var retention = new FileLogRetentionPolicy("testlog_*_tmp.log", 3, TimeSpan.FromDays(30));
 
-            logFilePath = $@"%appdata%\Xarial\xToolkit\Logs\";
+            var logFileDir = @"%appdata%\Xarial\xToolkit\Logs";
 
-            var fileLogger = new FileLogWriter(
-                logFilePath, "test", appGuid,
-                retention);
+            var logFilePath = Path.Combine(logFileDir, $@"testlog_{Guid.NewGuid().ToString()}_tmp.log");
+
+            var cleaner = new FileLogCleaner(logFileDir, appGuid, category);
+
+            cleaner.TryClear(retention);
+
+            var fileLogger = new FileLogWriter(logFilePath, category, appGuid);
 
             fileLogger.LogInformation("Message 1");
 

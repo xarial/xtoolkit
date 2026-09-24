@@ -82,18 +82,9 @@ namespace Xarial.XToolkit.Reporting
         /// <param name="appId">Application id</param>
         /// <param name="categoryName">category name</param>
         public FileLogCleaner(string dirPath, Guid appId, string categoryName)
-            : this(dirPath, FileLogWriter.GetSignature(appId), categoryName)
         {
-        }
+            var appSignature = FileLogWriter.GetSignature(appId);
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        /// <param name="dirPath">Log directory file path</param>
-        /// <param name="appSignature">Applicationm signature</param>
-        /// <param name="categoryName">Category name</param>
-        protected internal FileLogCleaner(string dirPath, string appSignature, string categoryName)
-        {
             if (string.IsNullOrEmpty(appSignature))
             {
                 throw new ArgumentNullException(nameof(appSignature));
@@ -152,6 +143,7 @@ namespace Xarial.XToolkit.Reporting
                 if (Directory.Exists(m_DirPath))
                 {
                     var files = new DirectoryInfo(m_DirPath).EnumerateFiles(policy.SearchPattern)
+                        .Where(f => TextUtils.MatchesAnyFilter(f.Name, policy.SearchPattern))
                         .OrderByDescending(f => f.LastWriteTimeUtc)
                         .ToArray();
 
@@ -279,7 +271,7 @@ namespace Xarial.XToolkit.Reporting
             {
                 if (!string.IsNullOrWhiteSpace(filter) && TextUtils.MatchesAnyFilter(file.Name, filter))
                 {
-                    Trace($"Deleting '{file.Name}'");
+                    Trace($"Deleting '{file.FullName}'");
                     file.Delete();
                     return true;
                 }
