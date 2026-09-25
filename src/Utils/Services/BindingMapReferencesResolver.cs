@@ -37,9 +37,21 @@ namespace Xarial.XToolkit.Services
     {
         /// <inheritdoc/>
         /// <param name="bindingFileName">Name of bidning file</param>
-        public static BindingMapReferencesResolver FromType<T>(AssemblyNamePart_e filter, string bindingFileName, ILogWriter logger)
+        /// <param name="filter">Match filter</param>
+        /// <param name="logger">Logger</param>
+        public static BindingMapReferencesResolver FromType<T>(AssemblyNamePart_e filter, string bindingFileName, ILogWriter logger = null)
         {
-            var workDir = Path.GetDirectoryName(typeof(T).Assembly.Location);
+            var assm = typeof(T).Assembly;
+
+            var assmFilePath = TryGetLocation(assm);
+
+            if (string.IsNullOrEmpty(assmFilePath))
+            {
+                throw new InvalidOperationException(
+                    $"Assembly '{assm.FullName}' of type '{typeof(T).FullName}' has no location, the search directory cannot be resolved from it");
+            }
+
+            var workDir = Path.GetDirectoryName(assmFilePath);
 
             return new BindingMapReferencesResolver(AppDomain.CurrentDomain, new BindingMapReferenceResolverParameters()
             {
@@ -65,36 +77,55 @@ namespace Xarial.XToolkit.Services
 
         private class AssemblyNameEqualityComparer : IEqualityComparer<AssemblyName>
         {
-            public bool Equals(AssemblyName x, AssemblyName y) => string.Equals(x.FullName, y.FullName);
+            public bool Equals(AssemblyName x, AssemblyName y)
+            {
+                if (ReferenceEquals(x, y))
+                {
+                    return true;
+                }
 
-            public int GetHashCode(AssemblyName obj) => 0;
+                if (x == null || y == null)
+                {
+                    return false;
+                }
+
+                return string.Equals(x.FullName, y.FullName, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public int GetHashCode(AssemblyName obj)
+                => obj?.FullName == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FullName);
         }
 
-        private readonly BindingMapReferenceResolverParameters m_Parameters;
+        private BindingMapReferenceResolverParameters MapParameters
+            => (BindingMapReferenceResolverParameters)Parameters;
 
         /// <inheritdoc/>
-        public BindingMapReferencesResolver(AppDomain appDomain, BindingMapReferenceResolverParameters parameters, ILogWriter logger) : base(appDomain, parameters, logger)
+        public BindingMapReferencesResolver(AppDomain appDomain, BindingMapReferenceResolverParameters parameters, ILogWriter logger = null) : base(appDomain, parameters, logger)
         {
-            m_Parameters = parameters;
         }
 
         /// <inheritdoc/>
-        public override Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly)
+        protected override Assembly Resolve(AppDomain appDomain, AssemblyName assmName, Assembly requestingAssembly)
         {
             if (ShouldResolve(appDomain, assmName, requestingAssembly))
             {
-                if (m_Parameters.Map?.TryGetValue(assmName, out var assmFilePath) == true)
+                var searchDir = MapParameters.SearchDirectory;
+
+                if (MapParameters.Map?.TryGetValue(assmName, out var assmFilePath) == true
+                    && !string.IsNullOrEmpty(assmFilePath))
                 {
-                    assmFilePath = Path.Combine(m_Parameters.SearchDirectory, assmFilePath);
+                    if (!string.IsNullOrEmpty(searchDir))
+                    {
+                        assmFilePath = Path.Combine(searchDir, assmFilePath);
+                    }
 
                     if (File.Exists(assmFilePath))
                     {
-                        var assmInfo = AssemblyInfo.FromFile(assmFilePath);
-                        return LoadAssembly(assmInfo);
+                        return LoadAssembly(AssemblyInfo.FromFile(assmFilePath));
                     }
-                    else 
+                    else
                     {
-                        throw new FileNotFoundException($"Assembly {assmFilePath} is not found");
+                        m_Logger?.LogWarning($"Mapped assembly '{assmFilePath}' for '{assmName}' is not found - falling back to the local folder search");
                     }
                 }
             }

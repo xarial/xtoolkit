@@ -143,7 +143,7 @@ namespace Xarial.XToolkit.Reporting
                 if (Directory.Exists(m_DirPath))
                 {
                     var files = new DirectoryInfo(m_DirPath).EnumerateFiles(policy.SearchPattern)
-                        .Where(f => TextUtils.MatchesAnyFilter(f.Name, policy.SearchPattern))
+                        .Where(f => MatchesSearchPattern(f.Name, policy.SearchPattern))
                         .OrderByDescending(f => f.LastWriteTimeUtc)
                         .ToArray();
 
@@ -259,6 +259,56 @@ namespace Xarial.XToolkit.Reporting
                 }
             }
         }
+
+        private bool MatchesSearchPattern(string fileName, string pattern)
+        {
+            if (!string.IsNullOrEmpty(fileName) && !string.IsNullOrEmpty(pattern))
+            {
+                var nameIndex = 0;
+                var patternIndex = 0;
+
+                var starPatternIndex = -1;
+                var starNameIndex = -1;
+
+                while (nameIndex < fileName.Length)
+                {
+                    if (patternIndex < pattern.Length && pattern[patternIndex] == '*')
+                    {
+                        starPatternIndex = patternIndex++;
+                        starNameIndex = nameIndex;
+                    }
+                    else if (patternIndex < pattern.Length
+                        && (pattern[patternIndex] == '?' || CharsEqualIgnoreCase(pattern[patternIndex], fileName[nameIndex])))
+                    {
+                        patternIndex++;
+                        nameIndex++;
+                    }
+                    else if (starPatternIndex != -1)
+                    {
+                        patternIndex = starPatternIndex + 1;
+                        nameIndex = ++starNameIndex;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                while (patternIndex < pattern.Length && pattern[patternIndex] == '*')
+                {
+                    patternIndex++;
+                }
+
+                return patternIndex == pattern.Length;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+
+        private bool CharsEqualIgnoreCase(char a, char b)
+            => a == b || char.ToUpperInvariant(a) == char.ToUpperInvariant(b);
 
         /// <summary>
         /// Delete log file

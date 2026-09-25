@@ -287,6 +287,16 @@
                     </StackPanel>
                 </Grid>
             </TabItem>
+            <TabItem Header="BackgroundProgressWindow">
+                <Grid DataContext="{Binding Path=BackgroundProgressWindow}">
+                    <StackPanel Orientation="Vertical">
+                        <Button Command="{Binding Path=ShowProgressCommand}">Show Progress (WPF Parent, Blocked UI)</Button>
+                        <Button Command="{Binding Path=ShowProgressNoParentCommand}">Show Progress (No Parent, Blocked UI)</Button>
+                        <Button Command="{Binding Path=ShowProgressWin32ParentCommand}">Show Progress (Win32 Parent, Blocked UI)</Button>
+                        <Button Command="{Binding Path=ShowProgressBackgroundCommand}">Show Progress (Background)</Button>
+                        <Button Command="{Binding Path=ShowProgressWin32BackgroundCommand}">Show Progress (Win32 Background)</Button>                    </StackPanel>
+                </Grid>
+            </TabItem>
             <TabItem Header="ExpandToggleButton">
                 <Grid DataContext="{Binding Path=ExpandToggleButton}">
                     <ctrls:ExpandToggleButton IsChecked="{Binding Path=IsExpanded}"/>

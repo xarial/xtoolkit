@@ -15,14 +15,13 @@ using System.Reflection;
 using System.Xml;
 using System.Xml.Linq;
 using Xarial.XToolkit.Reporting;
-using Xarial.XToolkit.Services;
 
 namespace Xarial.XToolkit.Services
 {
     /// <summary>
     /// Parameters of <see cref="AppConfigBindingRedirectReferenceResolver"/>
     /// </summary>
-    public class AppConfigBindingRedirectReferenceResolverParameters : AssemblyReferenceResolverParameters 
+    public class AppConfigBindingRedirectReferenceResolverParameters : AssemblyReferenceResolverParameters
     {
         /// <summary>
         /// Assemblies with app.config files
@@ -49,13 +48,25 @@ namespace Xarial.XToolkit.Services
         /// <param name="logger">Logger</param>
         /// <param name="additionalAssms">Additional assemblies to search app.config</param>
         /// <returns>Resolver</returns>
-        public static AppConfigBindingRedirectReferenceResolver FromType<T>(ILogWriter logger, params Assembly[] additionalAssms)
-            => new AppConfigBindingRedirectReferenceResolver(AppDomain.CurrentDomain, new AppConfigBindingRedirectReferenceResolverParameters()
+        public static AppConfigBindingRedirectReferenceResolver FromType<T>(ILogWriter logger = null, params Assembly[] additionalAssms)
+        {
+            var assm = typeof(T).Assembly;
+
+            var assmFilePath = TryGetLocation(assm);
+
+            if (string.IsNullOrEmpty(assmFilePath))
             {
-                AppConfigAssemblies = new Assembly[] { typeof(T).Assembly }.Union(additionalAssms ?? Array.Empty<Assembly>()).ToArray(),
-                RequestingAssemblyDirectories = new string[] { Path.GetDirectoryName(typeof(T).Assembly.Location) },
+                throw new InvalidOperationException(
+                    $"Assembly '{assm.FullName}' of type '{typeof(T).FullName}' has no location, the app.config directory cannot be resolved from it");
+            }
+
+            return new AppConfigBindingRedirectReferenceResolver(AppDomain.CurrentDomain, new AppConfigBindingRedirectReferenceResolverParameters()
+            {
+                AppConfigAssemblies = new Assembly[] { assm }.Union(additionalAssms ?? Array.Empty<Assembly>()).ToArray(),
+                RequestingAssemblyDirectories = new string[] { Path.GetDirectoryName(assmFilePath) },
                 SearchCallingAssemblyAppConfig = false
             }, logger);
+        }
 
         private static readonly XNamespace m_AsmNamespace = "urn:schemas-microsoft-com:asm.v1";
 
@@ -74,7 +85,7 @@ namespace Xarial.XToolkit.Services
             }
 
             internal bool Matches(Version version)
-                => version >= OldVersionFrom && version <= OldVersionTo;
+                => version != null && version >= OldVersionFrom && version <= OldVersionTo;
         }
 
         [DebuggerDisplay("name=\"{" + nameof(m_Name) + "}\" publicKeyToken=\"{" + nameof(m_PublicKeyToken) + "}\" culture=\"{" + nameof(m_Culture) + "}\"")]
@@ -99,7 +110,8 @@ namespace Xarial.XToolkit.Services
             public override bool Equals(object obj)
                 => obj is AssemblyIdentityKey other && Equals(other);
 
-            public override int GetHashCode() => 0;
+            public override int GetHashCode()
+                => m_Name == null ? 0 : StringComparer.OrdinalIgnoreCase.GetHashCode(m_Name);
         }
 
         private class AppConfigCacheEntry
@@ -114,16 +126,16 @@ namespace Xarial.XToolkit.Services
             }
         }
 
-        private readonly ConcurrentDictionary<string, AppConfigCacheEntry> m_BindingRedirectsCache;
+        private readonly ConcurrentDictionary<string, AppConfigCacheEntry> m_BindingRedirectsCache
+            = new ConcurrentDictionary<string, AppConfigCacheEntry>(StringComparer.OrdinalIgnoreCase);
 
-        private readonly AppConfigBindingRedirectReferenceResolverParameters m_Parameters;
+        private AppConfigBindingRedirectReferenceResolverParameters AppConfigParameters
+            => (AppConfigBindingRedirectReferenceResolverParameters)Parameters;
 
         /// <inheritdoc/>
-        public AppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AppConfigBindingRedirectReferenceResolverParameters parameters, ILogWriter logger)
+        public AppConfigBindingRedirectReferenceResolver(AppDomain appDomain, AppConfigBindingRedirectReferenceResolverParameters parameters, ILogWriter logger = null)
             : base(appDomain, parameters, logger)
         {
-            m_Parameters = parameters;
-            m_BindingRedirectsCache = new ConcurrentDictionary<string, AppConfigCacheEntry>(StringComparer.OrdinalIgnoreCase);
         }
 
         /// <summary>
@@ -132,20 +144,22 @@ namespace Xarial.XToolkit.Services
         /// <param name="requestingAssembly"></param>
         /// <returns></returns>
         protected virtual string[] GetAppConfigs(Assembly requestingAssembly)
-            => IterateAppConfigAssemblies(requestingAssembly).Where(a => a != null && !a.IsDynamic)
-            .Select(a => a.Location + ".config")
+            => IterateAppConfigAssemblies(requestingAssembly)
+            .Select(a => TryGetLocation(a))
+            .Where(f => !string.IsNullOrEmpty(f))
+            .Select(f => f + ".config")
             .Where(f => File.Exists(f)).ToArray();
 
-        private IEnumerable<Assembly> IterateAppConfigAssemblies(Assembly requestingAssembly) 
+        private IEnumerable<Assembly> IterateAppConfigAssemblies(Assembly requestingAssembly)
         {
-            if (m_Parameters.SearchCallingAssemblyAppConfig)
+            if (AppConfigParameters.SearchCallingAssemblyAppConfig)
             {
                 yield return requestingAssembly;
             }
 
-            if (m_Parameters.AppConfigAssemblies != null) 
+            if (AppConfigParameters.AppConfigAssemblies != null)
             {
-                foreach (var appConfAssm in m_Parameters.AppConfigAssemblies) 
+                foreach (var appConfAssm in AppConfigParameters.AppConfigAssemblies)
                 {
                     yield return appConfAssm;
                 }
@@ -191,18 +205,18 @@ namespace Xarial.XToolkit.Services
                         }
                         catch (Exception ex)
                         {
-                            m_Logger.LogError(ex);
+                            m_Logger?.LogError(ex);
                         }
                     }
                 }
-                else 
+                else
                 {
-                    m_Logger.LogWarning("No app.config files are found");
+                    m_Logger?.LogWarning("No app.config files are found");
                 }
             }
             else
             {
-                m_Logger.LogTrace($"Cannot resolve binding redirect for '{assmName}' as the assembly version is not specified");
+                m_Logger?.LogTrace($"Cannot resolve binding redirect for '{assmName}' as the assembly version is not specified");
             }
 
             searchDir = "";
@@ -220,7 +234,7 @@ namespace Xarial.XToolkit.Services
                 return cacheEntry.RedirectsByAssembly;
             }
 
-            m_Logger.LogTrace($"Parsing binding redirects from '{appConfigPath}'");
+            m_Logger?.LogTrace($"Parsing binding redirects from '{appConfigPath}'");
 
             var redirectsByAssembly = ParseBindingRedirects(appConfigPath);
 
@@ -275,12 +289,12 @@ namespace Xarial.XToolkit.Services
                                 }
                                 else
                                 {
-                                    m_Logger.LogWarning($"Skipping binding redirect for '{name}' as the 'newVersion' value '{newVersionVal}' in '{appConfigPath}' is invalid");
+                                    m_Logger?.LogWarning($"Skipping binding redirect for '{name}' as the 'newVersion' value '{newVersionVal}' in '{appConfigPath}' is invalid");
                                 }
                             }
                             else
                             {
-                                m_Logger.LogWarning($"Skipping binding redirect for '{name}' as the 'oldVersion' value '{oldVersionVal}' in '{appConfigPath}' is invalid");
+                                m_Logger?.LogWarning($"Skipping binding redirect for '{name}' as the 'oldVersion' value '{oldVersionVal}' in '{appConfigPath}' is invalid");
                             }
                         }
                     }
@@ -292,9 +306,12 @@ namespace Xarial.XToolkit.Services
 
         private bool TryParseVersionRange(string versionRange, out Version from, out Version to)
         {
+            from = default;
+            to = default;
+
             if (string.IsNullOrEmpty(versionRange))
             {
-                throw new ArgumentNullException(nameof(versionRange));
+                return false;
             }
 
             if (versionRange.Contains("-"))

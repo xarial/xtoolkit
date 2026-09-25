@@ -51,32 +51,47 @@ namespace Xarial.XToolkit.Services
         /// <param name="filter">Filter</param>
         /// <param name="logger">Logger</param>
         /// <returns>References resolvedr</returns>
-        public static LocalFolderReferencesResolver FromType<T>(AssemblyNamePart_e filter, ILogWriter logger)
+        public static LocalFolderReferencesResolver FromType<T>(AssemblyNamePart_e filter, ILogWriter logger = null)
         {
-            var workDir = Path.GetDirectoryName(typeof(T).Assembly.Location);
+            var assm = typeof(T).Assembly;
 
-            return new LocalFolderReferencesResolver(AppDomain.CurrentDomain, new LocalFolderReferenceResolverParameters()
+            var assmFilePath = TryGetLocation(assm);
+
+            if (!string.IsNullOrEmpty(assmFilePath))
             {
-                MatchFilter = filter,
-                SearchDirectory = workDir,
-                RequestingAssemblyDirectories = new string[] { workDir }
-            }, logger);
+                var workDir = Path.GetDirectoryName(assmFilePath);
+
+                return new LocalFolderReferencesResolver(AppDomain.CurrentDomain, new LocalFolderReferenceResolverParameters()
+                {
+                    MatchFilter = filter,
+                    SearchDirectory = workDir,
+                    RequestingAssemblyDirectories = new string[] { workDir }
+                }, logger);
+            }
+            else 
+            {
+                throw new InvalidOperationException(
+                    $"Assembly '{assm.FullName}' of type '{typeof(T).FullName}' has no location, the search directory cannot be resolved from it");
+            }
         }
 
-        private readonly LocalFolderReferenceResolverParameters m_Parameters;
+        /// <summary>
+        /// Local folder parameters
+        /// </summary>
+        protected LocalFolderReferenceResolverParameters LocalParameters
+            => (LocalFolderReferenceResolverParameters)Parameters;
 
         /// <inheritdoc/>
-        public LocalFolderReferencesResolver(AppDomain appDomain, LocalFolderReferenceResolverParameters parameters, ILogWriter logger)
+        public LocalFolderReferencesResolver(AppDomain appDomain, LocalFolderReferenceResolverParameters parameters, ILogWriter logger = null)
             : base(appDomain, parameters, logger)
         {
-            m_Parameters = parameters;
         }
 
         /// <inheritdoc/>
         protected override AssemblyName GetReplacementAssemblyName(AssemblyName assmName, Assembly requestingAssembly,
             out string searchDir, out bool recursiveSearch)
         {
-            searchDir = m_Parameters.SearchDirectory;
+            searchDir = LocalParameters.SearchDirectory;
             recursiveSearch = true;
             return assmName;
         }
@@ -84,10 +99,12 @@ namespace Xarial.XToolkit.Services
         /// <inheritdoc/>
         protected override bool Match(AssemblyName probeAssmName, AssemblyName searchAssmName, Assembly requestingAssembly)
         {
-            if (m_Parameters.AssemblyFilter?.Any() != true
-                || m_Parameters.AssemblyFilter.Any(a => CompareAssemblyNames(searchAssmName, a.Name, a.MatchFilter)))
+            var assmFilter = LocalParameters.AssemblyFilter;
+
+            if (assmFilter?.Any() != true
+                || assmFilter.Any(a => a?.Name != null && CompareAssemblyNames(searchAssmName, a.Name, a.MatchFilter)))
             {
-                return CompareAssemblyNames(probeAssmName, searchAssmName, m_Parameters.MatchFilter);
+                return CompareAssemblyNames(probeAssmName, searchAssmName, LocalParameters.MatchFilter);
             }
             else
             {

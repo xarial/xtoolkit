@@ -324,7 +324,7 @@ namespace Xarial.XToolkit.Reporting
                         }
                         catch (Exception ex)
                         {
-                            base.Log(LogWriterExtension.GetExceptionContent(ex, false), LogMessageSeverity_e.Error);
+                            base.Log(LogWriterExtension.GetExceptionContent(ex, true), LogMessageSeverity_e.Error);
                         }
                     }
                 }

@@ -35,6 +35,7 @@ namespace Lib.Wpf
         public MessageServiceVM MessageService { get; }
         public FileSystemBrowserVM FileSystemBrowser { get; }
         public AboutServiceVM AboutService { get; }
+        public BackgroundProgressWindowVM BackgroundProgressWindow { get; }
 
         public MainVM(Window parentWnd) 
         {
@@ -57,6 +58,7 @@ namespace Lib.Wpf
             MessageService = new MessageServiceVM(parentWnd);
             FileSystemBrowser = new FileSystemBrowserVM(parentWnd);
             AboutService = new AboutServiceVM(parentWnd);
+            BackgroundProgressWindow = new BackgroundProgressWindowVM(parentWnd);
         }
     }
 }
