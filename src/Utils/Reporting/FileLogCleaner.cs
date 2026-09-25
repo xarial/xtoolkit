@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Xarial.XToolkit.Reporting
@@ -191,6 +192,11 @@ namespace Xarial.XToolkit.Reporting
                                     Trace($"Retaining log file '{filePath}' [excessive: {isExcessive}, expired: {isExpired}, oversized: {isOversized}] - signature mismatch");
                                 }
                             }
+                            catch (OperationCanceledException)
+                            {
+                                Trace("Log clearing process is cancelled");
+                                break;
+                            }
                             catch (Exception ex)
                             {
                                 retainedSize += fileSize;
@@ -315,20 +321,29 @@ namespace Xarial.XToolkit.Reporting
         /// </summary>
         /// <param name="file">File</param>
         /// <param name="filter">File name filter</param>
+        /// <remarks>Throw <see cref="OperationCanceledException"/> to cancel the clearing process</remarks>
         protected virtual bool DeleteFile(FileInfo file, string filter)
         {
             if (FileSystemUtils.IsInDirectory(file.FullName, m_DirPath))
             {
-                if (!string.IsNullOrWhiteSpace(filter) && TextUtils.MatchesAnyFilter(file.Name, filter))
+                try
                 {
-                    Trace($"Deleting '{file.FullName}'");
-                    file.Delete();
-                    return true;
+                    if (!string.IsNullOrWhiteSpace(filter) && TextUtils.MatchesAnyFilter(file.Name, true, TimeSpan.FromSeconds(1), filter))
+                    {
+                        Trace($"Deleting '{file.FullName}'");
+                        file.Delete();
+                        return true;
+                    }
+                    else
+                    {
+                        Trace($"'{file.Name}' does not match '{filter}'");
+                        return false;
+                    }
                 }
-                else
+                catch (RegexMatchTimeoutException ex) 
                 {
-                    Trace($"'{file.Name}' does not match '{filter}'");
-                    return false;
+                    Trace($"Filter '{filter}' takes too long to match against '{file.Name}' - abandoning the clean up");
+                    throw new OperationCanceledException($"Filter '{filter}' exceeded the match time budget", ex);
                 }
             }
             else 

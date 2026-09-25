@@ -35,9 +35,18 @@ namespace Xarial.XToolkit.Licensing
 
             try
             {
+                var readerSettings = new XmlReaderSettings
+                {
+                    DtdProcessing = DtdProcessing.Prohibit,
+                    XmlResolver = null
+                };
+
                 using (var stream = new MemoryStream(license))
                 {
-                    xmlDoc.Load(stream);
+                    using (var reader = XmlReader.Create(stream, readerSettings))
+                    {
+                        xmlDoc.Load(reader);
+                    }
                 }
             }
             catch (Exception ex)
@@ -63,6 +72,16 @@ namespace Xarial.XToolkit.Licensing
             catch (CryptographicException ex)
             {
                 throw new LicenseFileMalformedException(ex);
+            }
+
+            if (signedXml.SignedInfo.References.Count != 1)
+            {
+                throw new LicenseFileMalformedException(new XmlException("License signature must contain exactly one reference"));
+            }
+
+            if (((Reference)signedXml.SignedInfo.References[0]).Uri != "")
+            {
+                throw new LicenseFileMalformedException(new XmlException("License signature must cover the entire document"));
             }
 
             if (!signedXml.CheckSignature(publicKey))

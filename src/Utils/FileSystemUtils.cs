@@ -93,7 +93,7 @@ namespace Xarial.XToolkit
         {
             bool IsSameOrInDirectory(string thisDir, string parentDir)
                 => NormalizeDirectoryPath(thisDir).StartsWith(NormalizeDirectoryPath(parentDir),
-                    StringComparison.CurrentCultureIgnoreCase);
+                    StringComparison.OrdinalIgnoreCase);
 
             var result = new List<string>();
 
@@ -192,7 +192,7 @@ namespace Xarial.XToolkit
             }
             else 
             {
-                throw new Exception($"'{relativeToDir}' is not in the '{thisPath}' directory");
+                throw new Exception($"'{thisPath}' is not in the '{relativeToDir}' directory");
             }
         }
 

@@ -138,11 +138,16 @@ namespace Xarial.XToolkit.Services.Expressions
         {
         }
 
+        /// <summary>
+        /// Maximum nesting depth of variables and arguments within an expression
+        /// </summary>
+        private const int MAX_NESTING_DEPTH = 32;
+
         /// <exception cref="InvalidExpressionException"/>
         public virtual IExpressionToken Parse(string expression)
         {
             var startPos = 0;
-            return GroupElements(ParseTokens(expression, ref startPos, false));
+            return GroupElements(ParseTokens(expression, ref startPos, false, 0));
         }
 
         /// <summary>
@@ -223,8 +228,13 @@ namespace Xarial.XToolkit.Services.Expressions
             }
         }
 
-        private IReadOnlyList<IExpressionToken> ParseTokens(string expression, ref int position, bool isArgumentParsing) 
+        private IReadOnlyList<IExpressionToken> ParseTokens(string expression, ref int position, bool isArgumentParsing, int depth) 
         {
+            if (depth > MAX_NESTING_DEPTH)
+            {
+                throw new InvalidExpressionException($"Expression exceeds the maximum nesting depth of {MAX_NESTING_DEPTH}");
+            }
+
             var tokens = new List<IExpressionToken>();
 
             var state = new ParsingState();
@@ -288,7 +298,7 @@ namespace Xarial.XToolkit.Services.Expressions
 
                             position++;
 
-                            state.VariableNestedTokens.Add(GroupElements(ParseTokens(expression, ref position, true)));
+                            state.VariableNestedTokens.Add(GroupElements(ParseTokens(expression, ref position, true, depth + 1)));
                         }
                         else
                         {

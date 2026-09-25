@@ -33,15 +33,21 @@ namespace Xarial.XToolkit
         ///</returns>
         public static int CompareLogical(string firstText, string secondText) => StrCmpLogicalW(firstText, secondText);
 
+        /// <inheritdoc/>
+        public static bool MatchesAnyFilter(string text, bool ignoreCase, params string[] filters)
+            => MatchesAnyFilter(text, ignoreCase, default(TimeSpan?), filters);
+
         /// <summary>
         /// Checks if the specified text matches any of the provided filters
         /// </summary>
         /// <param name="text">Text to match</param>
         /// <param name="ignoreCase">Ignore the case</param>
         /// <param name="filters">Filters</param>
+        /// <param name="timeout">Timeout or null if no timeout</param>
         /// <returns>True if any of the fitler match the text</returns>
         /// <remarks>This method supports wildcards *. If no filters specified this method returns true</remarks>
-        public static bool MatchesAnyFilter(string text, bool ignoreCase, params string[] filters)
+        /// <exception cref="RegexMatchTimeoutException">Matching exceeded <paramref name="timeout"/></exception>
+        public static bool MatchesAnyFilter(string text, bool ignoreCase, TimeSpan? timeout, params string[] filters)
         {
             if (filters?.Any() != true)
             {
@@ -55,7 +61,7 @@ namespace Xarial.XToolkit
 
                 return filters.Any(f =>
                 {
-                    if (string.IsNullOrEmpty(text) && f == ANY_FILTER) 
+                    if (string.IsNullOrEmpty(text) && f == ANY_FILTER)
                     {
                         return false;
                     }
@@ -64,7 +70,14 @@ namespace Xarial.XToolkit
                         + Regex.Escape(f).Replace($"\\{ANY_FILTER}", ".*").Replace("\\?", ".")
                         + (f.EndsWith(ANY_FILTER) ? "" : "$");
 
-                    return Regex.IsMatch(text, regex, regexOpts);
+                    if (timeout.HasValue)
+                    {
+                        return Regex.IsMatch(text, regex, regexOpts, timeout.Value);
+                    }
+                    else 
+                    {
+                        return Regex.IsMatch(text, regex, regexOpts);
+                    }
                 });
             }
         }
