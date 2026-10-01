@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation.Provider;
 using System.Windows.Interop;
 using System.Windows.Threading;
 
@@ -84,7 +85,12 @@ namespace Xarial.XToolkit.Wpf.Dialogs
         public static IParentWindow FromWindow(Window wnd)
             => new WpfParentWindow(wnd);
 
-        internal static bool IsValidWindow(this IParentWindow parentWnd)
+        /// <summary>
+        /// Checks if the paren twindow is valid
+        /// </summary>
+        /// <param name="parentWnd">Parent window</param>
+        /// <returns>True if window is valid</returns>
+        public static bool IsValidWindow(this IParentWindow parentWnd)
         {
             if (parentWnd != null)
             {
@@ -100,7 +106,14 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             return false;
         }
 
-        internal static TResult InvokeOnWindowThread<TResult>(this IParentWindow parentWndOrNull, Func<TResult> callback)
+        /// <summary>
+        /// Invokes the function on the thread of the parent window
+        /// </summary>
+        /// <typeparam name="TResult">Function result type</typeparam>
+        /// <param name="parentWndOrNull">Parent window or null</param>
+        /// <param name="callback">Function to invoke</param>
+        /// <returns>Function result</returns>
+        public static TResult InvokeOnWindowThread<TResult>(this IParentWindow parentWndOrNull, Func<TResult> callback)
         {
             var disp = parentWndOrNull?.Dispatcher;
 
@@ -122,6 +135,32 @@ namespace Xarial.XToolkit.Wpf.Dialogs
             else
             {
                 return callback.Invoke();
+            }
+        }
+
+        /// <summary>
+        /// Sets the parent for the specified WPF claswindow
+        /// </summary>
+        /// <param name="parentWndOrNull">Parent window or null</param>
+        /// <param name="childWnd">Child WPF window</param>
+        public static void SetParent(this IParentWindow parentWndOrNull, Window childWnd) 
+        {
+            try
+            {
+                switch (parentWndOrNull)
+                {
+                    case WpfParentWindow wpfParent when wpfParent.IsValidWindow():
+                        childWnd.Owner = wpfParent.Window;
+                        break;
+
+                    case IParentWindow parent when parent.IsValidWindow():
+                        var interopHelper = new WindowInteropHelper(childWnd);
+                        interopHelper.Owner = parent.Handle;
+                        break;
+                }
+            }
+            catch
+            {
             }
         }
     }
