@@ -8,8 +8,11 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Xarial.XToolkit.Reflection;
+using Xarial.XToolkit.Services.Data.Attributes;
 using Xarial.XToolkit.Services.Data.Converters;
 
 namespace Xarial.XToolkit.Services.Data
@@ -19,6 +22,47 @@ namespace Xarial.XToolkit.Services.Data
     /// </summary>
     public class NsJsonDataSerializerContractResolver : DefaultContractResolver
     {
+        internal static bool TryGetDataCollection(Type objectType, out ExpandCollectionAttribute att, out Type itemsType)
+        {
+            itemsType = null;
+
+            if (objectType.TryGetAttribute(out att, true))
+            {
+                var dictType = objectType.GetInterfaces()
+                    .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IDictionary<,>));
+
+                if (dictType != null)
+                {
+                    var genArgs = dictType.GetGenericArguments();
+
+                    itemsType = typeof(Dictionary<,>).MakeGenericType(genArgs[0], genArgs[1]);
+
+                    return true;
+                }
+                else
+                {
+                    var listType = objectType.GetInterfaces()
+                        .FirstOrDefault(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IList<>));
+
+                    if (listType != null)
+                    {
+                        itemsType = typeof(List<>).MakeGenericType(listType.GetGenericArguments()[0]);
+
+                        return true;
+                    }
+                    else
+                    {
+                        throw new JsonSerializationException(
+                            $"'{objectType.FullName}' is marked with '{nameof(ExpandCollectionAttribute)}' but implements neither '{typeof(IDictionary<,>).Name}' nor '{typeof(IList<>).Name}'");
+                    }
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         private class VersionValueProvider : IValueProvider
         {
             private Type m_PrpType;
@@ -87,6 +131,58 @@ namespace Xarial.XToolkit.Services.Data
             public void SetValue(object target, object value) => throw new NotImplementedException();
         }
 
+        private class CollectionItemsValueProvider : IValueProvider
+        {
+            private readonly Type m_ItemsType;
+
+            internal CollectionItemsValueProvider(Type itemsType)
+            {
+                m_ItemsType = itemsType;
+            }
+
+            public object GetValue(object target)
+            {
+                if (target != null)
+                {
+                    var items = Activator.CreateInstance(m_ItemsType);
+
+                    Copy(target, items);
+
+                    return items;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            public void SetValue(object target, object value)
+            {
+                if (target != null && value != null && !ReferenceEquals(target, value))
+                {
+                    Copy(value, target);
+                }
+            }
+
+            private void Copy(object source, object dest)
+            {
+                if (dest is IDictionary)
+                {
+                    foreach (DictionaryEntry entry in (IDictionary)source)
+                    {
+                        ((IDictionary)dest)[entry.Key] = entry.Value;
+                    }
+                }
+                else
+                {
+                    foreach (var item in (IEnumerable)source)
+                    {
+                        ((IList)dest).Add(item);
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Special value
         /// </summary>
@@ -144,11 +240,45 @@ namespace Xarial.XToolkit.Services.Data
         }
 
         /// <inheritdoc/>
+        protected override JsonContract CreateContract(Type objectType)
+        {
+            if (TryGetDataCollection(objectType, out _, out _))
+            {
+                return CreateObjectContract(objectType);
+            }
+            else
+            {
+                return base.CreateContract(objectType);
+            }
+        }
+
+        /// <inheritdoc/>
         protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization)
         {
             var props = base.CreateProperties(type, memberSerialization);
 
             m_ResolvePrpsFunc?.Invoke(type, props);
+
+            if (TryGetDataCollection(type, out var dataCollAtt, out var itemsType))
+            {
+                var collBaseType = GetCollectionBaseType(type);
+
+                foreach (var collPrp in props.Where(p => IsCollectionMember(p, collBaseType)).ToArray())
+                {
+                    props.Remove(collPrp);
+                }
+
+                props.Add(new JsonProperty()
+                {
+                    PropertyName = dataCollAtt.ItemsNodeName,
+                    PropertyType = itemsType,
+                    DeclaringType = type,
+                    ValueProvider = new CollectionItemsValueProvider(itemsType),
+                    ObjectCreationHandling = ObjectCreationHandling.Replace,
+                    Readable = true,
+                    Writable = true
+                });
+            }
 
             var versPrp = new JsonProperty
             {
@@ -181,5 +311,28 @@ namespace Xarial.XToolkit.Services.Data
 
             return props;
         }
+
+        private Type GetCollectionBaseType(Type objectType)
+        {
+            Type collBaseType = null;
+
+            for (var baseType = objectType; baseType != null && baseType != typeof(object); baseType = baseType.BaseType)
+            {
+                if (IsCollectionType(baseType))
+                {
+                    collBaseType = baseType;
+                }
+            }
+
+            return collBaseType;
+        }
+
+        private bool IsCollectionType(Type objectType)
+            => objectType.GetInterfaces().Any(t => t.IsGenericType
+                && (t.GetGenericTypeDefinition() == typeof(IDictionary<,>)
+                    || t.GetGenericTypeDefinition() == typeof(IList<>)));
+
+        private bool IsCollectionMember(JsonProperty prp, Type collBaseType)
+            => prp.DeclaringType == null || prp.DeclaringType.IsAssignableFrom(collBaseType);
     }
 }

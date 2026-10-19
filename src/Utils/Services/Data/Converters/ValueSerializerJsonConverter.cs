@@ -14,11 +14,11 @@ using System.Text;
 
 namespace Xarial.XToolkit.Services.Data.Converters
 {
-    internal class CustomSerializerJsonConverter : JsonConverter
+    internal class ValueSerializerJsonConverter : JsonConverter
     {
         private readonly IValueSerializer m_Serializer;
 
-        internal CustomSerializerJsonConverter(IValueSerializer serializer) 
+        internal ValueSerializerJsonConverter(IValueSerializer serializer) 
         {
             m_Serializer = serializer;
         }
@@ -30,11 +30,11 @@ namespace Xarial.XToolkit.Services.Data.Converters
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
-            string value;
+            object value;
 
             if (IsValue(reader.TokenType))
             {
-                value = reader.Value?.ToString();
+                value = reader.Value;
             }
             else
             {

@@ -459,6 +459,8 @@ namespace Xarial.XToolkit.Wpf.Controls
 
 			AutoGenerateColumns = false;
 
+			var oldColumns = Columns.ToArray();
+
 			var columns = new List<DataGridColumn>();
 
 			Columns.Clear();
@@ -473,25 +475,30 @@ namespace Xarial.XToolkit.Wpf.Controls
 
 			if (columnSrc != null)
 			{
-				foreach (var colSrc in columnSrc)
+                foreach (var colSrc in columnSrc)
 				{
-					var col = new DataGridColumnEx()
-					{
-						Header = colSrc
-					};
+					var col = oldColumns.OfType<DataGridColumnEx>().FirstOrDefault(c => object.Equals(c.Header, colSrc));
 
-					SetBinding(col, nameof(CellTemplate), DataGridColumnEx.CellTemplateProperty);
-					SetBinding(col, nameof(CellEditingTemplate), DataGridColumnEx.CellEditingTemplateProperty);
-					SetBinding(col, nameof(CellContentSelector), DataGridColumnEx.CellContentSelectorProperty);
-					SetBinding(col, nameof(ColumnHeaderTemplate), DataGridColumn.HeaderTemplateProperty);
-					SetBinding(col, nameof(ColumnHeaderTemplateSelector), DataGridColumn.HeaderTemplateSelectorProperty);
-					SetBinding(col, nameof(CellTemplateSelector), DataGridColumnEx.CellTemplateSelectorProperty);
-					SetBinding(col, nameof(CellEditingTemplateSelector), DataGridColumnEx.CellEditingTemplateSelectorProperty);
-
-					if (ColumnVisibilityBinding != null)
+					if (col == null)
 					{
-						BindingOperations.SetBinding(col, DataGridColumnEx.VisibilityProperty, ColumnVisibilityBinding);
-					}
+						col = new DataGridColumnEx()
+						{
+							Header = colSrc
+						};
+
+                        SetBinding(col, nameof(CellTemplate), DataGridColumnEx.CellTemplateProperty);
+                        SetBinding(col, nameof(CellEditingTemplate), DataGridColumnEx.CellEditingTemplateProperty);
+                        SetBinding(col, nameof(CellContentSelector), DataGridColumnEx.CellContentSelectorProperty);
+                        SetBinding(col, nameof(ColumnHeaderTemplate), DataGridColumn.HeaderTemplateProperty);
+                        SetBinding(col, nameof(ColumnHeaderTemplateSelector), DataGridColumn.HeaderTemplateSelectorProperty);
+                        SetBinding(col, nameof(CellTemplateSelector), DataGridColumnEx.CellTemplateSelectorProperty);
+                        SetBinding(col, nameof(CellEditingTemplateSelector), DataGridColumnEx.CellEditingTemplateSelectorProperty);
+
+                        if (ColumnVisibilityBinding != null)
+                        {
+                            BindingOperations.SetBinding(col, DataGridColumnEx.VisibilityProperty, ColumnVisibilityBinding);
+                        }
+                    }
 
 					columns.Add(col);
 				}

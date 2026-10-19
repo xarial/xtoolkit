@@ -24,35 +24,36 @@ namespace Xarial.XToolkit.Services.Data
         /// <summary>
         /// Serialize value
         /// </summary>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        string SerializeValue(object val);
+        /// <param name="val">Data</param>
+        /// <returns>JSON-value</returns>
+        object SerializeValue(object val);
 
         /// <summary>
         /// Deserialize value
         /// </summary>
         /// <param name="val"></param>
-        /// <returns></returns>
-        object DeserializeValue(string val);
+        /// <returns>Deserialized value</returns>
+        object DeserializeValue(object val);
     }
 
     /// <summary>
     /// Base type safe <see cref="IValueSerializer"/>
     /// </summary>
-    /// <typeparam name="TType"></typeparam>
-    public class BaseValueSerializer<TType> : IValueSerializer
+    /// <typeparam name="TFrom">Specific object type</typeparam>
+    /// <typeparam name="TTo">Specific serialization value type</typeparam>
+    public class ValueSerializer<TFrom, TTo> : IValueSerializer
     {
-        Type IValueSerializer.Type => typeof(TType);
-        object IValueSerializer.DeserializeValue(string val) => DeserializeValue(val);
-        string IValueSerializer.SerializeValue(object val) => SerializeValue((TType)val);
+        Type IValueSerializer.Type => typeof(TFrom);
+        object IValueSerializer.DeserializeValue(object val) => DeserializeValue((TTo)val);
+        object IValueSerializer.SerializeValue(object val) => SerializeValue((TFrom)val);
 
-        private readonly Func<TType, string> m_Serializer;
-        private readonly Func<string, TType> m_Deserializer;
+        private readonly Func<TFrom, TTo> m_Serializer;
+        private readonly Func<TTo, TFrom> m_Deserializer;
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public BaseValueSerializer() 
+        public ValueSerializer() 
         {
         }
 
@@ -61,14 +62,14 @@ namespace Xarial.XToolkit.Services.Data
         /// </summary>
         /// <param name="serializer">Serializer function</param>
         /// <param name="deserializer">Deserializer function</param>
-        public BaseValueSerializer(Func<TType, string> serializer, Func<string, TType> deserializer)
+        public ValueSerializer(Func<TFrom, TTo> serializer, Func<TTo, TFrom> deserializer)
         {
             m_Serializer = serializer;
             m_Deserializer = deserializer;
         }
 
         /// <inheritdoc/>
-        protected virtual TType DeserializeValue(string val) 
+        protected virtual TFrom DeserializeValue(TTo val) 
         {
             if (m_Deserializer != null)
             {
@@ -81,7 +82,7 @@ namespace Xarial.XToolkit.Services.Data
         }
 
         /// <inheritdoc/>
-        protected virtual string SerializeValue(TType val)
+        protected virtual TTo SerializeValue(TFrom val)
         {
             if (m_Serializer != null)
             {

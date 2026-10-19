@@ -9,6 +9,7 @@ using CoreTests;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -484,9 +485,9 @@ namespace Utils.Tests
         {
             public Type Type => typeof(SettsMock11SubObject1);
 
-            public object DeserializeValue(string val)
+            public object DeserializeValue(object val)
             {
-                var jObj = JObject.Parse(val);
+                var jObj = JObject.Parse(val?.ToString());
 
                 return new SettsMock11SubObject1()
                 {
@@ -494,7 +495,7 @@ namespace Utils.Tests
                 };
             }
 
-            public string SerializeValue(object val)
+            public object SerializeValue(object val)
             {
                 throw new NotImplementedException();
             }
@@ -536,6 +537,45 @@ namespace Utils.Tests
         {
             public SettsMock11SubObject1 Field1 { get; set; }
             public SettsMock11SubObject2 Field2 { get; set; }
+        }
+
+        public class SettsMock11
+        {
+            public ValueMock1 Number { get; set; }
+        }
+
+        public class ValueMock1
+        {
+            public string Value { get; set; }
+        }
+
+        public class ValueMock1Serializer : IValueSerializer
+        {
+            public Type Type => typeof(ValueMock1);
+
+            public object DeserializeValue(object val)
+            {
+                if (val is long integer)
+                {
+                    return new ValueMock1() { Value = integer.ToString() };
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
+
+            public object SerializeValue(object val)
+            {
+                if (val is ValueMock1 valMock)
+                {
+                    return int.Parse(valMock.Value);
+                }
+                else
+                {
+                    throw new Exception();
+                }
+            }
         }
 
         private class SettsMock11DataSerializer : NsJsonDataSerializer<SettsMock11Object> 
@@ -707,6 +747,58 @@ namespace Utils.Tests
             }
         }
 
+        public interface ITestField
+        {
+            string Name { get; }
+        }
+
+        public class TestField : ITestField
+        {
+            public string Name { get; set; }
+        }
+
+        public class TestAttributeValueSerializer : IValueSerializer
+        {
+            public Type Type => typeof(ITestField);
+
+            public object DeserializeValue(object val)
+                => new TestField() { Name = (string)val };
+
+            public object SerializeValue(object val) => ((ITestField)val).Name;
+        }
+
+        public class TestMapData
+        {
+            public Dictionary<ITestField, string> Attributes { get; set; }
+
+            public Dictionary<string, string> Names { get; set; }
+        }
+
+        private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5>
+        {
+            protected override IVersionsTransformer CreateVersionTransformer(Type objectType, DataVersionAttribute dataVersAtt)
+                => new SettsMock5Transformer("BBB");
+        }
+
+        [ExpandCollection]
+        public class TestMap : Dictionary<string, string>
+        {
+            public string Owner { get; set; }
+        }
+
+        [ExpandCollection]
+        public class TestList : List<string>
+        {
+            public bool IsDefault { get; set; }
+        }
+
+        public class TestData
+        {
+            public TestMap Map { get; set; }
+
+            public TestList Items { get; set; }
+        }
+
         #endregion
 
         [Test]
@@ -824,7 +916,7 @@ namespace Utils.Tests
 
             var res1 = new StringBuilder();
 
-            var ser = new BaseValueSerializer<ObjectType>(x => x.Value, x => new ObjectType() { Value = x });
+            var ser = new ValueSerializer<ObjectType, string>(x => x.Value, x => new ObjectType() { Value = x });
 
             var srv = new NsJsonDataSerializer<SettsMock3>(ser);
 
@@ -833,6 +925,28 @@ namespace Utils.Tests
 
             Assert.AreEqual("{\"Obj\":\"XYZ\"}", res1.ToString());
             Assert.AreEqual("ABC", res2.Obj.Value);
+        }
+
+        [Test]
+        public void CustomConverterNotStringValueTest()
+        {
+            var setts = new SettsMock11()
+            {
+                Number = new ValueMock1()
+                {
+                    Value = "123"
+                }
+            };
+
+            var res1 = new StringBuilder();
+
+            var srv = new NsJsonDataSerializer<SettsMock11>(new ValueMock1Serializer());
+
+            srv.Save(setts, new StringWriter(res1));
+            var res2 = srv.Read(new StringReader("{\"Number\":456}"));
+
+            Assert.AreEqual("{\"Number\":123}", res1.ToString());
+            Assert.AreEqual("456", res2.Number.Value);
         }
 
         [Test]
@@ -848,7 +962,7 @@ namespace Utils.Tests
 
             var res1 = new StringBuilder();
 
-            var ser = new BaseValueSerializer<IObjectType>(x => x.Value, x => new ObjectType2() { Value = x });
+            var ser = new ValueSerializer<IObjectType, string>(x => x.Value, x => new ObjectType2() { Value = x });
 
             var srv = new NsJsonDataSerializer<SettsMock4>(ser);
 
@@ -869,7 +983,7 @@ namespace Utils.Tests
 
             var res1 = new StringBuilder();
 
-            var ser = new BaseValueSerializer<string>(x => "ABC", x => "XYZ");
+            var ser = new ValueSerializer<string, string>(x => "ABC", x => "XYZ");
 
             var srv = new NsJsonDataSerializer<SettsMock2>(ser);
 
@@ -988,12 +1102,6 @@ namespace Utils.Tests
             var res2 = srv2.Read(new StringReader(d2));
 
             CollectionAssert.AreEqual(new string[] { "A", "B", "C" }, res2.Data);
-        }
-
-        private class UserSettingsServiceTransformHandler : NsJsonDataSerializer<SettsMock5>
-        {
-            protected override IVersionsTransformer CreateVersionTransformer(Type objectType, DataVersionAttribute dataVersAtt)
-                => new SettsMock5Transformer("BBB");
         }
 
         [Test]
@@ -1191,6 +1299,122 @@ namespace Utils.Tests
             Assert.IsInstanceOf<SettsMock13SubClass2>(r2.Array[1]);
             Assert.AreEqual("E", r2.Array[1].Value);
             Assert.AreEqual("F", ((SettsMock13SubClass2)r2.Array[1]).Text);
+        }
+
+        [Test]
+        public void SerializeDictionaryKeyTest()
+        {
+            var attributes = (JObject)JObject.Parse(Save(CreateTestMapData(), new TestAttributeValueSerializer()))["Attributes"];
+
+            Assert.That(attributes.Properties().Select(p => p.Name),
+                Is.EquivalentTo(new string[] { "MyProperty1", "MyProperty2" }));
+
+            Assert.That(attributes["MyProperty1"].Value<string>(), Is.EqualTo("{Qty}"));
+        }
+
+        [Test]
+        public void DeserializeDictionaryKeyTest()
+        {
+            var data = Read<TestMapData>(Save(CreateTestMapData(), new TestAttributeValueSerializer()), new TestAttributeValueSerializer());
+
+            Assert.That(data.Attributes.Keys.Select(k => k.Name),
+                Is.EquivalentTo(new string[] { "MyProperty1", "MyProperty2" }));
+
+            Assert.That(data.Attributes.First(e => e.Key.Name == "MyProperty1").Value, Is.EqualTo("{Qty}"));
+        }
+
+        [Test]
+        public void SerializeStringKeyDictionaryUnchangedTest()
+        {
+            var json = JObject.Parse(Save(CreateTestMapData(), new TestAttributeValueSerializer()));
+
+            Assert.That(json["Names"]["Key1"].Value<string>(), Is.EqualTo("Value1"));
+        }
+
+        [Test]
+        public void SerializeDataDictionaryTest()
+        {
+            var jMap = (JObject)JObject.Parse(Save(CreateTestData()))["Map"];
+
+            Assert.That(jMap["Owner"].Value<string>(), Is.EqualTo("Fred"));
+            Assert.That(((JObject)jMap["$items"])["Key1"].Value<string>(),
+                Is.EqualTo("Value1"));
+
+            Assert.That(jMap.Property("Count"), Is.Null);
+            Assert.That(jMap.Property("Keys"), Is.Null);
+            Assert.That(jMap.Property("Comparer"), Is.Null);
+        }
+
+        [Test]
+        public void SerializeDataListTest()
+        {
+            var jList = (JObject)JObject.Parse(Save(CreateTestData()))["Items"];
+
+            Assert.That(jList["IsDefault"].Value<bool>(), Is.True);
+            Assert.That(jList["$items"].Values<string>(),
+                Is.EqualTo(new string[] { "Item1", "Item2" }));
+
+            Assert.That(jList.Property("Capacity"), Is.Null);
+            Assert.That(jList.Property("Count"), Is.Null);
+        }
+
+        [Test]
+        public void DeserializeDataCollectionTest()
+        {
+            var data = Read<TestData>(Save(CreateTestData()));
+
+            Assert.That(data.Map.Owner, Is.EqualTo("Fred"));
+            Assert.That(data.Map.Count, Is.EqualTo(2));
+            Assert.That(data.Map["Key2"], Is.EqualTo("Value2"));
+
+            Assert.That(data.Items.IsDefault, Is.True);
+            Assert.That(data.Items, Is.EqualTo(new string[] { "Item1", "Item2" }));
+        }
+
+        private static TestMapData CreateTestMapData()
+            => new TestMapData()
+            {
+                Names = new Dictionary<string, string>() { { "Key1", "Value1" } },
+                Attributes = new Dictionary<ITestField, string>()
+                {
+                    { new TestField() { Name = "MyProperty1" }, "{Qty}" },
+                    { new TestField() { Name = "MyProperty2" }, "{Mass}" }
+                }
+            };
+
+        private static TestData CreateTestData()
+        {
+            var map = new TestMap() { Owner = "Fred" };
+            map.Add("Key1", "Value1");
+            map.Add("Key2", "Value2");
+
+            var list = new TestList() { IsDefault = true };
+            list.Add("Item1");
+            list.Add("Item2");
+
+            return new TestData() { Map = map, Items = list };
+        }
+
+        private static string Save<T>(T data, params IValueSerializer[] serializers)
+        {
+            var serializer = new NsJsonDataSerializer<T>(serializers);
+
+            using (var writer = new StringWriter())
+            {
+                serializer.Save(data, writer);
+
+                return writer.ToString();
+            }
+        }
+
+        private static T Read<T>(string json, params IValueSerializer[] serializers)
+        {
+            var serializer = new NsJsonDataSerializer<T>(serializers);
+
+            using (var reader = new StringReader(json))
+            {
+                return serializer.Read(reader);
+            }
         }
     }
 }

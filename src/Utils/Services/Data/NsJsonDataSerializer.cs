@@ -181,12 +181,16 @@ namespace Xarial.XToolkit.Services.Data
             
             jsonSer.Converters.Add(new NsJsonDataSerializerJsonConverter(m_KnownKindMgr, TryGetVersionTransformInfo, SupportsVersioning, CreateInstance));
 
-            if (serializers != null)
+            if (serializers?.Any() == true)
             {
                 foreach (var ser in serializers)
                 {
-                    jsonSer.Converters.Add(new CustomSerializerJsonConverter(ser));
+                    jsonSer.Converters.Add(new ValueSerializerJsonConverter(ser));
                 }
+
+                jsonSer.Converters.Add(new ValueSerializerDictionaryJsonConverter(
+                    keyType => jsonSer.Converters.FirstOrDefault(
+                        c => c is ValueSerializerJsonConverter && c.CanConvert(keyType))));
             }
 
             jsonSer.ContractResolver = new NsJsonDataSerializerContractResolver(m_KnownKindMgr, m_VersionTransformsMgr, ResolveProperties);
