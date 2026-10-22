@@ -299,7 +299,14 @@
             </TabItem>
             <TabItem Header="ExpandToggleButton">
                 <Grid DataContext="{Binding Path=ExpandToggleButton}">
-                    <ctrls:ExpandToggleButton IsChecked="{Binding Path=IsExpanded}"/>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0" Background="Yellow" Width="10" Height="10"/>
+                    <ctrls:ExpandToggleButton IsChecked="{Binding Path=IsExpanded}" Grid.Column="1"/>
+                    <Border Grid.Column="2" Background="Yellow" Width="10" Height="10"/>
                 </Grid>
             </TabItem>
             <TabItem Header="PopupMenu">

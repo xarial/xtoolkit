@@ -50,5 +50,52 @@ namespace Utils.Tests
             Assert.IsTrue(r13);
             Assert.IsTrue(r14);
         }
+
+        [TestCase("Part1.SLDPRT", "*.sldprt", true)]
+        [TestCase("Part1.SLDPRT", "Part?.SLDPRT", true)]
+        [TestCase("Part12.SLDPRT", "Part?.SLDPRT", false)]
+        [TestCase("Assm.SLDASM", "*.SLDPRT", false)]
+        [TestCase("abc", "a*b*c", true)]
+        [TestCase("ac", "a*b*c", false)]
+        [TestCase("abc", "*", true)]
+        public void LikeWildcardsTest(string text, string pattern, bool expected)
+        {
+            Assert.AreEqual(expected, TextUtils.Like(text, pattern));
+        }
+
+        [TestCase("PRT-00123", "PRT-#####", true)]
+        [TestCase("PRT-0012A", "PRT-#####", false)]
+        [TestCase("PRT-123", "PRT-#####", false)]
+        [TestCase("Rev3", "Rev#*", true)]
+        [TestCase("a#b", "a#b", false)]
+        public void LikeDigitTest(string text, string pattern, bool expected)
+        {
+            Assert.AreEqual(expected, TextUtils.Like(text, pattern));
+        }
+
+        [Test]
+        public void LikeCaseAndEmptyTest()
+        {
+            Assert.IsTrue(TextUtils.Like("PART1", "part1", LikeOptions_e.IgnoreCase));
+            Assert.IsFalse(TextUtils.Like("PART1", "part1", LikeOptions_e.None));
+            Assert.IsTrue(TextUtils.Like("PART1", "PART1", LikeOptions_e.None));
+            Assert.IsFalse(TextUtils.Like("", "*", LikeOptions_e.IgnoreCase));
+            Assert.IsFalse(TextUtils.Like("abc", "", LikeOptions_e.IgnoreCase));
+            Assert.IsFalse(TextUtils.Like(null, "*", LikeOptions_e.IgnoreCase));
+        }
+
+        [TestCase("xyz#", "*#", false)]
+        [TestCase("xyz#", "*[#]", true)]
+        [TestCase("xyz1", "*[#]", false)]
+        [TestCase("50%*", "##%[*]", true)]
+        [TestCase("50%x", "##%[*]", false)]
+        [TestCase("Why?", "*[?]", true)]
+        [TestCase("Why", "*[?]", false)]
+        [TestCase("[a]", "[[]a]", true)]
+        [TestCase("[ab]", "[ab]", true)]
+        public void LikeLiteralTest(string text, string pattern, bool expected)
+        {
+            Assert.AreEqual(expected, TextUtils.Like(text, pattern));
+        }
     }
 }

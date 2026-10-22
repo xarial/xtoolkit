@@ -7,17 +7,16 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ToggleButton}">
-                    <Grid Width="15" Height="13" Background="Transparent">
+                    <Grid Width="8" Height="8" Background="Transparent">
                         <Path x:Name="ExpandPath"
-                              HorizontalAlignment="Left" 
-                              VerticalAlignment="Center" 
-                              Margin="1"
-                              Fill="{TemplateBinding Background}"
-                              Data="M 4 0 L 8 4 L 4 8 Z"/>
+                          HorizontalAlignment="Left"
+                          VerticalAlignment="Top"
+                          Fill="{TemplateBinding Background}"
+                          Data="M 0 0 L 4 4 L 0 8 Z"/>
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
-                            <Setter Property="Data" TargetName="ExpandPath" Value="M 0 4 L 8 4 L 4 8 Z"/>
+                            <Setter Property="Data" TargetName="ExpandPath" Value="M 0 2 L 8 2 L 4 6 Z"/>
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter Property="Background" Value="Gray" />

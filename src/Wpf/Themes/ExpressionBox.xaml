@@ -124,7 +124,7 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <local:PopupMenu x:Name="PART_PopupEditor" Grid.Column="2" Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
+                                <local:PopupMenu x:Name="PART_PopupEditor" Grid.Column="2" Margin="2" Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
@@ -326,7 +326,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
                                 <ContentPresenter Content="{Binding}" ContentTemplate="{Binding Path=VariableLinksBoxDecorationTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"/>
-                                <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1"
+                                <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1" Margin="2"
                                                  Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"
                                                  Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
                                     <ContentControl ContentTemplate="{TemplateBinding VariableLinksMenuTemplate}"/>

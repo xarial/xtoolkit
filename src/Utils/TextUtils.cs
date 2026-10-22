@@ -15,6 +15,38 @@ using System.Text.RegularExpressions;
 namespace Xarial.XToolkit
 {
     /// <summary>
+    /// Options of the <see cref="TextUtils.Like(string, string, LikeOptions_e)"/>
+    /// </summary>
+    [Flags]
+    public enum LikeOptions_e
+    {
+        /// <summary>
+        /// Case sensitive, only <c>*</c> and <c>?</c> are special symbols
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Compare characters case insensitively
+        /// </summary>
+        IgnoreCase = 1,
+
+        /// <summary>
+        /// <c>#</c> matches any single digit (0-9)
+        /// </summary>
+        DigitWildcard = 2,
+
+        /// <summary>
+        /// <c>[x]</c> matches the literal character x, e.g. <c>[#]</c>, <c>[*]</c>, <c>[?]</c>, <c>[[]</c>
+        /// </summary>
+        LiteralEscape = 4,
+
+        /// <summary>
+        /// Case insensitive with all special symbols
+        /// </summary>
+        Default = IgnoreCase | DigitWildcard | LiteralEscape
+    }
+
+    /// <summary>
     /// Provides utilities working with text
     /// </summary>
     public static class TextUtils
@@ -85,5 +117,96 @@ namespace Xarial.XToolkit
         /// <inheritdoc/>
         public static bool MatchesAnyFilter(string text, params string[] filters)
             => MatchesAnyFilter(text, true, filters);
+
+        /// <summary>
+        /// Checks if the text matches the pattern
+        /// </summary>
+        /// <param name="text">Text to match</param>
+        /// <param name="pattern">Pattern to match against</param>
+        /// <param name="options">Matching options</param>
+        /// <returns>True if the text matches the pattern</returns>
+        public static bool Like(string text, string pattern, LikeOptions_e options = LikeOptions_e.Default)
+        {
+            if (!string.IsNullOrEmpty(text) && !string.IsNullOrEmpty(pattern))
+            {
+                var ignoreCase = (options & LikeOptions_e.IgnoreCase) != 0;
+                var digitWildcard = (options & LikeOptions_e.DigitWildcard) != 0;
+                var literalEscape = (options & LikeOptions_e.LiteralEscape) != 0;
+
+                var textIndex = 0;
+                var patternIndex = 0;
+
+                var starPatternIndex = -1;
+                var starTextIndex = -1;
+
+                while (textIndex < text.Length)
+                {
+                    if (patternIndex < pattern.Length && pattern[patternIndex] == '*')
+                    {
+                        starPatternIndex = patternIndex++;
+                        starTextIndex = textIndex;
+                    }
+                    else if (patternIndex < pattern.Length && 
+                        IsTokenMatch(pattern, patternIndex, text[textIndex],
+                        ignoreCase, digitWildcard, literalEscape, out var tokenLength))
+                    {
+                        patternIndex += tokenLength;
+                        textIndex++;
+                    }
+                    else if (starPatternIndex != -1)
+                    {
+                        patternIndex = starPatternIndex + 1;
+                        textIndex = ++starTextIndex;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                while (patternIndex < pattern.Length && pattern[patternIndex] == '*')
+                {
+                    patternIndex++;
+                }
+
+                return patternIndex == pattern.Length;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        private static bool IsTokenMatch(string pattern, int patternIndex, char textChar,
+            bool ignoreCase, bool digitWildcard, bool literalEscape, out int tokenLength)
+        {
+            var patternChar = pattern[patternIndex];
+
+            if (patternChar == '[' && literalEscape
+                && patternIndex + 2 < pattern.Length && pattern[patternIndex + 2] == ']')
+            {
+                tokenLength = 3;
+                return CharsEqual(pattern[patternIndex + 1], textChar, ignoreCase);
+            }
+            else
+            {
+                tokenLength = 1;
+
+                switch (patternChar)
+                {
+                    case '?':
+                        return true;
+
+                    case '#' when digitWildcard:
+                        return textChar >= '0' && textChar <= '9';
+
+                    default:
+                        return CharsEqual(patternChar, textChar, ignoreCase);
+                }
+            }
+        }
+
+        private static bool CharsEqual(char a, char b, bool ignoreCase)
+            => a == b || (ignoreCase && char.ToUpperInvariant(a) == char.ToUpperInvariant(b));
     }
 }
