@@ -19,7 +19,6 @@ using Xarial.XToolkit.Reflection;
 using Xarial.XToolkit.Wpf.Extensions;
 using System.Windows.Media;
 using System.Reflection;
-using Xarial.XToolkit.Wpf.Delegates;
 using System.Windows.Input;
 using Xarial.XToolkit.Wpf.Themes;
 

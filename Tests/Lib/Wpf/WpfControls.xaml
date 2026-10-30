@@ -102,7 +102,7 @@
                             </DataTemplate>
                         </ctrls:DataGridEx.CellEditingTemplate>
                     </ctrls:DataGridEx>
-                    <ctrls:DataGridEx ItemsSource="{Binding Path=Rows}"
+                    <ctrls:DataGridEx ItemsSource="{Binding Path=Rows}" CanUserReorderRows="True"
                                  ColumnsSource="{Binding Path=ColumnsSource}">
                         <ctrls:DataGridEx.ColumnHeaderTemplateSelector>
                             <local:MyColumnTemplateSelector>
@@ -198,7 +198,7 @@
                             </local:MyCellEditingTemplateSelector>
                         </ctrls:DataGridEx.CellEditingTemplateSelector>
                     </ctrls:DataGridEx>
-                    <ctrls:DataGridEx ItemsSource="{Binding Path=Items}" EnableColumnVirtualization="False" EnableRowVirtualization="False" AutoCommitRow="True">
+                    <ctrls:DataGridEx ItemsSource="{Binding Path=Items}" CanUserReorderRows="True" EnableColumnVirtualization="False" EnableRowVirtualization="False" AutoCommitRow="True">
                         <ctrls:DataGridEx.Columns>
                             <DataGridTextColumn Header="Name" Binding="{Binding Path=Name, UpdateSourceTrigger=PropertyChanged}"/>
                             <DataGridTextColumn Header="Value" Binding="{Binding Path=Value, UpdateSourceTrigger=PropertyChanged}"/>
@@ -311,9 +311,24 @@
             </TabItem>
             <TabItem Header="PopupMenu">
                 <Grid DataContext="{Binding Path=PopupMenu}" VerticalAlignment="Top" HorizontalAlignment="Left">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
                     <ctrls:PopupMenu>
                         <Grid>
                             <TextBlock Text="{Binding Path=Text}" Margin="10"/>
+                        </Grid>
+                    </ctrls:PopupMenu>
+                    <ctrls:PopupMenu Grid.Row="1" IsResizable="True">
+                        <Grid Background="Yellow" MinWidth="300" MinHeight="300">
+                            <TextBlock Text="{Binding Path=Text}" VerticalAlignment="Center" HorizontalAlignment="Center" Margin="10"/>
+                        </Grid>
+                    </ctrls:PopupMenu>
+                    <ctrls:PopupMenu Grid.Row="2" IsResizable="True" IsMovable="True">
+                        <Grid Background="Blue" MinWidth="300" MinHeight="300">
+                            <TextBlock Text="{Binding Path=Text}" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" Margin="10"/>
                         </Grid>
                     </ctrls:PopupMenu>
                 </Grid>

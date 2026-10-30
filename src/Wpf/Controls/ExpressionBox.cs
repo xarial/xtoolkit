@@ -1071,7 +1071,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         /// <param name="link"></param>
         protected virtual void InsertVariableLink(IExpressionVariableLink link)
         {
-            var var = link.Factory.Invoke(this);
+            var var = link.CreateExpression(this);
             
             if (var != null)
             {

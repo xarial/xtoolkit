@@ -8,11 +8,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using Xarial.XToolkit.Services;
 using Xarial.XToolkit.Services.Expressions;
-using Xarial.XToolkit.Wpf.Delegates;
-using Xarial.XToolkit.Wpf.Dialogs;
 using Xarial.XToolkit.Wpf.Services;
 
 namespace Xarial.XToolkit.Wpf.Controls
@@ -26,32 +22,35 @@ namespace Xarial.XToolkit.Wpf.Controls
         string Title { get; }
         string Description { get; }
         ImageSource Icon { get; }
-        ExpressionVariableFactoryDelegate Factory { get; }
         bool EnterArguments { get; }
+        IExpressionToken CreateExpression(ExpressionBox sender);
     }
+
+    public delegate IExpressionToken ExpressionVariableFactoryDelegate(ExpressionBox sender);
 
     public class ExpressionVariableLink : IExpressionVariableLink
     {
         public string Title { get; }
         public string Description { get; }
         public ImageSource Icon { get; }
-        public ExpressionVariableFactoryDelegate Factory { get; }
         public bool EnterArguments { get; }
+
+        private readonly ExpressionVariableFactoryDelegate m_Factory;
 
         public ExpressionVariableLink(string title, string description, ImageSource icon, ExpressionVariableFactoryDelegate factory, bool enterArgs) 
         {
             Title = title;
             Description = description;
             Icon = icon;
-            Factory = factory;
+            m_Factory = factory;
             EnterArguments = enterArgs;
         }
+
+        public IExpressionToken CreateExpression(ExpressionBox sender) => m_Factory.Invoke(sender);
     }
 
     public class ExpressionVariableLinkGeneric : IExpressionVariableLink
     {
-        public ExpressionVariableFactoryDelegate Factory { get; }
-
         private readonly UserInputService m_InputBox;
 
         public ExpressionVariableLinkGeneric(string title, string description, bool enterArgs, string inputTitle, string inputPrompt)
@@ -62,8 +61,6 @@ namespace Xarial.XToolkit.Wpf.Controls
             
             InputTitle = inputTitle;
             InputPrompt = inputPrompt;
-
-            Factory = NewVariable;
 
             m_InputBox = new UserInputService(InputTitle);
         }
@@ -80,7 +77,7 @@ namespace Xarial.XToolkit.Wpf.Controls
         public string InputTitle { get; set; }
         public string InputPrompt { get; set; }
 
-        private IExpressionTokenVariable NewVariable(ExpressionBox sender) 
+        public IExpressionToken CreateExpression(ExpressionBox sender) 
         {
             var varName = "";
 
@@ -97,11 +94,6 @@ namespace Xarial.XToolkit.Wpf.Controls
 
     public class NamedExpressionVariableLink  : IExpressionVariableLink
     {
-        public NamedExpressionVariableLink()
-        {
-            Factory = NewVariable;
-        }
-
         public string VariableName { get; set; }
 
         public string Title { get; set; }
@@ -111,7 +103,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 
         public ExpressionVariableFactoryDelegate Factory { get; }
 
-        private IExpressionTokenVariable NewVariable(ExpressionBox sender)
+        public IExpressionToken CreateExpression(ExpressionBox sender)
             => new ExpressionTokenVariable(VariableName, null);
     }
 }
