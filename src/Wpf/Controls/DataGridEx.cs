@@ -9,13 +9,20 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Media3D;
+using Xarial.XToolkit.Wpf.Extensions;
 
 namespace Xarial.XToolkit.Wpf.Controls
 {
@@ -82,6 +89,67 @@ namespace Xarial.XToolkit.Wpf.Controls
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
+
+        private class DragState
+        {
+            internal Point StartPoint { get; set; }
+            internal object Item { get; set; }
+            internal ScrollViewer ScrollViewer { get; set; }
+            internal InsertionAdorner Adorner { get; set; }
+            internal AdornerLayer AdornerLayer { get; set; }
+        }
+
+        private class DragPayload
+        {
+            internal DataGrid Grid { get; }
+            internal object Item { get; }
+
+            internal DragPayload(DataGrid grid, object item)
+            {
+                Grid = grid;
+                Item = item;
+            }
+        }
+
+        private class InsertionAdorner : Adorner
+        {
+            private readonly Pen m_Pen;
+
+            private bool m_IsAfter;
+
+            internal InsertionAdorner(UIElement adornedElement) : base(adornedElement)
+            {
+                IsHitTestVisible = false;
+
+                m_Pen = new Pen(SystemColors.HighlightBrush, 2);
+                m_Pen.Freeze();
+            }
+
+            internal bool IsAfter
+            {
+                get => m_IsAfter;
+                set
+                {
+                    if (m_IsAfter != value)
+                    {
+                        m_IsAfter = value;
+                        InvalidateVisual();
+                    }
+                }
+            }
+
+            protected override void OnRender(DrawingContext drawingContext)
+            {
+                var size = AdornedElement.RenderSize;
+                var y = m_IsAfter ? size.Height : 0;
+
+                drawingContext.DrawLine(m_Pen, new Point(0, y), new Point(size.Width, y));
+            }
+        }
+
+        private const string DRAG_FORMAT = "Xarial.XToolkit.Wpf.Controls.DataGridRowReorderItem";
+
+        private const double AUTO_SCROLL_MARGIN = 20;
 
         /// <summary>
         /// Event is raised when columns are pre-created
@@ -306,6 +374,25 @@ namespace Xarial.XToolkit.Wpf.Controls
 			set { SetValue(AutoCommitRowProperty, value); }
 		}
 
+        /// <summary>
+        /// Gets or sets a value that indicates whether the user can change the rows display order by dragging rows with the mouse
+        /// </summary>
+		public static readonly DependencyProperty CanUserReorderRowsProperty =
+			DependencyProperty.Register(
+			nameof(CanUserReorderRows), typeof(bool),
+			typeof(DataGridEx), new PropertyMetadata(false, OnCanUserReorderRowsChanged));
+
+        /// <summary>
+        /// Gets or sets a value that indicates whether the user can change the rows display order by dragging rows with the mouse
+        /// </summary>
+		public bool CanUserReorderRows
+		{
+			get { return (bool)GetValue(CanUserReorderRowsProperty); }
+			set { SetValue(CanUserReorderRowsProperty, value); }
+		}
+
+		private DragState m_DragState;
+
         private bool m_IsCommitting;
 
         /// <summary>
@@ -315,6 +402,294 @@ namespace Xarial.XToolkit.Wpf.Controls
 		{
 			SetValue(StaticColumnsProperty, new List<DataGridColumn>());
 		}
+
+		private static void OnCanUserReorderRowsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+		{
+			var grid = (DataGridEx)d;
+
+			if ((bool)e.NewValue)
+			{
+				grid.m_DragState = new DragState();
+				grid.AllowDrop = true;
+
+				grid.PreviewMouseLeftButtonDown += OnPreviewMouseLeftButtonDown;
+				grid.PreviewMouseMove += OnPreviewMouseMove;
+				grid.DragOver += OnDragOver;
+				grid.DragLeave += OnDragLeave;
+				grid.Drop += OnDrop;
+			}
+			else
+			{
+				grid.PreviewMouseLeftButtonDown -= OnPreviewMouseLeftButtonDown;
+				grid.PreviewMouseMove -= OnPreviewMouseMove;
+				grid.DragOver -= OnDragOver;
+				grid.DragLeave -= OnDragLeave;
+				grid.Drop -= OnDrop;
+
+				grid.ClearValue(AllowDropProperty);
+				grid.m_DragState = null;
+			}
+		}
+
+        private static void OnPreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var grid = (DataGridEx)sender;
+            var state = grid.m_DragState;
+
+            var row = FindRow(grid, e.OriginalSource as DependencyObject);
+
+            if (row != null && !row.IsEditing && row.Item != CollectionView.NewItemPlaceholder && TryGetReorderableList(grid, out _))
+            {
+                state.StartPoint = e.GetPosition(grid);
+                state.Item = row.Item;
+            }
+            else
+            {
+                state.Item = null;
+            }
+        }
+
+        private static void OnPreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            var grid = (DataGridEx)sender;
+            var state = grid.m_DragState;
+
+            if (e.LeftButton == MouseButtonState.Pressed && state.Item != null)
+            {
+                var offset = e.GetPosition(grid) - state.StartPoint;
+
+                if (Math.Abs(offset.X) > SystemParameters.MinimumHorizontalDragDistance
+                    || Math.Abs(offset.Y) > SystemParameters.MinimumVerticalDragDistance)
+                {
+                    var item = state.Item;
+                    state.Item = null;
+
+                    try
+                    {
+                        DragDrop.DoDragDrop(grid, new DataObject(DRAG_FORMAT, new DragPayload(grid, item)), DragDropEffects.Move);
+                    }
+                    finally
+                    {
+                        HideAdorner(state);
+                    }
+                }
+            }
+            else
+            {
+                state.Item = null;
+            }
+        }
+
+        private static void OnDragOver(object sender, DragEventArgs e)
+        {
+            var grid = (DataGridEx)sender;
+            var state = grid.m_DragState;
+
+            e.Effects = DragDropEffects.None;
+
+            if (TryGetPayloadItem(grid, e.Data, out var item))
+            {
+                AutoScroll(grid, state, e);
+
+                if (TryGetDropTarget(grid, item, e, out var targetRow, out var isAfter))
+                {
+                    e.Effects = DragDropEffects.Move;
+                    ShowAdorner(state, targetRow, isAfter);
+                }
+                else
+                {
+                    HideAdorner(state);
+                }
+            }
+
+            e.Handled = true;
+        }
+
+        private static void OnDragLeave(object sender, DragEventArgs e)
+        {
+            var grid = (DataGridEx)sender;
+
+            if (!new Rect(grid.RenderSize).Contains(e.GetPosition(grid)))
+            {
+                HideAdorner(grid.m_DragState);
+            }
+        }
+
+        private static void OnDrop(object sender, DragEventArgs e)
+        {
+            var grid = (DataGridEx)sender;
+            var state = grid.m_DragState;
+
+            HideAdorner(state);
+
+            if (TryGetPayloadItem(grid, e.Data, out var item)
+                && TryGetDropTarget(grid, item, e, out var targetRow, out var isAfter)
+                && TryGetReorderableList(grid, out var list))
+            {
+                MoveItem(list, item, targetRow.Item, isAfter);
+
+                grid.SelectedItem = item;
+                grid.ScrollIntoView(item);
+            }
+
+            e.Handled = true;
+        }
+
+        private static void MoveItem(IList list, object item, object targetItem, bool isAfter)
+        {
+            var oldIndex = list.IndexOf(item);
+
+            int newIndex;
+
+            if (targetItem == CollectionView.NewItemPlaceholder)
+            {
+                newIndex = list.Count - 1;
+            }
+            else
+            {
+                newIndex = list.IndexOf(targetItem);
+
+                if (isAfter)
+                {
+                    newIndex++;
+                }
+
+                if (oldIndex < newIndex)
+                {
+                    newIndex--;
+                }
+            }
+
+            if (oldIndex != -1 && newIndex != -1 && oldIndex != newIndex)
+            {
+                list.RemoveAt(oldIndex);
+                list.Insert(newIndex, item);
+            }
+        }
+
+        private static bool TryGetReorderableList(DataGrid grid, out IList list)
+        {
+            var view = (IEditableCollectionView)grid.Items;
+
+            if (grid.ItemsSource is IList srcList
+                && !srcList.IsReadOnly
+                && !srcList.IsFixedSize
+                && grid.Items.SortDescriptions.Count == 0
+                && (grid.Items.GroupDescriptions == null || grid.Items.GroupDescriptions.Count == 0)
+                && !view.IsAddingNew
+                && !view.IsEditingItem)
+            {
+                list = srcList;
+                return true;
+            }
+            else
+            {
+                list = null;
+                return false;
+            }
+        }
+
+        private static bool TryGetPayloadItem(DataGrid grid, IDataObject data, out object item)
+        {
+            if (data.GetDataPresent(DRAG_FORMAT) && data.GetData(DRAG_FORMAT) is DragPayload payload && payload.Grid == grid)
+            {
+                item = payload.Item;
+                return true;
+            }
+            else
+            {
+                item = null;
+                return false;
+            }
+        }
+
+        private static bool TryGetDropTarget(DataGrid grid, object draggedItem, DragEventArgs e, out DataGridRow targetRow, out bool isAfter)
+        {
+            var row = FindRow(grid, e.OriginalSource as DependencyObject);
+
+            if (row != null && row.Item != draggedItem)
+            {
+                targetRow = row;
+                isAfter = row.Item != CollectionView.NewItemPlaceholder && e.GetPosition(row).Y > row.ActualHeight / 2;
+                return true;
+            }
+            else
+            {
+                targetRow = null;
+                isAfter = false;
+                return false;
+            }
+        }
+
+        private static void AutoScroll(DataGrid grid, DragState state, DragEventArgs e)
+        {
+            if (state.ScrollViewer == null)
+            {
+                state.ScrollViewer = grid.TryFindChildOfType<ScrollViewer>();
+            }
+
+            if (state.ScrollViewer != null)
+            {
+                var y = e.GetPosition(grid).Y;
+
+                if (y < AUTO_SCROLL_MARGIN)
+                {
+                    state.ScrollViewer.LineUp();
+                }
+                else if (y > grid.ActualHeight - AUTO_SCROLL_MARGIN)
+                {
+                    state.ScrollViewer.LineDown();
+                }
+            }
+        }
+
+        private static void ShowAdorner(DragState state, DataGridRow row, bool isAfter)
+        {
+            if (state.Adorner == null || state.Adorner.AdornedElement != row)
+            {
+                HideAdorner(state);
+
+                var layer = AdornerLayer.GetAdornerLayer(row);
+
+                if (layer != null)
+                {
+                    state.Adorner = new InsertionAdorner(row);
+                    state.AdornerLayer = layer;
+                    layer.Add(state.Adorner);
+                }
+            }
+
+            if (state.Adorner != null)
+            {
+                state.Adorner.IsAfter = isAfter;
+            }
+        }
+
+        private static void HideAdorner(DragState state)
+        {
+            if (state.Adorner != null)
+            {
+                state.AdornerLayer.Remove(state.Adorner);
+                state.Adorner = null;
+                state.AdornerLayer = null;
+            }
+        }
+
+        private static DataGridRow FindRow(DataGrid grid, DependencyObject elem)
+        {
+            while (elem != null && elem != grid)
+            {
+                if (elem is DataGridRow row && ItemsControl.ItemsControlFromItemContainer(row) == grid)
+                {
+                    return row;
+                }
+
+                elem = elem is Visual || elem is Visual3D ? VisualTreeHelper.GetParent(elem) : LogicalTreeHelper.GetParent(elem);
+            }
+
+            return null;
+        }
+
 
         /// <inheritdoc/>
         protected override void OnCellEditEnding(DataGridCellEditEndingEventArgs e)

@@ -26,7 +26,8 @@
     </DataTemplate>
 
     <DataTemplate x:Key="VariableLinksBoxDecorationTemplate">
-        <TextBlock Margin="2" FontWeight="Bold" VerticalAlignment="Center"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/></TextBlock>
+        <TextBlock Margin="2" FontWeight="Bold" VerticalAlignment="Center"><Run Text="&#402;" FontSize="12"/><Run Text="&#x3C7;" BaselineAlignment="Subscript" FontSize="7"/>
+        </TextBlock>
     </DataTemplate>
 
     <DataTemplate x:Key="VariableLinksMenuItemTemplate">
@@ -124,7 +125,8 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
-                                <local:PopupMenu x:Name="PART_PopupEditor" Grid.Column="2" Margin="2" Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
+                                <local:PopupMenu x:Name="PART_PopupEditor" Grid.Column="2" Margin="2" IsResizable="True" IsMovable="True"
+                                                 Visibility="{Binding Path=Arguments, Converter={StaticResource notNullVisConv}, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}">
                                     <Grid>
                                         <Grid.RowDefinitions>
                                             <RowDefinition Height="Auto"/>
@@ -171,7 +173,7 @@
                                                   CanUserAddRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                                   HeadersVisibility="All" CanUserDeleteRows="{Binding Path=DynamicArguments, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}}"
                                                   ColumnWidth="*" RowHeaderWidth="NaN" AutoGenerateColumns="False"
-                                                  MinWidth="100" MinHeight="100" MaxWidth="300" MaxHeight="500">
+                                                  MinHeight="100">
                                             <DataGrid.Visibility>
                                                 <MultiBinding Converter="{StaticResource suppArgsToVisConv}">
                                                     <Binding Path="Arguments" RelativeSource="{RelativeSource AncestorType={x:Type local:ExpressionVariableTokenControl}}"/>
@@ -252,7 +254,7 @@
                                                 </Style>
                                             </DataGrid.ColumnHeaderStyle>
                                             <DataGrid.Columns>
-                                                <DataGridTemplateColumn IsReadOnly="False" Header="Value">
+                                                <DataGridTemplateColumn IsReadOnly="False" Header="Value" Width="*" MinWidth="100">
                                                     <DataGridTemplateColumn.CellTemplate>
                                                         <DataTemplate>
                                                             <ContentPresenter Content="{Binding}">
@@ -316,6 +318,7 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <Border Grid.Column="0" Background="LightGray" BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
@@ -325,7 +328,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
-                                <ContentPresenter Content="{Binding}" ContentTemplate="{Binding Path=VariableLinksBoxDecorationTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"/>
+                                <ContentPresenter Content="{Binding Path=.}" ContentTemplate="{Binding Path=VariableLinksBoxDecorationTemplate, RelativeSource={RelativeSource AncestorType={x:Type local:ExpressionBox}}}"/>
                                 <local:PopupMenu x:Name="PART_VariableLinksMenu" Grid.Column="1" Margin="2"
                                                  Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"
                                                  Visibility="{TemplateBinding VariableLinks, Converter={StaticResource enumIsNotEmptyToVisConv}}">
@@ -346,6 +349,7 @@
                             </RichTextBox.ContextMenu>
                             <FlowDocument/>
                         </RichTextBox>
+                        <ContentControl Grid.Column="2" Content="{TemplateBinding ExtensionControl}"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

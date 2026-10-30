@@ -2,6 +2,16 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:Xarial.XToolkit.Wpf.Controls">
 
+    <Style TargetType="{x:Type Popup}" x:Key="PopupStyle">
+        <Setter Property="StaysOpen" Value="False"/>
+        <Setter Property="AllowsTransparency" Value="True"/>
+        <Setter Property="PopupAnimation" Value="Slide"/>
+        <Setter Property="Placement" Value="Bottom"/>
+    </Style>
+
+    <Style TargetType="{x:Type local:ExpandToggleButton}" x:Key="ExpandToggleButtonStyle">
+    </Style>
+    
     <Style TargetType="{x:Type local:PopupMenu}">
         <Setter Property="Background" Value="White"/>
         <Setter Property="BorderBrush" Value="Gray"/>
@@ -11,17 +21,46 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type local:PopupMenu}">
                     <Grid>
-                        <local:ExpandToggleButton Background="{TemplateBinding Foreground}" x:Name="PART_Toggle" ToolTip="{TemplateBinding ToolTip}" Cursor="{TemplateBinding Cursor}" Style="{TemplateBinding ToggleButtonStyle}"/>
-                        <Popup x:Name="PART_Popup" StaysOpen="False" AllowsTransparency="True" PlacementTarget="{Binding ElementName=PART_Toggle}"
-                               DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Mode=Self}}"
-                               IsOpen="{Binding Path=IsChecked, ElementName=tglPopup, Mode=TwoWay}"
+                        <local:ExpandToggleButton x:Name="PART_Toggle" Background="{TemplateBinding Foreground}"
+                                                  IsChecked="{Binding Path=IsOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" 
+                                                  ToolTip="{TemplateBinding ToolTip}"
+                                                  Cursor="{TemplateBinding Cursor}" Style="{TemplateBinding ToggleButtonStyle}"/>
+                        <Popup x:Name="PART_Popup" PlacementTarget="{Binding ElementName=PART_Toggle}"
+                               IsOpen="{Binding Path=IsOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                               DataContext="{Binding DataContext, RelativeSource={RelativeSource TemplatedParent}}"
                                MaxWidth="{TemplateBinding MaxWidth}" MaxHeight="{TemplateBinding MaxHeight}"
-                               PopupAnimation="Slide" Placement="Bottom">
+                               Style="{TemplateBinding PopupStyle}">
                             <Grid>
-                                <Border Margin="0,0,8,8" BorderThickness="{TemplateBinding BorderThickness}"
+                                <Border x:Name="PART_PopupBorder" Margin="0,0,8,8" BorderThickness="{TemplateBinding BorderThickness}"
                                         BorderBrush="{TemplateBinding BorderBrush}"
-                                        Background="{TemplateBinding Background}">
-                                    <ContentControl Content="{TemplateBinding Content}"/>
+                                        Background="{TemplateBinding Background}"
+                                        Width="{TemplateBinding PopupWidth}" Height="{TemplateBinding PopupHeight}">
+                                    <Grid>
+                                        <ContentControl Content="{TemplateBinding Content}"/>
+                                        <Thumb x:Name="PART_ResizeGrip" Width="12" Height="12"
+                                               HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                                               Cursor="SizeNWSE" Visibility="Collapsed"
+                                               Foreground="{TemplateBinding BorderBrush}">
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="{x:Type Thumb}">
+                                                    <Grid Background="Transparent">
+                                                        <Path Data="M 10,2 L 2,10 M 10,6 L 6,10" Stroke="{TemplateBinding Foreground}" StrokeThickness="1"/>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                        <Thumb x:Name="PART_MoveGrip" Height="8" HorizontalAlignment="Center" VerticalAlignment="Top"
+                                               Cursor="SizeAll" Visibility="Collapsed" Foreground="{TemplateBinding BorderBrush}">
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="{x:Type Thumb}">
+                                                    <Grid Background="Transparent">
+                                                        <Path Data="M 0,2 L 16,2 M 0,5 L 16,5" Stroke="{TemplateBinding Foreground}" StrokeThickness="1"
+                                                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Grid>
+                                                </ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </Grid>
                                     <Border.Effect>
                                         <DropShadowEffect BlurRadius="5" Opacity="0.4"/>
                                     </Border.Effect>
@@ -29,6 +68,14 @@
                             </Grid>
                         </Popup>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsResizable" Value="True">
+                            <Setter TargetName="PART_ResizeGrip" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                        <Trigger Property="IsMovable" Value="True">
+                            <Setter TargetName="PART_MoveGrip" Property="Visibility" Value="Visible"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

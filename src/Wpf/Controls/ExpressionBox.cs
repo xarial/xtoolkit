@@ -421,8 +421,26 @@ namespace Xarial.XToolkit.Wpf.Controls
         }
     }
 
+    /// <summary>
+    /// Expression box control to manage dynamic variables
+    /// </summary>
     public class ExpressionBox : Control
     {
+        public static DataTemplate DefaultVariableLinksBoxDecorationTemplate
+            => typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksBoxDecorationTemplate");
+
+        public static DataTemplate DefaultVariableLinksMenuTemplate
+            => typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksMenuTemplate");
+
+        public static DataTemplate DefaultVariableLinksMenuItemTemplate
+            => typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksMenuItemTemplate");
+
+        public static DataTemplate DefaultNewArgumentItemTemplate
+            => typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "NewArgumentItemTemplate");
+
+        public static DataTemplate DefaultArgumentLabelTemplate
+            => typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ArgumentLabelTemplate");
+
         private class InternalChangeTracker
         {
             private class InternalChange : IDisposable
@@ -506,6 +524,9 @@ namespace Xarial.XToolkit.Wpf.Controls
                 new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromRgb(171, 173, 179))));
         }
 
+        /// <summary>
+        /// Constructor
+        /// </summary>
         public ExpressionBox()
         {
             m_InternalChangeTracker = new InternalChangeTracker();
@@ -571,6 +592,11 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
+        /// <summary>
+        /// Inserts expression token into the current position
+        /// </summary>
+        /// <param name="expressionToken">Token</param>
+        /// <param name="enterArgs">True to force filling the variable arguments</param>
         public void Insert(IExpressionToken expressionToken, bool enterArgs)
         {
             using (var intChange = m_InternalChangeTracker.PerformInternalChange())
@@ -639,6 +665,9 @@ namespace Xarial.XToolkit.Wpf.Controls
             typeof(ExpressionBox),
             new FrameworkPropertyMetadata("", FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, OnExpressionChanged));
 
+        /// <summary>
+        /// Expression in text format
+        /// </summary>
         public string Expression
         {
             get { return (string)GetValue(ExpressionProperty); }
@@ -681,7 +710,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(VariableLinksBoxDecorationTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksBoxDecorationTemplate")));
+            new PropertyMetadata(DefaultVariableLinksBoxDecorationTemplate));
 
         public DataTemplate VariableLinksBoxDecorationTemplate
         {
@@ -693,7 +722,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(VariableLinksMenuTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksMenuTemplate")));
+            new PropertyMetadata(DefaultVariableLinksMenuTemplate));
 
         public DataTemplate VariableLinksMenuTemplate
         {
@@ -705,7 +734,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(VariableLinksMenuItemTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "VariableLinksMenuItemTemplate")));
+            new PropertyMetadata(DefaultVariableLinksMenuItemTemplate));
 
         public DataTemplate VariableLinksMenuItemTemplate
         {
@@ -717,7 +746,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(NewArgumentItemTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "NewArgumentItemTemplate")));
+            new PropertyMetadata(DefaultNewArgumentItemTemplate));
 
         public DataTemplate NewArgumentItemTemplate
         {
@@ -729,7 +758,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             DependencyProperty.Register(
             nameof(ArgumentLabelTemplate), typeof(DataTemplate),
             typeof(ExpressionBox),
-            new PropertyMetadata(typeof(ExpressionBox).Assembly.LoadFromResources<DataTemplate>("Themes/ExpressionBox.xaml", "ArgumentLabelTemplate")));
+            new PropertyMetadata(DefaultArgumentLabelTemplate));
 
         public DataTemplate ArgumentLabelTemplate
         {
@@ -768,6 +797,17 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             get { return (bool)GetValue(AcceptsReturnProperty); }
             set { SetValue(AcceptsReturnProperty, value); }
+        }
+
+        public static readonly DependencyProperty ExtensionControlProperty =
+            DependencyProperty.Register(
+            nameof(ExtensionControl), typeof(FrameworkElement),
+            typeof(ExpressionBox));
+
+        public FrameworkElement ExtensionControl
+        {
+            get { return (FrameworkElement)GetValue(ExtensionControlProperty); }
+            set { SetValue(ExtensionControlProperty, value); }
         }
 
         internal IExpressionVariableDescriptor GetVariableDescriptor()
@@ -846,18 +886,27 @@ namespace Xarial.XToolkit.Wpf.Controls
         {
             var parser = GetExpressionParser();
 
-            IExpressionToken token;
-
-            if (m_Doc.Blocks.Count == 1)
-            {
-                token = GetExpressionToken(Inlines);
-            }
-            else
-            {
-                token = new ExpressionTokenText("");
-            }
+            var token = ExpressionToken;
 
             Expression = parser.CreateExpression(token);
+        }
+
+        /// <summary>
+        /// Expression token
+        /// </summary>
+        protected IExpressionToken ExpressionToken
+        {
+            get
+            {
+                if (m_Doc.Blocks.Count == 1)
+                {
+                    return GetExpressionToken(Inlines);
+                }
+                else
+                {
+                    return new ExpressionTokenText("");
+                }
+            }
         }
 
         private string GetCachedText() => new TextRange(m_Doc.ContentStart, m_Doc.ContentEnd).Text;
@@ -1009,14 +1058,24 @@ namespace Xarial.XToolkit.Wpf.Controls
             }
         }
 
-        private void InsertVariable(IExpressionVariableLink link)
+        private void InsertVariable(IExpressionVariableLink link) 
+        {
+            m_VariableLinksMenu.IsOpen = false;
+
+            InsertVariableLink(link);
+        }
+
+        /// <summary>
+        /// INserts variable from link
+        /// </summary>
+        /// <param name="link"></param>
+        protected virtual void InsertVariableLink(IExpressionVariableLink link)
         {
             var var = link.Factory.Invoke(this);
             
             if (var != null)
             {
                 Insert(var, link.EnterArguments);
-                m_VariableLinksMenu.IsOpen = false;
             }
         }
 

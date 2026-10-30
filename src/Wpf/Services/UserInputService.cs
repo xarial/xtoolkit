@@ -41,27 +41,15 @@ namespace Xarial.XToolkit.Wpf.Services
             m_Parent = parent;
         }
 
-        /// <summary>
-        /// Requests the input value from the user
-        /// </summary>
         /// <inheritdoc/>
         public bool TryGetInput(string prompt, ref string value)
             => ShowInputBox(prompt, null, ref value);
 
-        /// <summary>
-        /// Requests the input value from the user, input box is displayed at the specified position
-        /// </summary>
-        /// <param name="prompt">User prompt</param>
-        /// <param name="pos">Position of the input box in device independent units</param>
-        /// <param name="value">Initial value of the input and the value entered by the user. Unchanged if cancelled</param>
-        public bool TryGetInput(string prompt, Point pos, ref string value)
+        /// <inheritdoc/>
+        public bool TryGetInput(string prompt, System.Drawing.Point pos, ref string value)
             => ShowInputBox(prompt, pos, ref value);
 
-        /// <summary>
-        /// Requests the input value from the user, input box is displayed at the mouse cursor
-        /// </summary>
-        /// <param name="prompt">User prompt</param>
-        /// <param name="value">Initial value of the input and the value entered by the user. Unchanged if cancelled</param>
+        /// <inheritdoc/>
         public bool TryGetInputAtCursor(string prompt, ref string value)
             => ShowInputBox(prompt, GetCursorPosition(), ref value);
 
@@ -74,7 +62,7 @@ namespace Xarial.XToolkit.Wpf.Services
         /// <param name="value">Initial value of the input and the value entered by the user</param>
         /// <returns>True if user accepted the input</returns>
         /// <remarks>This method is called on the thread of the parent window</remarks>
-        protected virtual bool DisplayInputBox(string title, string prompt, Point? pos, ref string value)
+        protected virtual bool DisplayInputBox(string title, string prompt, System.Drawing.Point? pos, ref string value)
         {
             var dlg = new InputBoxDialog()
             {
@@ -124,7 +112,7 @@ namespace Xarial.XToolkit.Wpf.Services
             }
         }
 
-        private bool ShowInputBox(string prompt, Point? pos, ref string value)
+        private bool ShowInputBox(string prompt, System.Drawing.Point? pos, ref string value)
         {
             var result = value;
 
@@ -139,7 +127,7 @@ namespace Xarial.XToolkit.Wpf.Services
             return accepted;
         }
 
-        private static Point GetCursorPosition()
+        private static System.Drawing.Point GetCursorPosition()
         {
             var cursorPos = System.Windows.Forms.Cursor.Position;
 
@@ -150,7 +138,7 @@ namespace Xarial.XToolkit.Wpf.Services
                 var scaleX = graphics.DpiX / DPI;
                 var scaleY = graphics.DpiY / DPI;
 
-                return new Point(cursorPos.X / scaleX, cursorPos.Y / scaleY);
+                return new System.Drawing.Point(Convert.ToInt32(Convert.ToDouble(cursorPos.X) / scaleX), Convert.ToInt32(Convert.ToDouble(cursorPos.Y) / scaleY));
             }
         }
     }

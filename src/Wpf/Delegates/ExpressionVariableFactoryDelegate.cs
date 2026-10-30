@@ -13,5 +13,5 @@ using Xarial.XToolkit.Wpf.Controls;
 
 namespace Xarial.XToolkit.Wpf.Delegates
 {
-    public delegate IExpressionTokenVariable ExpressionVariableFactoryDelegate(ExpressionBox sender);
+    public delegate IExpressionToken ExpressionVariableFactoryDelegate(ExpressionBox sender);
 }

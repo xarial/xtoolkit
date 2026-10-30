@@ -41,5 +41,35 @@ namespace Xarial.XToolkit.Wpf.Extensions
 
             return null;
         }
+
+        /// <summary>
+        /// Finds first visual child of this object of a specified type
+        /// </summary>
+        /// <typeparam name="T">Type of the child</typeparam>
+        /// <param name="parent">Object to find the child for</param>
+        /// <returns>Child or null</returns>
+        public static T TryFindChildOfType<T>(this DependencyObject parent) where T : DependencyObject
+        {
+            for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, i);
+
+                if (child is T res)
+                {
+                    return res;
+                }
+                else
+                {
+                    res = TryFindChildOfType<T>(child);
+
+                    if (res != null)
+                    {
+                        return res;
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }
