@@ -485,6 +485,8 @@ namespace Xarial.XToolkit.Wpf.Controls
             public string GetTitle(IExpressionTokenVariable variable) => variable.Name;
 
             public string GetDescription(IExpressionTokenVariable variable) => variable.Name;
+
+            public Type GetValueType(IExpressionTokenVariable variable) => typeof(object);
         }
 
         internal event Action<ExpressionBox, IExpressionVariableDescriptor> VariableDescriptorChanged;
@@ -799,15 +801,15 @@ namespace Xarial.XToolkit.Wpf.Controls
             set { SetValue(AcceptsReturnProperty, value); }
         }
 
-        public static readonly DependencyProperty ExtensionControlProperty =
+        public static readonly DependencyProperty ExtensionControlTemplateProperty =
             DependencyProperty.Register(
-            nameof(ExtensionControl), typeof(FrameworkElement),
+            nameof(ExtensionControlTemplate), typeof(DataTemplate),
             typeof(ExpressionBox));
 
-        public FrameworkElement ExtensionControl
+        public DataTemplate ExtensionControlTemplate
         {
-            get { return (FrameworkElement)GetValue(ExtensionControlProperty); }
-            set { SetValue(ExtensionControlProperty, value); }
+            get { return (DataTemplate)GetValue(ExtensionControlTemplateProperty); }
+            set { SetValue(ExtensionControlTemplateProperty, value); }
         }
 
         internal IExpressionVariableDescriptor GetVariableDescriptor()
@@ -1218,6 +1220,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             if (!wrap)
             {
                 width = 2000;
+                m_TextBox.HorizontalScrollBarVisibility = ScrollBarVisibility.Hidden;
             }
 
             m_TextBox.Document.PageWidth = width;

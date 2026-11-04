@@ -349,7 +349,7 @@
                             </RichTextBox.ContextMenu>
                             <FlowDocument/>
                         </RichTextBox>
-                        <ContentControl Grid.Column="2" Content="{TemplateBinding ExtensionControl}"/>
+                        <ContentControl Grid.Column="2" ContentTemplate="{TemplateBinding ExtensionControlTemplate}"/>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

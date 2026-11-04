@@ -16,6 +16,7 @@ namespace Xarial.XToolkit.Wpf.Controls
 {
     public interface IExpressionVariableDescriptor 
     {
+        Type GetValueType(IExpressionTokenVariable variable);
         string GetTitle(IExpressionTokenVariable variable);
         ImageSource GetIcon(IExpressionTokenVariable variable);
         string GetDescription(IExpressionTokenVariable variable);
@@ -27,6 +28,7 @@ namespace Xarial.XToolkit.Wpf.Controls
     {
         public string VariableName { get; set; }
 
+        public Type ValueType { get; set; }
         public bool Dynamic { get; set; }
 
         public string TitleFormat { get; set; }
@@ -63,6 +65,7 @@ namespace Xarial.XToolkit.Wpf.Controls
             return info.Arguments.Select(a => a.Clone())?.ToArray();
         }
 
+        public Type GetValueType(IExpressionTokenVariable variable) => GetInfo(variable).ValueType;
         public Brush GetBackground(IExpressionTokenVariable variable) => GetInfo(variable).Background;
         public string GetDescription(IExpressionTokenVariable variable) => string.Format(GetInfo(variable).DescriptionFormat, GetArgumentsArray(variable));
         public ImageSource GetIcon(IExpressionTokenVariable variable) => GetInfo(variable).Icon;
